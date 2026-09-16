@@ -1,0 +1,135 @@
+import type { InvitationDraft, WeddingInvitation, GalleryImageSlot } from '@/types'
+import { supabase } from './supabaseClient'
+
+interface InvitationRow {
+  id: string
+  slug: string
+  template_id: string
+  bride_name: string
+  groom_name: string
+  tagline: string | null
+  wedding_date: string
+  wedding_time: string | null
+  venue_name: string | null
+  venue_address: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  map_url: string | null
+  dress_code: string | null
+  reception_info: string | null
+  love_story: string | null
+  how_we_met: string | null
+  vows: string | null
+  hero_image: string | null
+  gallery_images: GalleryImageSlot[]
+  gift_information: string | null
+  wedding_hashtag: string | null
+  additional_message: string | null
+  custom_rsvp_message: string | null
+  status: WeddingInvitation['status']
+  views: number
+  created_at: string
+  updated_at: string
+}
+
+function rowToInvitation(row: InvitationRow): WeddingInvitation {
+  return {
+    id: row.id,
+    slug: row.slug,
+    templateId: row.template_id,
+    eventType: 'wedding',
+    brideName: row.bride_name,
+    groomName: row.groom_name,
+    tagline: row.tagline ?? undefined,
+    weddingDate: row.wedding_date,
+    weddingTime: row.wedding_time ?? '',
+    venueName: row.venue_name ?? '',
+    venueAddress: row.venue_address ?? '',
+    city: row.city ?? '',
+    state: row.state ?? '',
+    country: row.country ?? '',
+    mapUrl: row.map_url ?? undefined,
+    dressCode: row.dress_code ?? undefined,
+    receptionInfo: row.reception_info ?? undefined,
+    loveStory: row.love_story ?? undefined,
+    howWeMet: row.how_we_met ?? undefined,
+    vows: row.vows ?? undefined,
+    heroImage: row.hero_image,
+    galleryImages: row.gallery_images ?? [],
+    giftInformation: row.gift_information ?? undefined,
+    weddingHashtag: row.wedding_hashtag ?? undefined,
+    additionalMessage: row.additional_message ?? undefined,
+    customRsvpMessage: row.custom_rsvp_message ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    status: row.status,
+    views: row.views,
+  }
+}
+
+function generateSlug(brideName: string, groomName: string): string {
+  const clean = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  return `${clean(brideName)}-and-${clean(groomName)}`
+}
+
+export const supabaseInvitationService = {
+  async list(): Promise<WeddingInvitation[]> {
+    const { data, error } = await supabase
+      .from('invitations')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return (data as InvitationRow[]).map(rowToInvitation)
+  },
+
+  async getBySlug(slug: string): Promise<WeddingInvitation | undefined> {
+    const { data, error } = await supabase.from('invitations').select('*').eq('slug', slug).maybeSingle()
+    if (error) throw error
+    return data ? rowToInvitation(data as InvitationRow) : undefined
+  },
+
+  async getById(id: string): Promise<WeddingInvitation | undefined> {
+    const { data, error } = await supabase.from('invitations').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    return data ? rowToInvitation(data as InvitationRow) : undefined
+  },
+
+  async publish(draft: InvitationDraft): Promise<WeddingInvitation> {
+    const brideName = draft.brideName ?? 'Bride'
+    const groomName = draft.groomName ?? 'Groom'
+    const slug = draft.slug ?? generateSlug(brideName, groomName)
+
+    const payload = {
+      slug,
+      template_id: draft.templateId,
+      bride_name: brideName,
+      groom_name: groomName,
+      tagline: draft.tagline ?? null,
+      wedding_date: draft.weddingDate || new Date().toISOString().slice(0, 10),
+      wedding_time: draft.weddingTime ?? null,
+      venue_name: draft.venueName ?? null,
+      venue_address: draft.venueAddress ?? null,
+      city: draft.city ?? null,
+      state: draft.state ?? null,
+      country: draft.country ?? null,
+      map_url: draft.mapUrl ?? null,
+      dress_code: draft.dressCode ?? null,
+      reception_info: draft.receptionInfo ?? null,
+      love_story: draft.loveStory ?? null,
+      how_we_met: draft.howWeMet ?? null,
+      vows: draft.vows ?? null,
+      hero_image: draft.heroImage ?? null,
+      gallery_images: draft.galleryImages ?? [],
+      gift_information: draft.giftInformation ?? null,
+      wedding_hashtag: draft.weddingHashtag ?? null,
+      additional_message: draft.additionalMessage ?? null,
+      custom_rsvp_message: draft.customRsvpMessage ?? null,
+      status: 'published' as const,
+    }
+
+    const { data, error } = await supabase.from('invitations').insert(payload).select().single()
+    if (error) throw error
+    return rowToInvitation(data as InvitationRow)
+  },
+}

@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { GuestTable } from '@/components/dashboard/GuestTable'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
+import { SEED_INVITATION_ID } from '@/utils/constants'
 
 type SortKey = 'name' | 'date'
 
@@ -19,7 +20,7 @@ export function DashboardGuestsPage() {
   const [sort, setSort] = useState<SortKey>('name')
 
   useEffect(() => {
-    guestService.listByInvitation(eventId ?? 'inv_001').then(setGuests)
+    guestService.listByInvitation(eventId ?? SEED_INVITATION_ID).then(setGuests)
   }, [eventId])
 
   const filtered = useMemo(() => {
