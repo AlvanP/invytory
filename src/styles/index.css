@@ -1,0 +1,93 @@
+@import "./fonts.css";
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens
+   These are the single source of truth for color, type, spacing and
+   radius across the whole app. Change a value here and it updates
+   everywhere it's used via Tailwind's `bg-ink`, `text-gold`, `font-display`
+   utility classes, etc.
+------------------------------------------------------------------- */
+@theme {
+  /* Color palette */
+  --color-ivory: #FBF8F2;
+  --color-ivory-deep: #F3EDE1;
+  --color-ink: #221E1A;
+  --color-ink-soft: #4A443C;
+  --color-linen: #E7DFCF;
+  --color-gold: #B08D57;
+  --color-gold-soft: #D9C79E;
+  --color-wine: #5C2435;
+  --color-wine-soft: #7A3348;
+  --color-sage: #6B7561;
+  --color-success: #4C7A5A;
+  --color-danger: #A3423A;
+
+  /* Typography */
+  --font-display: "Cormorant Garamond", "Georgia", serif;
+  --font-body: "Manrope", "Helvetica Neue", sans-serif;
+
+  /* Radius — kept small and consistent; this is a luxury brand, not a bubble-card SaaS */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* Shadows — soft and rare, never stacked on every card */
+  --shadow-soft: 0 12px 40px -20px rgba(34, 30, 26, 0.35);
+  --shadow-lift: 0 24px 60px -24px rgba(34, 30, 26, 0.45);
+
+  /* Motion */
+  --ease-elegant: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: var(--color-gold-soft);
+  color: var(--color-ink);
+}
+
+/* Visible, elegant focus ring instead of the browser default */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+
+/* Hairline divider utility used throughout instead of shadows/cards */
+.hairline {
+  border-color: color-mix(in srgb, var(--color-ink) 12%, transparent);
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbar, subtle */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ivory);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-linen);
+  border-radius: 999px;
+}
