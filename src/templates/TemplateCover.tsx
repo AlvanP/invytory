@@ -32,7 +32,13 @@ export function TemplateCover({
     <div className={cn('flex flex-col items-center gap-6 px-6 py-20 text-center', style.bg, style.text)}>
       <p className={cn('text-xs tracking-[0.3em]', style.accent)}>{eyebrow}</p>
 
-      {style.useDoor ? (
+      {invitation.heroImage ? (
+        <img
+          src={invitation.heroImage}
+          alt=""
+          className="aspect-[3/4] w-56 rounded-md object-cover shadow-lift"
+        />
+      ) : style.useDoor ? (
         <DoorPlaceholder className="w-48" />
       ) : (
         <HeroInvitationPlaceholder className="w-56" />

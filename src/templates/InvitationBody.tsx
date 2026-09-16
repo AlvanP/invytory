@@ -84,7 +84,9 @@ export function InvitationBody({ invitation }: { invitation: WeddingInvitation }
       <InvitationSection eyebrow="Gallery" title="A Few Moments">
         <div className="grid grid-cols-2 gap-3">
           {invitation.galleryImages.map((slot) => (
-            <ImagePlaceholder key={slot.id} className="aspect-square" />
+            <div key={slot.id} className="aspect-square overflow-hidden rounded-sm">
+              <ImagePlaceholder src={slot.url} className="h-full w-full" />
+            </div>
           ))}
         </div>
       </InvitationSection>

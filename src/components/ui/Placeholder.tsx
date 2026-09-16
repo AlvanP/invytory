@@ -4,8 +4,6 @@ import { cn } from '@/utils/cn'
 /**
  * A shared family of tasteful placeholder surfaces. These stand in for
  * real photography, maps, and animation until final assets are ready.
- * Every placeholder uses the same linen/gold visual language so the
- * app reads as "system in progress," never "broken."
  */
 
 function Base({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -23,7 +21,20 @@ function Base({ className, children }: { className?: string; children: React.Rea
   )
 }
 
-export function ImagePlaceholder({ label = 'Photo will appear here', className }: { label?: string; className?: string }) {
+/** Shows the real photo if one has been uploaded (`src`), otherwise falls
+ * back to the placeholder box. Used for both hero and gallery slots. */
+export function ImagePlaceholder({
+  label = 'Photo will appear here',
+  src,
+  className,
+}: {
+  label?: string
+  src?: string | null
+  className?: string
+}) {
+  if (src) {
+    return <img src={src} alt="" className={cn('rounded-sm object-cover', className)} />
+  }
   return (
     <Base className={cn('rounded-sm min-h-40', className)}>
       <ImageIcon className="size-6 opacity-50" strokeWidth={1.5} />
