@@ -4,6 +4,7 @@ import type { WeddingInvitation, InvitationTemplate } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { templateService } from '@/services/templateService'
 import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
+import { ArrivalScene } from '@/components/entrance/ArrivalScene'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/State'
 import { Button } from '@/components/ui/Button'
@@ -36,5 +37,13 @@ export function InvitationPreviewPage() {
     )
   }
 
-  return <InvitationRenderer invitation={invitation} template={template} />
+  return (
+    <ArrivalScene
+      tone={template?.previewTone ?? 'classic'}
+      brideName={invitation.brideName}
+      groomName={invitation.groomName}
+    >
+      <InvitationRenderer invitation={invitation} template={template} />
+    </ArrivalScene>
+  )
 }

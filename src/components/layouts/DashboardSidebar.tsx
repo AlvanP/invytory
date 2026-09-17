@@ -1,10 +1,11 @@
 import { NavLink, useParams } from 'react-router-dom'
+import { SEED_INVITATION_ID } from '@/utils/constants'
 import { LayoutGrid, ScrollText, Users, Settings, PlusCircle } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
 export function DashboardSidebar() {
   const { eventId } = useParams()
-  const activeEventId = eventId ?? 'inv_001'
+  const activeEventId = eventId ?? SEED_INVITATION_ID
 
   const links = [
     { to: '/dashboard', label: 'Overview', icon: LayoutGrid, end: true },
