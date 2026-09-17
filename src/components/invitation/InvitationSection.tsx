@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/utils/cn'
 import type { CoverTone } from '@/templates/TemplateCover'
 import { toneStyles } from '@/templates/toneStyles'
+import { RevealOnScroll } from '@/components/animation/RevealOnScroll'
 
 function SectionOrnament({ type, colorClass }: { type: 'diamond' | 'leaf' | 'pattern' | 'line' | 'rule' | 'quote'; colorClass: string }) {
   switch (type) {
@@ -62,12 +63,12 @@ export function InvitationSection({
 
   return (
     <section id={id} className={cn('mx-auto max-w-xl px-6 py-14 text-center', className)}>
-      <div className={style?.frameClass}>
+      <RevealOnScroll className={style?.frameClass}>
         {eyebrow && <p className={style?.eyebrowClass ?? 'text-xs tracking-[0.2em] text-gold'}>{eyebrow}</p>}
         {style && <SectionOrnament type={style.ornament} colorClass={style.ornamentColorClass} />}
         {title && <h2 className={cn(style?.titleClass ?? 'font-display text-3xl text-ink', !style && 'mt-2')}>{title}</h2>}
         <div className={cn(title || eyebrow ? 'mt-6' : undefined)}>{children}</div>
-      </div>
+      </RevealOnScroll>
     </section>
   )
 }

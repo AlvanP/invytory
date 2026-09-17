@@ -5,6 +5,7 @@ import { ImagePlaceholder, MapPlaceholder } from '@/components/ui/Placeholder'
 import { InvitationSection } from '@/components/invitation/InvitationSection'
 import { CountdownDisplay } from '@/components/invitation/CountdownDisplay'
 import { RsvpForm } from '@/components/invitation/RsvpForm'
+import { RevealOnScroll } from '@/components/animation/RevealOnScroll'
 
 /**
  * The reusable core of every wedding invitation. Each template passes
@@ -82,10 +83,10 @@ export function InvitationBody({ invitation, tone }: { invitation: WeddingInvita
 
       <InvitationSection eyebrow="Gallery" title="A Few Moments" tone={tone}>
         <div className="grid grid-cols-2 gap-3">
-          {invitation.galleryImages.map((slot) => (
-            <div key={slot.id} className="aspect-square overflow-hidden rounded-sm">
+          {invitation.galleryImages.map((slot, i) => (
+            <RevealOnScroll key={slot.id} delayMs={i * 100} className="aspect-square overflow-hidden rounded-sm">
               <ImagePlaceholder src={slot.url} className="h-full w-full" />
-            </div>
+            </RevealOnScroll>
           ))}
         </div>
       </InvitationSection>
