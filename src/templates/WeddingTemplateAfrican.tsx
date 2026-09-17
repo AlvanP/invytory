@@ -11,7 +11,7 @@ export function WeddingTemplateAfrican({ invitation }: TemplateRendererProps) {
   return (
     <div>
       <TemplateCover invitation={invitation} tone="heritage" eyebrow="Together With Their Families" />
-      <InvitationBody invitation={invitation} />
+      <InvitationBody invitation={invitation} tone="heritage" />
     </div>
   )
 }

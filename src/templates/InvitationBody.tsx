@@ -1,4 +1,5 @@
 import type { WeddingInvitation } from '@/types'
+import type { CoverTone } from './TemplateCover'
 import { formatDate, formatTime } from '@/utils/format'
 import { ImagePlaceholder, MapPlaceholder } from '@/components/ui/Placeholder'
 import { InvitationSection } from '@/components/invitation/InvitationSection'
@@ -6,18 +7,16 @@ import { CountdownDisplay } from '@/components/invitation/CountdownDisplay'
 import { RsvpForm } from '@/components/invitation/RsvpForm'
 
 /**
- * The reusable core of every wedding invitation. A template component
- * (see `src/templates/WeddingTemplate*.tsx`) supplies an opening cover
- * and a couple of tone props, then renders this body underneath — so
- * six visual templates share one data-rendering implementation instead
- * of six duplicated invitation apps.
+ * The reusable core of every wedding invitation. Each template passes
+ * its own `tone`, which changes heading styles and ornaments (see
+ * `toneStyles.ts`) without duplicating this component six times.
  */
-export function InvitationBody({ invitation }: { invitation: WeddingInvitation }) {
+export function InvitationBody({ invitation, tone }: { invitation: WeddingInvitation; tone: CoverTone }) {
   const hasStory = invitation.loveStory || invitation.howWeMet || invitation.vows
 
   return (
     <div>
-      <InvitationSection eyebrow="The Wedding Of">
+      <InvitationSection eyebrow="The Wedding Of" tone={tone}>
         <h1 className="font-display text-4xl text-ink sm:text-5xl">
           {invitation.brideName} <span className="text-gold">&amp;</span> {invitation.groomName}
         </h1>
@@ -28,7 +27,7 @@ export function InvitationBody({ invitation }: { invitation: WeddingInvitation }
         </p>
       </InvitationSection>
 
-      <InvitationSection eyebrow="Details" title="Join Us">
+      <InvitationSection eyebrow="Details" title="Join Us" tone={tone}>
         <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-ink-soft/70">Date</dt>
@@ -62,7 +61,7 @@ export function InvitationBody({ invitation }: { invitation: WeddingInvitation }
       </InvitationSection>
 
       {hasStory && (
-        <InvitationSection eyebrow="Our Journey" title="Our Story" className="bg-ivory-deep">
+        <InvitationSection eyebrow="Our Journey" title="Our Story" tone={tone} className="bg-ivory-deep">
           <div className="flex flex-col gap-6 text-left text-sm leading-relaxed text-ink-soft">
             {invitation.loveStory && <p>{invitation.loveStory}</p>}
             {invitation.howWeMet && (
@@ -81,7 +80,7 @@ export function InvitationBody({ invitation }: { invitation: WeddingInvitation }
         </InvitationSection>
       )}
 
-      <InvitationSection eyebrow="Gallery" title="A Few Moments">
+      <InvitationSection eyebrow="Gallery" title="A Few Moments" tone={tone}>
         <div className="grid grid-cols-2 gap-3">
           {invitation.galleryImages.map((slot) => (
             <div key={slot.id} className="aspect-square overflow-hidden rounded-sm">
@@ -91,15 +90,15 @@ export function InvitationBody({ invitation }: { invitation: WeddingInvitation }
         </div>
       </InvitationSection>
 
-      <InvitationSection eyebrow="Counting Down" title="Until We Say I Do">
+      <InvitationSection eyebrow="Counting Down" title="Until We Say I Do" tone={tone}>
         <CountdownDisplay weddingDate={invitation.weddingDate} />
       </InvitationSection>
 
-      <InvitationSection eyebrow="Kindly Respond" className="bg-ivory-deep">
+      <InvitationSection eyebrow="Kindly Respond" tone={tone} className="bg-ivory-deep">
         <RsvpForm invitationId={invitation.id} customMessage={invitation.customRsvpMessage} />
       </InvitationSection>
 
-      <InvitationSection eyebrow="Getting There" title="Venue &amp; Map">
+      <InvitationSection eyebrow="Getting There" title="Venue &amp; Map" tone={tone}>
         <div className="text-left">
           <p className="text-sm text-ink">{invitation.venueName}</p>
           <p className="text-sm text-ink-soft">{invitation.venueAddress}</p>
@@ -109,7 +108,7 @@ export function InvitationBody({ invitation }: { invitation: WeddingInvitation }
       </InvitationSection>
 
       {(invitation.giftInformation || invitation.weddingHashtag || invitation.additionalMessage) && (
-        <InvitationSection eyebrow="A Little More">
+        <InvitationSection eyebrow="A Little More" tone={tone}>
           <div className="flex flex-col gap-3 text-sm text-ink-soft">
             {invitation.giftInformation && <p>{invitation.giftInformation}</p>}
             {invitation.weddingHashtag && <p className="text-gold">{invitation.weddingHashtag}</p>}

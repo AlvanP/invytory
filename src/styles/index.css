@@ -25,6 +25,7 @@
 
   /* Typography */
   --font-display: "Cormorant Garamond", "Georgia", serif;
+  --font-display-alt: "Playfair Display", "Georgia", serif;
   --font-body: "Manrope", "Helvetica Neue", sans-serif;
 
   /* Radius — kept small and consistent; this is a luxury brand, not a bubble-card SaaS */

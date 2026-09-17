@@ -11,7 +11,7 @@ export function WeddingTemplateStorybook({ invitation }: TemplateRendererProps) 
   return (
     <div>
       <TemplateCover invitation={invitation} tone="storybook" eyebrow="Together With Their Families" />
-      <InvitationBody invitation={invitation} />
+      <InvitationBody invitation={invitation} tone="storybook" />
     </div>
   )
 }

@@ -11,7 +11,7 @@ export function WeddingTemplateModern({ invitation }: TemplateRendererProps) {
   return (
     <div>
       <TemplateCover invitation={invitation} tone="modern" eyebrow="Together With Their Families" />
-      <InvitationBody invitation={invitation} />
+      <InvitationBody invitation={invitation} tone="modern" />
     </div>
   )
 }

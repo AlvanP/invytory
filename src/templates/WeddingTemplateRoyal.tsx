@@ -11,7 +11,7 @@ export function WeddingTemplateRoyal({ invitation }: TemplateRendererProps) {
   return (
     <div>
       <TemplateCover invitation={invitation} tone="royal" eyebrow="Together With Their Families" />
-      <InvitationBody invitation={invitation} />
+      <InvitationBody invitation={invitation} tone="royal" />
     </div>
   )
 }

@@ -11,7 +11,7 @@ export function WeddingTemplateClassic({ invitation }: TemplateRendererProps) {
   return (
     <div>
       <TemplateCover invitation={invitation} tone="classic" eyebrow="Together With Their Families" />
-      <InvitationBody invitation={invitation} />
+      <InvitationBody invitation={invitation} tone="classic" />
     </div>
   )
 }
