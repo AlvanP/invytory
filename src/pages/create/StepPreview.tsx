@@ -1,25 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CreditCard, PartyPopper, Smartphone, Monitor } from 'lucide-react'
+import { CreditCard, PartyPopper, Smartphone, Monitor, Mail } from 'lucide-react'
 import { useWizard } from '@/hooks/useWizard'
+import { useAuth } from '@/hooks/useAuth'
 import { templateService } from '@/services/templateService'
 import { invitationService } from '@/services/invitationService'
+import { authService } from '@/services/authService'
 import type { InvitationTemplate } from '@/types'
 import { draftToPreviewInvitation } from '@/utils/draftToPreviewInvitation'
 import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { Input } from '@/components/ui/Input'
 import { cn } from '@/utils/cn'
 
-type PublishStage = 'idle' | 'paying' | 'published'
+type PublishStage = 'idle' | 'signIn' | 'linkSent' | 'paying' | 'published'
 
 export function StepPreview() {
   const { draft, reset } = useWizard()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [template, setTemplate] = useState<InvitationTemplate | undefined>()
   const [device, setDevice] = useState<'desktop' | 'mobile'>('mobile')
   const [stage, setStage] = useState<PublishStage>('idle')
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [wantsToPublish, setWantsToPublish] = useState(false)
 
   useEffect(() => {
     if (draft.templateId) templateService.getById(draft.templateId).then(setTemplate)
@@ -27,11 +33,37 @@ export function StepPreview() {
 
   const previewInvitation = draftToPreviewInvitation(draft)
 
-  async function handlePublish() {
+  // If the guest signs in on another tab (via the magic-link email)
+  // while this tab is showing "check your email," pick right back up
+  // and continue publishing — the draft never left memory.
+  useEffect(() => {
+    if (user && wantsToPublish && stage === 'linkSent') {
+      runPublish(user.id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, wantsToPublish, stage])
+
+  function handlePublishClick() {
+    setWantsToPublish(true)
+    if (user) {
+      runPublish(user.id)
+    } else {
+      setStage('signIn')
+    }
+  }
+
+  async function handleSendLink(e: FormEvent) {
+    e.preventDefault()
+    if (!email.trim()) return
+    await authService.signInWithMagicLink(email.trim())
+    setStage('linkSent')
+  }
+
+  async function runPublish(ownerId: string) {
     setStage('paying')
     // Simulated payment step — replace with real Paystack flow later.
     await new Promise((r) => setTimeout(r, 1400))
-    const published = await invitationService.publish(draft)
+    const published = await invitationService.publish(draft, ownerId)
     setPublishedSlug(published.slug)
     setStage('published')
   }
@@ -74,16 +106,48 @@ export function StepPreview() {
 
       <div className="flex items-center justify-between border-t border-ink/10 pt-6">
         <Button variant="ghost" size="sm" onClick={() => navigate('/create/options')}>Back</Button>
-        <Button size="sm" icon={<CreditCard className="size-4" />} onClick={handlePublish}>
+        <Button size="sm" icon={<CreditCard className="size-4" />} onClick={handlePublishClick}>
           Publish Invitation
         </Button>
       </div>
 
       <Modal
         isOpen={stage !== 'idle'}
-        onClose={() => { if (stage === 'published') setStage('idle') }}
-        title={stage === 'paying' ? 'Processing payment' : 'Published'}
+        onClose={() => { if (stage === 'signIn' || stage === 'linkSent') setStage('idle') }}
+        title={
+          stage === 'signIn' ? 'Sign in to publish'
+          : stage === 'linkSent' ? 'Check your email'
+          : stage === 'paying' ? 'Processing payment'
+          : 'Published'
+        }
       >
+        {stage === 'signIn' && (
+          <form onSubmit={handleSendLink} className="flex flex-col gap-4">
+            <p className="text-sm text-ink-soft">
+              Your invitation is ready. Sign in with your email to publish it and save it to your dashboard.
+            </p>
+            <Input
+              type="email"
+              label="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+            <Button type="submit" icon={<Mail className="size-4" />}>Send Sign-In Link</Button>
+          </form>
+        )}
+
+        {stage === 'linkSent' && (
+          <div className="flex flex-col items-center gap-3 py-4 text-center">
+            <Mail className="size-8 text-gold" strokeWidth={1.5} />
+            <p className="text-sm text-ink-soft">
+              We sent a link to <span className="text-ink">{email}</span>. Open it to sign in —
+              this page will pick up right where you left off and publish automatically.
+            </p>
+          </div>
+        )}
+
         {stage === 'paying' && (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <div className="size-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />

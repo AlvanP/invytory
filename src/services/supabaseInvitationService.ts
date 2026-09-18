@@ -5,6 +5,7 @@ interface InvitationRow {
   id: string
   slug: string
   template_id: string
+  owner_id: string | null
   bride_name: string
   groom_name: string
   tagline: string | null
@@ -74,11 +75,14 @@ function generateSlug(brideName: string, groomName: string): string {
 }
 
 export const supabaseInvitationService = {
-  async list(): Promise<WeddingInvitation[]> {
-    const { data, error } = await supabase
-      .from('invitations')
-      .select('*')
-      .order('created_at', { ascending: false })
+  /** Pass the signed-in user's id to list only their invitations
+   * (used by the dashboard). Omit it to rely on RLS's public-read
+   * rule for published invitations only (not used directly today,
+   * kept for future public "browse" features). */
+  async list(ownerId?: string): Promise<WeddingInvitation[]> {
+    let query = supabase.from('invitations').select('*').order('created_at', { ascending: false })
+    if (ownerId) query = query.eq('owner_id', ownerId)
+    const { data, error } = await query
     if (error) throw error
     return (data as InvitationRow[]).map(rowToInvitation)
   },
@@ -95,7 +99,9 @@ export const supabaseInvitationService = {
     return data ? rowToInvitation(data as InvitationRow) : undefined
   },
 
-  async publish(draft: InvitationDraft): Promise<WeddingInvitation> {
+  /** ownerId is required in practice — the database rejects an insert
+   * with no owner_id once RLS is updated (see the SQL setup step). */
+  async publish(draft: InvitationDraft, ownerId: string): Promise<WeddingInvitation> {
     const brideName = draft.brideName ?? 'Bride'
     const groomName = draft.groomName ?? 'Groom'
     const slug = draft.slug ?? generateSlug(brideName, groomName)
@@ -103,6 +109,7 @@ export const supabaseInvitationService = {
     const payload = {
       slug,
       template_id: draft.templateId,
+      owner_id: ownerId,
       bride_name: brideName,
       groom_name: groomName,
       tagline: draft.tagline ?? null,

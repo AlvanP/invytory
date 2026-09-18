@@ -1,10 +1,12 @@
 import { Routes, Route } from 'react-router-dom'
 import { PublicLayout } from '@/components/layouts/PublicLayout'
 import { DashboardLayout } from '@/components/layouts/DashboardLayout'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { LandingPage } from '@/pages/LandingPage'
 import { TemplateGalleryPage } from '@/pages/TemplateGalleryPage'
 import { TemplatePreviewPage } from '@/pages/TemplatePreviewPage'
 import { InvitationPreviewPage } from '@/pages/InvitationPreviewPage'
+import { SignInPage } from '@/pages/SignInPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { CreateLayout } from '@/pages/create/CreateLayout'
 import { StepTemplate } from '@/pages/create/StepTemplate'
@@ -30,6 +32,8 @@ function App() {
         <Route path="/invitation/:slug" element={<InvitationPreviewPage />} />
       </Route>
 
+      <Route path="/sign-in" element={<SignInPage />} />
+
       <Route path="/create" element={<CreateLayout />}>
         <Route index element={<StepTemplate />} />
         <Route path="couple" element={<StepCouple />} />
@@ -40,12 +44,14 @@ function App() {
         <Route path="preview" element={<StepPreview />} />
       </Route>
 
-      <Route path="/dashboard" element={<DashboardLayout />}>
-        <Route index element={<DashboardOverviewPage />} />
-        <Route path="events" element={<DashboardEventsPage />} />
-        <Route path="events/:eventId" element={<DashboardEventDetailPage />} />
-        <Route path="events/:eventId/guests" element={<DashboardGuestsPage />} />
-        <Route path="events/:eventId/settings" element={<DashboardSettingsPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route index element={<DashboardOverviewPage />} />
+          <Route path="events" element={<DashboardEventsPage />} />
+          <Route path="events/:eventId" element={<DashboardEventDetailPage />} />
+          <Route path="events/:eventId/guests" element={<DashboardGuestsPage />} />
+          <Route path="events/:eventId/settings" element={<DashboardSettingsPage />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

@@ -4,6 +4,7 @@ import { Eye, Users, Share2, Settings, ScrollText } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { templateService } from '@/services/templateService'
+import { useAuth } from '@/hooks/useAuth'
 import { formatDate, formatNumber } from '@/utils/format'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -12,16 +13,18 @@ import { DashboardCardSkeleton } from '@/components/ui/Skeleton'
 import { ShareModal } from '@/components/dashboard/ShareModal'
 
 export function DashboardEventsPage() {
+  const { user } = useAuth()
   const [invitations, setInvitations] = useState<WeddingInvitation[] | null>(null)
   const [templates, setTemplates] = useState<Record<string, InvitationTemplate>>({})
   const [shareSlug, setShareSlug] = useState<string | null>(null)
 
   useEffect(() => {
-    invitationService.list().then(setInvitations)
+    if (!user) return
+    invitationService.list(user.id).then(setInvitations)
     templateService.list().then((list) => {
       setTemplates(Object.fromEntries(list.map((t) => [t.id, t])))
     })
-  }, [])
+  }, [user])
 
   return (
     <div>
