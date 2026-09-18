@@ -38,8 +38,8 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         className="absolute inset-0 bg-ink/50 backdrop-blur-[2px] transition-opacity duration-300"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-md rounded-md bg-ivory p-6 shadow-lift animate-[modalIn_0.25s_ease-out]">
-        <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="relative flex max-h-[90vh] w-full max-w-md flex-col rounded-md bg-ivory shadow-lift animate-[modalIn_0.25s_ease-out]">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-ink/10 px-6 py-4">
           <h2 id="modal-title" className="font-display text-2xl text-ink">{title}</h2>
           <button
             ref={closeRef}
@@ -50,7 +50,9 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             <X className="size-5" />
           </button>
         </div>
-        {children}
+        <div className="overflow-y-auto px-6 py-4">
+          {children}
+        </div>
       </div>
       <style>{`
         @keyframes modalIn {

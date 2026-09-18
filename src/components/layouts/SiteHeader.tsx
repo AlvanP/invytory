@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 
 const links = [
   { to: '/templates', label: 'Templates' },
+  { to: '/pricing', label: 'Pricing' },
   { to: '/dashboard', label: 'Dashboard' },
 ]
 

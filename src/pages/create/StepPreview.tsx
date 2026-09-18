@@ -1,20 +1,23 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CreditCard, PartyPopper, Smartphone, Monitor, Mail } from 'lucide-react'
+import { CreditCard, Smartphone, Monitor, Mail, AlertCircle } from 'lucide-react'
 import { useWizard } from '@/hooks/useWizard'
 import { useAuth } from '@/hooks/useAuth'
 import { templateService } from '@/services/templateService'
 import { invitationService } from '@/services/invitationService'
 import { authService } from '@/services/authService'
+import { paymentService } from '@/services/paymentService'
+import { pricingPlans, type PricingPlan } from '@/data/pricingPlans'
 import type { InvitationTemplate } from '@/types'
 import { draftToPreviewInvitation } from '@/utils/draftToPreviewInvitation'
 import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
+import { PlanCard } from '@/components/pricing/PlanCard'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { cn } from '@/utils/cn'
 
-type PublishStage = 'idle' | 'signIn' | 'linkSent' | 'paying' | 'published'
+type CheckoutStage = 'idle' | 'selectPlan' | 'signIn' | 'linkSent' | 'processing' | 'error'
 
 export function StepPreview() {
   const { draft, reset } = useWizard()
@@ -22,10 +25,11 @@ export function StepPreview() {
   const navigate = useNavigate()
   const [template, setTemplate] = useState<InvitationTemplate | undefined>()
   const [device, setDevice] = useState<'desktop' | 'mobile'>('mobile')
-  const [stage, setStage] = useState<PublishStage>('idle')
-  const [publishedSlug, setPublishedSlug] = useState<string | null>(null)
+  const [stage, setStage] = useState<CheckoutStage>('idle')
   const [email, setEmail] = useState('')
-  const [wantsToPublish, setWantsToPublish] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null)
+  const [wantsToCheckout, setWantsToCheckout] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (draft.templateId) templateService.getById(draft.templateId).then(setTemplate)
@@ -35,18 +39,23 @@ export function StepPreview() {
 
   // If the guest signs in on another tab (via the magic-link email)
   // while this tab is showing "check your email," pick right back up
-  // and continue publishing — the draft never left memory.
+  // and launch Paystack checkout — the draft and chosen plan never left memory.
   useEffect(() => {
-    if (user && wantsToPublish && stage === 'linkSent') {
-      runPublish(user.id)
+    if (user && wantsToCheckout && stage === 'linkSent' && selectedPlan) {
+      startCheckout(selectedPlan, user.id, user.email ?? email)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, wantsToPublish, stage])
+  }, [user, wantsToCheckout, stage])
 
   function handlePublishClick() {
-    setWantsToPublish(true)
+    setStage('selectPlan')
+  }
+
+  function handleSelectPlan(plan: PricingPlan) {
+    setSelectedPlan(plan)
+    setWantsToCheckout(true)
     if (user) {
-      runPublish(user.id)
+      startCheckout(plan, user.id, user.email ?? email)
     } else {
       setStage('signIn')
     }
@@ -59,13 +68,35 @@ export function StepPreview() {
     setStage('linkSent')
   }
 
-  async function runPublish(ownerId: string) {
-    setStage('paying')
-    // Simulated payment step — replace with real Paystack flow later.
-    await new Promise((r) => setTimeout(r, 1400))
-    const published = await invitationService.publish(draft, ownerId)
-    setPublishedSlug(published.slug)
-    setStage('published')
+  async function startCheckout(plan: PricingPlan, ownerId: string, payerEmail: string) {
+    setStage('processing')
+    try {
+      const reference = await paymentService.checkout({
+        email: payerEmail,
+        amountNaira: plan.price,
+        metadata: { plan: plan.id, brideName: draft.brideName, groomName: draft.groomName },
+      })
+
+      if (!reference) {
+        // Customer closed the Paystack popup without paying — let them try again.
+        setStage('selectPlan')
+        return
+      }
+
+      const verified = await paymentService.verifyPayment(reference, plan.price)
+      if (!verified) {
+        setErrorMessage('We could not confirm your payment. If you were charged, contact support with this reference: ' + reference)
+        setStage('error')
+        return
+      }
+
+      const published = await invitationService.publish(draft, ownerId, plan, reference)
+      reset()
+      navigate(`/success/${published.slug}`)
+    } catch {
+      setErrorMessage('Something went wrong during checkout. Please try again.')
+      setStage('error')
+    }
   }
 
   return (
@@ -113,18 +144,33 @@ export function StepPreview() {
 
       <Modal
         isOpen={stage !== 'idle'}
-        onClose={() => { if (stage === 'signIn' || stage === 'linkSent') setStage('idle') }}
+        onClose={() => { if (stage === 'selectPlan' || stage === 'signIn' || stage === 'linkSent' || stage === 'error') setStage('idle') }}
         title={
-          stage === 'signIn' ? 'Sign in to publish'
+          stage === 'selectPlan' ? 'Choose your plan'
+          : stage === 'signIn' ? 'Sign in to continue'
           : stage === 'linkSent' ? 'Check your email'
-          : stage === 'paying' ? 'Processing payment'
-          : 'Published'
+          : stage === 'processing' ? 'Processing'
+          : 'Something went wrong'
         }
       >
+        {stage === 'selectPlan' && (
+          <div className="flex flex-col gap-4">
+            {pricingPlans.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                highlight={plan.id === 'gold'}
+                ctaLabel={`Pay ₦${plan.price.toLocaleString()} & Publish`}
+                onSelect={handleSelectPlan}
+              />
+            ))}
+          </div>
+        )}
+
         {stage === 'signIn' && (
           <form onSubmit={handleSendLink} className="flex flex-col gap-4">
             <p className="text-sm text-ink-soft">
-              Your invitation is ready. Sign in with your email to publish it and save it to your dashboard.
+              Sign in with your email to publish your {selectedPlan?.name} invitation and save it to your dashboard.
             </p>
             <Input
               type="email"
@@ -143,41 +189,23 @@ export function StepPreview() {
             <Mail className="size-8 text-gold" strokeWidth={1.5} />
             <p className="text-sm text-ink-soft">
               We sent a link to <span className="text-ink">{email}</span>. Open it to sign in —
-              this page will pick up right where you left off and publish automatically.
+              this page will pick up right where you left off and take you to checkout automatically.
             </p>
           </div>
         )}
 
-        {stage === 'paying' && (
+        {stage === 'processing' && (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <div className="size-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
-            <p className="text-sm text-ink-soft">Simulating payment&hellip; no card will be charged.</p>
+            <p className="text-sm text-ink-soft">Processing your payment&hellip;</p>
           </div>
         )}
-        {stage === 'published' && publishedSlug && (
+
+        {stage === 'error' && (
           <div className="flex flex-col items-center gap-4 py-4 text-center">
-            <PartyPopper className="size-8 text-gold" strokeWidth={1.5} />
-            <p className="text-sm text-ink-soft">
-              Your invitation is live at <br />
-              <span className="text-ink">/invitation/{publishedSlug}</span>
-            </p>
-            <div className="flex w-full gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => { reset(); navigate('/dashboard') }}
-              >
-                Go to Dashboard
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1"
-                onClick={() => { reset(); navigate(`/invitation/${publishedSlug}`) }}
-              >
-                View Invitation
-              </Button>
-            </div>
+            <AlertCircle className="size-8 text-danger" strokeWidth={1.5} />
+            <p className="text-sm text-ink-soft">{errorMessage}</p>
+            <Button size="sm" onClick={() => setStage('selectPlan')}>Try Again</Button>
           </div>
         )}
       </Modal>

@@ -1,4 +1,5 @@
 import type { InvitationDraft, WeddingInvitation, GalleryImageSlot } from '@/types'
+import type { PricingPlan } from '@/data/pricingPlans'
 import { supabase } from './supabaseClient'
 
 interface InvitationRow {
@@ -32,6 +33,10 @@ interface InvitationRow {
   views: number
   created_at: string
   updated_at: string
+  plan: WeddingInvitation['plan'] | null
+  max_guests: number | null
+  expires_at: string | null
+  payment_reference: string | null
 }
 
 function rowToInvitation(row: InvitationRow): WeddingInvitation {
@@ -66,6 +71,10 @@ function rowToInvitation(row: InvitationRow): WeddingInvitation {
     updatedAt: row.updated_at,
     status: row.status,
     views: row.views,
+    plan: row.plan ?? undefined,
+    maxGuests: row.max_guests ?? undefined,
+    expiresAt: row.expires_at ?? undefined,
+    paymentReference: row.payment_reference ?? undefined,
   }
 }
 
@@ -100,11 +109,21 @@ export const supabaseInvitationService = {
   },
 
   /** ownerId is required in practice — the database rejects an insert
-   * with no owner_id once RLS is updated (see the SQL setup step). */
-  async publish(draft: InvitationDraft, ownerId: string): Promise<WeddingInvitation> {
+   * with no owner_id once RLS is updated. `plan` and `paymentReference`
+   * are only trusted here because they were only reached after
+   * /api/verify-payment confirmed the charge server-side — see
+   * StepPreview.tsx. */
+  async publish(
+    draft: InvitationDraft,
+    ownerId: string,
+    plan: PricingPlan,
+    paymentReference: string
+  ): Promise<WeddingInvitation> {
     const brideName = draft.brideName ?? 'Bride'
     const groomName = draft.groomName ?? 'Groom'
     const slug = draft.slug ?? generateSlug(brideName, groomName)
+
+    const expiresAt = new Date(Date.now() + plan.hostingDays * 24 * 60 * 60 * 1000).toISOString()
 
     const payload = {
       slug,
@@ -133,6 +152,10 @@ export const supabaseInvitationService = {
       additional_message: draft.additionalMessage ?? null,
       custom_rsvp_message: draft.customRsvpMessage ?? null,
       status: 'published' as const,
+      plan: plan.id,
+      max_guests: plan.maxGuests,
+      expires_at: expiresAt,
+      payment_reference: paymentReference,
     }
 
     const { data, error } = await supabase.from('invitations').insert(payload).select().single()

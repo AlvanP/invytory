@@ -6,6 +6,8 @@ import { LandingPage } from '@/pages/LandingPage'
 import { TemplateGalleryPage } from '@/pages/TemplateGalleryPage'
 import { TemplatePreviewPage } from '@/pages/TemplatePreviewPage'
 import { InvitationPreviewPage } from '@/pages/InvitationPreviewPage'
+import { PricingPage } from '@/pages/PricingPage'
+import { PublishSuccessPage } from '@/pages/PublishSuccessPage'
 import { SignInPage } from '@/pages/SignInPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { CreateLayout } from '@/pages/create/CreateLayout'
@@ -29,7 +31,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/templates" element={<TemplateGalleryPage />} />
         <Route path="/templates/:templateId" element={<TemplatePreviewPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/invitation/:slug" element={<InvitationPreviewPage />} />
+        <Route path="/success/:slug" element={<PublishSuccessPage />} />
       </Route>
 
       <Route path="/sign-in" element={<SignInPage />} />

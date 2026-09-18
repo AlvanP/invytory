@@ -54,11 +54,18 @@ export interface WeddingInvitation {
   additionalMessage?: string
   customRsvpMessage?: string
 
-  // System
+    // System
   createdAt: string
   updatedAt: string
   status: InvitationStatus
   views: number
+
+  // Plan & payment
+  plan?: 'silver' | 'gold'
+  maxGuests?: number
+  /** ISO date the hosting period ends — the plan's hostingDays after publish. */
+  expiresAt?: string
+  paymentReference?: string
 }
 
 /**
