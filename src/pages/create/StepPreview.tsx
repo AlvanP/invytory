@@ -83,9 +83,12 @@ export function StepPreview() {
         return
       }
 
-      const verified = await paymentService.verifyPayment(reference, plan.price)
+      const { verified, error: verifyError } = await paymentService.verifyPayment(reference, plan.price)
       if (!verified) {
-        setErrorMessage('We could not confirm your payment. If you were charged, contact support with this reference: ' + reference)
+        setErrorMessage(
+          (verifyError ? verifyError + ' ' : '') +
+          'If you were charged, contact support with this reference: ' + reference
+        )
         setStage('error')
         return
       }

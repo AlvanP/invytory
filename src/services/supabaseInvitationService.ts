@@ -35,6 +35,7 @@ interface InvitationRow {
   updated_at: string
   plan: WeddingInvitation['plan'] | null
   max_guests: number | null
+  confirmed_guest_count: number
   expires_at: string | null
   payment_reference: string | null
 }
@@ -73,6 +74,7 @@ function rowToInvitation(row: InvitationRow): WeddingInvitation {
     views: row.views,
     plan: row.plan ?? undefined,
     maxGuests: row.max_guests ?? undefined,
+    confirmedGuestCount: row.confirmed_guest_count,
     expiresAt: row.expires_at ?? undefined,
     paymentReference: row.payment_reference ?? undefined,
   }

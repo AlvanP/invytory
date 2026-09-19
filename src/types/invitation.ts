@@ -60,9 +60,12 @@ export interface WeddingInvitation {
   status: InvitationStatus
   views: number
 
-  // Plan & payment
+    // Plan & payment
   plan?: 'silver' | 'gold'
   maxGuests?: number
+  /** Running total of confirmed guests, maintained by a database
+   * trigger — never trust a client-computed count for capacity checks. */
+  confirmedGuestCount?: number
   /** ISO date the hosting period ends — the plan's hostingDays after publish. */
   expiresAt?: string
   paymentReference?: string

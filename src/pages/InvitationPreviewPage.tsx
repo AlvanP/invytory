@@ -37,6 +37,19 @@ export function InvitationPreviewPage() {
     )
   }
 
+  const isExpired = invitation.expiresAt ? new Date(invitation.expiresAt) < new Date() : false
+
+  if (isExpired) {
+    return (
+      <div className="mx-auto max-w-md px-6 py-24">
+        <ErrorState
+          title="This invitation is no longer available."
+          description="Its hosting period has ended. Please reach out to the couple directly for details."
+        />
+      </div>
+    )
+  }
+
   return (
     <ArrivalScene
       tone={template?.previewTone ?? 'classic'}

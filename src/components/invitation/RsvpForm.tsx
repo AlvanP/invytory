@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Check, X } from 'lucide-react'
+import { Check, X, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -15,16 +15,18 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (attending === null) return
     if (!fullName.trim()) {
-      setError('Please tell us your name.')
+      setNameError('Please tell us your name.')
       return
     }
-    setError(null)
+    setNameError(null)
+    setFormError(null)
     setSubmitting(true)
     try {
       await guestService.submitRsvp(invitationId, {
@@ -35,6 +37,11 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
         message: message.trim() || undefined,
       })
       setSubmitted(true)
+    } catch (err) {
+      // The database enforces guest-capacity and hosting-expiry rules
+      // (see the Postgres trigger) — its message is safe to show as-is.
+      const dbMessage = err instanceof Error ? err.message : ''
+      setFormError(dbMessage || 'Something went wrong submitting your RSVP. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -90,7 +97,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="e.g. Chinelo Okafor"
-            error={error ?? undefined}
+            error={nameError ?? undefined}
             required
           />
           {attending && (
@@ -118,6 +125,14 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
             placeholder="Leave a note for the couple"
             rows={3}
           />
+
+          {formError && (
+            <div className="flex items-start gap-2 rounded-xs border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              <span>{formError}</span>
+            </div>
+          )}
+
           <Button type="submit" isLoading={submitting} className="w-full">
             Confirm Attendance
           </Button>

@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Copy, Check, Mail, MessageCircle, Share2 } from 'lucide-react'
+import { Copy, Check, Mail, MessageCircle, Share2, Download } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
-import { QrPlaceholder } from '@/components/ui/Placeholder'
+import { getQrCodeUrl } from '@/utils/qrCode'
 
 export function ShareModal({ isOpen, onClose, slug }: { isOpen: boolean; onClose: () => void; slug: string }) {
   const [copied, setCopied] = useState(false)
   const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/invitation/${slug}`
+  const qrUrl = getQrCodeUrl(url, 240)
 
   async function handleCopy() {
     try {
@@ -29,8 +30,19 @@ export function ShareModal({ isOpen, onClose, slug }: { isOpen: boolean; onClose
         </div>
 
         <div className="flex items-center gap-4">
-          <QrPlaceholder />
-          <p className="text-xs text-ink-soft/70">Scannable QR codes arrive in a future version.</p>
+          <img
+            src={qrUrl}
+            alt={`QR code linking to ${url}`}
+            width={120}
+            height={120}
+            className="rounded-sm border border-ink/10"
+          />
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-ink-soft/70">Scan to open the invitation, or print it on physical cards.</p>
+            <a href={qrUrl} download={`invitation-qr-${slug}.png`} className="w-fit">
+              <Button variant="outline" size="sm" icon={<Download className="size-3.5" />}>Download QR</Button>
+            </a>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">

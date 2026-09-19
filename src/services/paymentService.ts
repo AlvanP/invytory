@@ -76,15 +76,26 @@ export const paymentService = {
    * Asks our own server (the /api/verify-payment function) to confirm
    * with Paystack that this payment really happened and for the right
    * amount, using the secret key — which never reaches the browser.
+   * Returns the server's actual error message on failure so problems
+   * are diagnosable instead of a generic "something went wrong."
    */
-  async verifyPayment(reference: string, expectedAmountNaira: number): Promise<boolean> {
-    const response = await fetch('/api/verify-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reference, expectedAmount: Math.round(expectedAmountNaira * 100) }),
-    })
-    if (!response.ok) return false
-    const data = await response.json()
-    return !!data.verified
+  async verifyPayment(
+    reference: string,
+    expectedAmountNaira: number
+  ): Promise<{ verified: boolean; error?: string }> {
+    try {
+      const response = await fetch('/api/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference, expectedAmount: Math.round(expectedAmountNaira * 100) }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!data) {
+        return { verified: false, error: 'The verification server did not return a valid response.' }
+      }
+      return { verified: !!data.verified, error: data.error }
+    } catch {
+      return { verified: false, error: 'Could not reach the payment verification server.' }
+    }
   },
 }

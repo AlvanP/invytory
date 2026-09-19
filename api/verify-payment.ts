@@ -28,7 +28,8 @@ export default async function handler(req: any, res: any) {
     const data = await paystackResponse.json()
 
     if (!paystackResponse.ok || !data.status) {
-      res.status(400).json({ verified: false, error: data.message || 'Verification failed' })
+      console.error('Paystack verify call failed:', data)
+      res.status(400).json({ verified: false, error: data.message || 'Paystack could not find this transaction.' })
       return
     }
 
@@ -36,13 +37,23 @@ export default async function handler(req: any, res: any) {
     const isSuccessful = tx.status === 'success'
     const amountMatches = typeof expectedAmount === 'number' ? tx.amount === expectedAmount : true
 
-    if (!isSuccessful || !amountMatches) {
-      res.status(400).json({ verified: false, error: 'Payment could not be verified' })
+    if (!isSuccessful) {
+      res.status(400).json({ verified: false, error: `Paystack reports this payment's status as "${tx.status}", not "success".` })
+      return
+    }
+
+    if (!amountMatches) {
+      console.error('Amount mismatch:', { expected: expectedAmount, actual: tx.amount, reference })
+      res.status(400).json({
+        verified: false,
+        error: `Amount mismatch: expected ₦${(expectedAmount / 100).toLocaleString()} but Paystack charged ₦${(tx.amount / 100).toLocaleString()}.`,
+      })
       return
     }
 
     res.status(200).json({ verified: true, amount: tx.amount, reference: tx.reference, paidAt: tx.paid_at })
-  } catch {
-    res.status(500).json({ verified: false, error: 'Verification request failed' })
+  } catch (err) {
+    console.error('Verify-payment function error:', err)
+    res.status(500).json({ verified: false, error: 'Verification request failed unexpectedly.' })
   }
 }
