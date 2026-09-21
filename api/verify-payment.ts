@@ -33,20 +33,25 @@ export default async function handler(req: any, res: any) {
       return
     }
 
-    const tx = data.data
+        const tx = data.data
     const isSuccessful = tx.status === 'success'
-    const amountMatches = typeof expectedAmount === 'number' ? tx.amount === expectedAmount : true
+    // Paystack may legitimately charge slightly MORE than the listed
+    // price if the account is set to pass its transaction fee on to
+    // the customer (a "grossed-up" charge) — that's still a valid
+    // payment. It should never charge LESS, which would mean the
+    // customer paid for a cheaper plan than they're claiming.
+    const amountIsAtLeastExpected = typeof expectedAmount === 'number' ? tx.amount >= expectedAmount : true
 
     if (!isSuccessful) {
       res.status(400).json({ verified: false, error: `Paystack reports this payment's status as "${tx.status}", not "success".` })
       return
     }
 
-    if (!amountMatches) {
-      console.error('Amount mismatch:', { expected: expectedAmount, actual: tx.amount, reference })
+    if (!amountIsAtLeastExpected) {
+      console.error('Amount too low:', { expected: expectedAmount, actual: tx.amount, reference })
       res.status(400).json({
         verified: false,
-        error: `Amount mismatch: expected ₦${(expectedAmount / 100).toLocaleString()} but Paystack charged ₦${(tx.amount / 100).toLocaleString()}.`,
+        error: `Amount too low: expected at least ₦${(expectedAmount / 100).toLocaleString()} but Paystack charged only ₦${(tx.amount / 100).toLocaleString()}.`,
       })
       return
     }
