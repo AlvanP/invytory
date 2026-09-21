@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import type { InvitationTemplate } from '@/types'
 import { templateService } from '@/services/templateService'
 import { useWizard } from '@/hooks/useWizard'
@@ -12,6 +12,7 @@ import { cn } from '@/utils/cn'
 export function StepTemplate() {
   const { draft, updateDraft } = useWizard()
   const [params] = useSearchParams()
+  const navigate = useNavigate()
   const [templates, setTemplates] = useState<InvitationTemplate[] | null>(null)
 
   useEffect(() => {
@@ -20,8 +21,13 @@ export function StepTemplate() {
 
   useEffect(() => {
     const preselected = params.get('template')
+    // Arriving with a template already chosen (e.g. "Use Template" from
+    // the gallery) — skip the picker entirely and go straight into the
+    // form flow, rather than making them see and re-confirm the same
+    // six templates they just picked from.
     if (preselected && !draft.templateId) {
       updateDraft({ templateId: preselected })
+      navigate('/create/couple')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params])
