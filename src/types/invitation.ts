@@ -5,7 +5,9 @@
  * it came from a local mock array or a Supabase table. That's what lets
  * us swap `mockInvitationService` for `supabaseInvitationService` later
  * without touching any component that consumes this type.
- */
+  */
+
+import type { CeremonyType } from './wedding'
 
 export type InvitationStatus = 'draft' | 'published' | 'archived'
 
@@ -68,7 +70,17 @@ export interface WeddingInvitation {
   confirmedGuestCount?: number
   /** ISO date the hosting period ends — the plan's hostingDays after publish. */
   expiresAt?: string
-  paymentReference?: string
+    paymentReference?: string
+
+  // Multi-Ceremony Wedding Engine foundation (see docs/ROADMAP-multi-ceremony.md).
+  // Not used by any UI yet — every existing invitation is implicitly a
+  // single "white" ceremony with no parent Wedding until the next
+  // milestone builds on top of these fields.
+  weddingId?: string
+  ceremonyType?: CeremonyType
+  /** Optional custom name, e.g. "Reception" — shown instead of the
+   * default ceremonyType label when set. */
+  ceremonyLabel?: string
 }
 
 /**

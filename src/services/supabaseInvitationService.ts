@@ -1,4 +1,4 @@
-import type { InvitationDraft, WeddingInvitation, GalleryImageSlot } from '@/types'
+import type { InvitationDraft, WeddingInvitation, GalleryImageSlot, CeremonyType } from '@/types'
 import type { PricingPlan } from '@/data/pricingPlans'
 import { supabase } from './supabaseClient'
 
@@ -38,6 +38,9 @@ interface InvitationRow {
   confirmed_guest_count: number
   expires_at: string | null
   payment_reference: string | null
+  wedding_id: string | null
+  ceremony_type: string | null
+  ceremony_label: string | null
 }
 
 function rowToInvitation(row: InvitationRow): WeddingInvitation {
@@ -77,6 +80,9 @@ function rowToInvitation(row: InvitationRow): WeddingInvitation {
     confirmedGuestCount: row.confirmed_guest_count,
     expiresAt: row.expires_at ?? undefined,
     paymentReference: row.payment_reference ?? undefined,
+    weddingId: row.wedding_id ?? undefined,
+    ceremonyType: (row.ceremony_type as CeremonyType | null) ?? undefined,
+    ceremonyLabel: row.ceremony_label ?? undefined,
   }
 }
 
