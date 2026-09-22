@@ -1,29 +1,61 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CheckCircle2, Copy, Check, ExternalLink, LayoutDashboard } from 'lucide-react'
-import type { WeddingInvitation } from '@/types'
+import type { WeddingInvitation, Wedding } from '@/types'
 import { invitationService } from '@/services/invitationService'
+import { weddingService } from '@/services/weddingService'
 import { getPlanById } from '@/data/pricingPlans'
+import { getQrCodeUrl } from '@/utils/qrCode'
 import { formatDate } from '@/utils/format'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 
+type ResultState =
+  | { status: 'loading' }
+  | { status: 'notFound' }
+  | { status: 'wedding'; wedding: Wedding; ceremonies: WeddingInvitation[] }
+  | { status: 'legacy'; invitation: WeddingInvitation }
+
 export function PublishSuccessPage() {
   const { slug } = useParams<{ slug: string }>()
-  const [invitation, setInvitation] = useState<WeddingInvitation | null | undefined>(undefined)
+  const [result, setResult] = useState<ResultState>({ status: 'loading' })
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!slug) return
-    invitationService.getBySlug(slug).then((found) => setInvitation(found ?? null))
+    let cancelled = false
+
+    async function load() {
+      const weddingResult = await weddingService.getBySlugWithCeremonies(slug!)
+      if (cancelled) return
+      if (weddingResult) {
+        setResult({ status: 'wedding', wedding: weddingResult.wedding, ceremonies: weddingResult.ceremonies })
+        return
+      }
+      const legacy = await invitationService.getBySlug(slug!)
+      if (cancelled) return
+      setResult(legacy ? { status: 'legacy', invitation: legacy } : { status: 'notFound' })
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
-  if (invitation === undefined) return <InvitationPreviewSkeleton />
-  if (invitation === null) return null
+  if (result.status === 'loading') return <InvitationPreviewSkeleton />
+  if (result.status === 'notFound') return null
 
-  const url = `${window.location.origin}/invitation/${invitation.slug}`
-  const plan = invitation.plan ? getPlanById(invitation.plan) : undefined
+  const resolvedSlug = result.status === 'wedding' ? result.wedding.slug : result.invitation.slug
+  const brideName = result.status === 'wedding' ? result.ceremonies[0]?.brideName : result.invitation.brideName
+  const groomName = result.status === 'wedding' ? result.ceremonies[0]?.groomName : result.invitation.groomName
+  const planId = result.status === 'wedding' ? result.wedding.plan : result.invitation.plan
+  const createdAt = result.status === 'wedding' ? result.wedding.createdAt : result.invitation.createdAt
+  const ceremonyCount = result.status === 'wedding' ? result.ceremonies.length : 1
+
+  const url = `${window.location.origin}/invitation/${resolvedSlug}`
+  const plan = planId ? getPlanById(planId) : undefined
 
   async function handleCopy() {
     try {
@@ -41,7 +73,8 @@ export function PublishSuccessPage() {
       <p className="mt-6 text-xs tracking-[0.2em] text-gold">Payment Successful</p>
       <h1 className="mt-2 font-display text-3xl text-ink">Your invitation is published</h1>
       <p className="mt-2 text-sm text-ink-soft">
-        {invitation.brideName} &amp; {invitation.groomName}'s invitation is live and ready to share.
+        {brideName} &amp; {groomName}'s invitation is live and ready to share
+        {ceremonyCount > 1 ? ` — all ${ceremonyCount} ceremonies included` : ''}.
       </p>
 
       {plan && (
@@ -60,13 +93,21 @@ export function PublishSuccessPage() {
         </button>
       </div>
 
+      <img
+        src={getQrCodeUrl(url, 160)}
+        alt={`QR code linking to ${url}`}
+        width={120}
+        height={120}
+        className="mt-6 rounded-sm border border-ink/10"
+      />
+
       <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row">
         <Link to="/dashboard" className="flex-1">
           <Button variant="outline" className="w-full" icon={<LayoutDashboard className="size-4" />}>
             Go to Dashboard
           </Button>
         </Link>
-        <Link to={`/invitation/${invitation.slug}`} className="flex-1">
+        <Link to={`/invitation/${resolvedSlug}`} className="flex-1">
           <Button className="w-full" icon={<ExternalLink className="size-4" />}>
             View Invitation
           </Button>
@@ -74,7 +115,7 @@ export function PublishSuccessPage() {
       </div>
 
       <p className="mt-8 text-xs text-ink-soft/60">
-        Created {formatDate(invitation.createdAt.slice(0, 10))}
+        Created {formatDate(createdAt.slice(0, 10))}
       </p>
     </div>
   )
