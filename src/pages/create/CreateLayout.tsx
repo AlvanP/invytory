@@ -5,7 +5,7 @@ import { ProgressSteps } from '@/components/ui/ProgressSteps'
 const steps = [
   { key: 'template', label: 'Template', path: '/create' },
   { key: 'couple', label: 'Couple', path: '/create/couple' },
-  { key: 'event', label: 'Details', path: '/create/event' },
+  { key: 'event', label: 'Ceremonies', path: '/create/ceremonies' },
   { key: 'story', label: 'Story', path: '/create/story' },
   { key: 'photos', label: 'Photos', path: '/create/photos' },
   { key: 'options', label: 'Extras', path: '/create/options' },

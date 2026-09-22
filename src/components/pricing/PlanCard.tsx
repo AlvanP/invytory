@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { Check, AlertTriangle } from 'lucide-react'
 import type { PricingPlan } from '@/data/pricingPlans'
 import { sharedPlanFeatures } from '@/data/pricingPlans'
 import { Button } from '@/components/ui/Button'
@@ -11,18 +11,23 @@ export function PlanCard({
   ctaLabel,
   onSelect,
   isLoading,
+  disabled,
+  note,
 }: {
   plan: PricingPlan
   highlight?: boolean
   ctaLabel?: string
   onSelect?: (plan: PricingPlan) => void
   isLoading?: boolean
+  disabled?: boolean
+  note?: string
 }) {
   return (
     <div
       className={cn(
         'flex flex-col gap-6 rounded-md border bg-white p-8',
-        highlight ? 'border-gold shadow-lift' : 'border-ink/10'
+        highlight ? 'border-gold shadow-lift' : 'border-ink/10',
+        disabled && 'opacity-60'
       )}
     >
       <div>
@@ -43,6 +48,13 @@ export function PlanCard({
         <p><span className="text-ink">{plan.hostingDays}</span> days of hosting</p>
       </div>
 
+      {note && (
+        <div className="flex items-start gap-2 rounded-xs border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-ink-soft">
+          <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-gold" />
+          <span>{note}</span>
+        </div>
+      )}
+
       <ul className="flex flex-col gap-2.5 text-sm text-ink-soft">
         {sharedPlanFeatures.map((feature) => (
           <li key={feature} className="flex items-start gap-2">
@@ -56,6 +68,7 @@ export function PlanCard({
         <Button
           variant={highlight ? 'primary' : 'outline'}
           isLoading={isLoading}
+          disabled={disabled}
           onClick={() => onSelect(plan)}
           className="mt-auto"
         >

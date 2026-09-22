@@ -1,27 +1,26 @@
-import type { InvitationDraft, WeddingInvitation } from '@/types'
+import type { WeddingInvitation, CeremonyDraft } from '@/types'
+import type { WeddingDraft } from '@/hooks/useWizard'
 
-/** Fills in sensible fallbacks so the preview always has something to
- * show, even before every field has been completed. */
-export function draftToPreviewInvitation(draft: InvitationDraft): WeddingInvitation {
+export function draftToPreviewInvitation(draft: WeddingDraft, ceremony: CeremonyDraft): WeddingInvitation {
   const now = new Date().toISOString()
   return {
-    id: draft.id ?? 'draft-preview',
-    slug: draft.slug ?? 'your-invitation',
+    id: ceremony.id,
+    slug: 'your-invitation',
     templateId: draft.templateId,
     eventType: 'wedding',
     brideName: draft.brideName || 'Bride',
     groomName: draft.groomName || 'Groom',
     tagline: draft.tagline,
-    weddingDate: draft.weddingDate || new Date(Date.now() + 1000 * 60 * 60 * 24 * 120).toISOString().slice(0, 10),
-    weddingTime: draft.weddingTime || '16:00',
-    venueName: draft.venueName || 'Venue to be announced',
-    venueAddress: draft.venueAddress || '',
-    city: draft.city || '',
-    state: draft.state || '',
-    country: draft.country || '',
-    mapUrl: draft.mapUrl,
-    dressCode: draft.dressCode,
-    receptionInfo: draft.receptionInfo,
+    weddingDate: ceremony.weddingDate || new Date(Date.now() + 1000 * 60 * 60 * 24 * 120).toISOString().slice(0, 10),
+    weddingTime: ceremony.weddingTime || '16:00',
+    venueName: ceremony.venueName || 'Venue to be announced',
+    venueAddress: ceremony.venueAddress || '',
+    city: ceremony.city || '',
+    state: ceremony.state || '',
+    country: ceremony.country || '',
+    mapUrl: ceremony.mapUrl,
+    dressCode: ceremony.dressCode,
+    receptionInfo: ceremony.receptionInfo,
     loveStory: draft.loveStory,
     howWeMet: draft.howWeMet,
     vows: draft.vows,
@@ -36,9 +35,11 @@ export function draftToPreviewInvitation(draft: InvitationDraft): WeddingInvitat
     weddingHashtag: draft.weddingHashtag,
     additionalMessage: draft.additionalMessage,
     customRsvpMessage: draft.customRsvpMessage,
-    createdAt: draft.createdAt ?? now,
+    createdAt: now,
     updatedAt: now,
-    status: draft.status ?? 'draft',
-    views: draft.views ?? 0,
+    status: 'draft',
+    views: 0,
+    ceremonyType: ceremony.ceremonyType,
+    ceremonyLabel: ceremony.ceremonyLabel,
   }
 }

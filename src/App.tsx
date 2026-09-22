@@ -13,7 +13,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 import { CreateLayout } from '@/pages/create/CreateLayout'
 import { StepTemplate } from '@/pages/create/StepTemplate'
 import { StepCouple } from '@/pages/create/StepCouple'
-import { StepEvent } from '@/pages/create/StepEvent'
+import { StepCeremonies } from '@/pages/create/StepCeremonies'
 import { StepStory } from '@/pages/create/StepStory'
 import { StepPhotos } from '@/pages/create/StepPhotos'
 import { StepOptions } from '@/pages/create/StepOptions'
@@ -41,7 +41,7 @@ function App() {
       <Route path="/create" element={<CreateLayout />}>
         <Route index element={<StepTemplate />} />
         <Route path="couple" element={<StepCouple />} />
-        <Route path="event" element={<StepEvent />} />
+        <Route path="ceremonies" element={<StepCeremonies />} />
         <Route path="story" element={<StepStory />} />
         <Route path="photos" element={<StepPhotos />} />
         <Route path="options" element={<StepOptions />} />

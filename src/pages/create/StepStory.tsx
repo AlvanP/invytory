@@ -10,7 +10,7 @@ export function StepStory() {
       eyebrow="Step 4 of 7"
       title="Your story"
       description="Entirely optional — skip this step if you'd rather keep things simple."
-      backTo="/create/event"
+      backTo="/create/ceremonies"
       nextTo="/create/photos"
       skippable
     >

@@ -2,9 +2,9 @@ import type { InvitationDraft, WeddingInvitation, GalleryImageSlot, CeremonyType
 import type { PricingPlan } from '@/data/pricingPlans'
 import { supabase } from './supabaseClient'
 
-interface InvitationRow {
+export interface InvitationRow {
   id: string
-  slug: string
+  slug: string | null
   template_id: string
   owner_id: string | null
   bride_name: string
@@ -43,10 +43,10 @@ interface InvitationRow {
   ceremony_label: string | null
 }
 
-function rowToInvitation(row: InvitationRow): WeddingInvitation {
+export function rowToInvitation(row: InvitationRow): WeddingInvitation {
   return {
     id: row.id,
-    slug: row.slug,
+    slug: row.slug ?? '', // empty for ceremony rows linked to a wedding — they're looked up via wedding_id, not their own slug
     templateId: row.template_id,
     eventType: 'wedding',
     brideName: row.bride_name,
@@ -96,10 +96,23 @@ export const supabaseInvitationService = {
    * (used by the dashboard). Omit it to rely on RLS's public-read
    * rule for published invitations only (not used directly today,
    * kept for future public "browse" features). */
-  async list(ownerId?: string): Promise<WeddingInvitation[]> {
+    async list(ownerId?: string): Promise<WeddingInvitation[]> {
     let query = supabase.from('invitations').select('*').order('created_at', { ascending: false })
     if (ownerId) query = query.eq('owner_id', ownerId)
     const { data, error } = await query
+    if (error) throw error
+    return (data as InvitationRow[]).map(rowToInvitation)
+  },
+
+  /** Only "legacy" invitations — ones NOT linked to a Wedding. Used by
+   * the dashboard so a multi-ceremony wedding shows as one card. */
+  async listLegacyByOwner(ownerId: string): Promise<WeddingInvitation[]> {
+    const { data, error } = await supabase
+      .from('invitations')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .is('wedding_id', null)
+      .order('created_at', { ascending: false })
     if (error) throw error
     return (data as InvitationRow[]).map(rowToInvitation)
   },

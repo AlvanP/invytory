@@ -10,7 +10,7 @@ export function StepCouple() {
       eyebrow="Step 2 of 7"
       title="Tell us about the couple"
       backTo="/create"
-      nextTo="/create/event"
+      nextTo="/create/ceremonies"
       onNext={() => !!draft.brideName && !!draft.groomName}
     >
       <div className="flex flex-col gap-5">

@@ -4,11 +4,13 @@ import { CreditCard, Smartphone, Monitor, Mail, AlertCircle } from 'lucide-react
 import { useWizard } from '@/hooks/useWizard'
 import { useAuth } from '@/hooks/useAuth'
 import { templateService } from '@/services/templateService'
-import { invitationService } from '@/services/invitationService'
+import { weddingService } from '@/services/weddingService'
 import { authService } from '@/services/authService'
 import { paymentService } from '@/services/paymentService'
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans'
-import type { InvitationTemplate } from '@/types'
+import { checkPlanHosting } from '@/utils/hostingDuration'
+import type { InvitationTemplate, CeremonyDraft } from '@/types'
+import { ceremonyDisplayName } from '@/types'
 import { draftToPreviewInvitation } from '@/utils/draftToPreviewInvitation'
 import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
 import { PlanCard } from '@/components/pricing/PlanCard'
@@ -25,6 +27,7 @@ export function StepPreview() {
   const navigate = useNavigate()
   const [template, setTemplate] = useState<InvitationTemplate | undefined>()
   const [device, setDevice] = useState<'desktop' | 'mobile'>('mobile')
+  const [previewCeremony, setPreviewCeremony] = useState<CeremonyDraft>(draft.ceremonies[0])
   const [stage, setStage] = useState<CheckoutStage>('idle')
   const [email, setEmail] = useState('')
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null)
@@ -35,11 +38,8 @@ export function StepPreview() {
     if (draft.templateId) templateService.getById(draft.templateId).then(setTemplate)
   }, [draft.templateId])
 
-  const previewInvitation = draftToPreviewInvitation(draft)
+  const previewInvitation = draftToPreviewInvitation(draft, previewCeremony)
 
-  // If the guest signs in on another tab (via the magic-link email)
-  // while this tab is showing "check your email," pick right back up
-  // and launch Paystack checkout — the draft and chosen plan never left memory.
   useEffect(() => {
     if (user && wantsToCheckout && stage === 'linkSent' && selectedPlan) {
       startCheckout(selectedPlan, user.id, user.email ?? email)
@@ -78,7 +78,6 @@ export function StepPreview() {
       })
 
       if (!reference) {
-        // Customer closed the Paystack popup without paying — let them try again.
         setStage('selectPlan')
         return
       }
@@ -93,9 +92,9 @@ export function StepPreview() {
         return
       }
 
-      const published = await invitationService.publish(draft, ownerId, plan, reference)
+      const published = await weddingService.publish(draft, ownerId, plan, reference)
       reset()
-      navigate(`/success/${published.slug}`)
+      navigate(`/success/${published.wedding.slug}`)
     } catch {
       setErrorMessage('Something went wrong during checkout. Please try again.')
       setStage('error')
@@ -124,6 +123,23 @@ export function StepPreview() {
           </button>
         </div>
       </div>
+
+      {draft.ceremonies.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {draft.ceremonies.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setPreviewCeremony(c)}
+              className={cn(
+                'rounded-full border px-3 py-1.5 text-xs',
+                previewCeremony.id === c.id ? 'border-ink bg-ink text-ivory' : 'border-ink/15 text-ink-soft'
+              )}
+            >
+              {ceremonyDisplayName(c)}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex justify-center rounded-md bg-ivory-deep p-4 sm:p-10">
         <div
@@ -158,15 +174,25 @@ export function StepPreview() {
       >
         {stage === 'selectPlan' && (
           <div className="flex flex-col gap-4">
-            {pricingPlans.map((plan) => (
-              <PlanCard
-                key={plan.id}
-                plan={plan}
-                highlight={plan.id === 'gold'}
-                ctaLabel={`Pay ₦${plan.price.toLocaleString()} & Publish`}
-                onSelect={handleSelectPlan}
-              />
-            ))}
+            {draft.ceremonies.length > 1 && (
+              <p className="text-xs text-ink-soft">
+                One payment covers all {draft.ceremonies.length} ceremonies in this wedding.
+              </p>
+            )}
+            {pricingPlans.map((plan) => {
+              const hosting = checkPlanHosting(plan.id, draft.ceremonies)
+              return (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  highlight={plan.id === 'gold'}
+                  ctaLabel={`Pay ₦${plan.price.toLocaleString()} & Publish`}
+                  onSelect={handleSelectPlan}
+                  disabled={!hosting.fits}
+                  note={hosting.warning}
+                />
+              )
+            })}
           </div>
         )}
 

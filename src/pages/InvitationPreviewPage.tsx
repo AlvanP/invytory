@@ -1,31 +1,64 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import type { WeddingInvitation, InvitationTemplate } from '@/types'
+import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { invitationService } from '@/services/invitationService'
+import { weddingService } from '@/services/weddingService'
 import { templateService } from '@/services/templateService'
 import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
+import { CeremonySelector } from '@/components/invitation/CeremonySelector'
 import { ArrivalScene } from '@/components/entrance/ArrivalScene'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/State'
 import { Button } from '@/components/ui/Button'
 
+type LookupState =
+  | { status: 'loading' }
+  | { status: 'notFound' }
+  | { status: 'wedding'; wedding: Wedding; ceremonies: WeddingInvitation[] }
+  | { status: 'legacy'; invitation: WeddingInvitation }
+
 export function InvitationPreviewPage() {
   const { slug } = useParams<{ slug: string }>()
-  const [invitation, setInvitation] = useState<WeddingInvitation | null | undefined>(undefined)
+  const [lookup, setLookup] = useState<LookupState>({ status: 'loading' })
+  const [selectedCeremony, setSelectedCeremony] = useState<WeddingInvitation | null>(null)
   const [template, setTemplate] = useState<InvitationTemplate | undefined>()
 
   useEffect(() => {
     if (!slug) return
-    invitationService.getBySlug(slug).then((found) => setInvitation(found ?? null))
+    let cancelled = false
+
+    async function load() {
+      const weddingResult = await weddingService.getBySlugWithCeremonies(slug!)
+      if (cancelled) return
+
+      if (weddingResult) {
+        setLookup({ status: 'wedding', wedding: weddingResult.wedding, ceremonies: weddingResult.ceremonies })
+        if (weddingResult.ceremonies.length === 1) setSelectedCeremony(weddingResult.ceremonies[0])
+        return
+      }
+
+      const legacy = await invitationService.getBySlug(slug!)
+      if (cancelled) return
+      setLookup(legacy ? { status: 'legacy', invitation: legacy } : { status: 'notFound' })
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
-    if (invitation) templateService.getById(invitation.templateId).then(setTemplate)
-  }, [invitation])
+    const templateId =
+      lookup.status === 'legacy' ? lookup.invitation.templateId
+      : lookup.status === 'wedding' ? lookup.ceremonies[0]?.templateId
+      : undefined
+    if (templateId) templateService.getById(templateId).then(setTemplate)
+  }, [lookup])
 
-  if (invitation === undefined) return <InvitationPreviewSkeleton />
+  if (lookup.status === 'loading') return <InvitationPreviewSkeleton />
 
-  if (invitation === null) {
+  if (lookup.status === 'notFound') {
     return (
       <div className="mx-auto max-w-md px-6 py-24">
         <ErrorState
@@ -37,7 +70,8 @@ export function InvitationPreviewPage() {
     )
   }
 
-  const isExpired = invitation.expiresAt ? new Date(invitation.expiresAt) < new Date() : false
+  const expiresAt = lookup.status === 'wedding' ? lookup.wedding.expiresAt : lookup.invitation.expiresAt
+  const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
 
   if (isExpired) {
     return (
@@ -50,13 +84,22 @@ export function InvitationPreviewPage() {
     )
   }
 
+  const brideName = lookup.status === 'wedding' ? lookup.ceremonies[0]?.brideName : lookup.invitation.brideName
+  const groomName = lookup.status === 'wedding' ? lookup.ceremonies[0]?.groomName : lookup.invitation.groomName
+  const activeInvitation = selectedCeremony ?? (lookup.status === 'legacy' ? lookup.invitation : null)
+
   return (
-    <ArrivalScene
-      tone={template?.previewTone ?? 'classic'}
-      brideName={invitation.brideName}
-      groomName={invitation.groomName}
-    >
-      <InvitationRenderer invitation={invitation} template={template} />
+    <ArrivalScene tone={template?.previewTone ?? 'classic'} brideName={brideName ?? ''} groomName={groomName ?? ''}>
+      {lookup.status === 'wedding' && lookup.ceremonies.length > 1 && !selectedCeremony ? (
+        <CeremonySelector
+          brideName={brideName ?? ''}
+          groomName={groomName ?? ''}
+          ceremonies={lookup.ceremonies}
+          onSelect={setSelectedCeremony}
+        />
+      ) : (
+        activeInvitation && <InvitationRenderer invitation={activeInvitation} template={template} />
+      )}
     </ArrivalScene>
   )
 }
