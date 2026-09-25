@@ -148,7 +148,7 @@ export const supabaseInvitationService = {
 
     const payload = {
       slug,
-      template_id: draft.templateId,
+      template_id: c.templateId || draft.templateId,
       owner_id: ownerId,
       bride_name: brideName,
       groom_name: groomName,

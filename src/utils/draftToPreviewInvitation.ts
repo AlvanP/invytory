@@ -6,7 +6,7 @@ export function draftToPreviewInvitation(draft: WeddingDraft, ceremony: Ceremony
   return {
     id: ceremony.id,
     slug: 'your-invitation',
-    templateId: draft.templateId,
+    templateId: ceremony.templateId || draft.templateId,
     eventType: 'wedding',
     brideName: draft.brideName || 'Bride',
     groomName: draft.groomName || 'Groom',

@@ -48,13 +48,17 @@ export function InvitationPreviewPage() {
     }
   }, [slug])
 
-  useEffect(() => {
+    useEffect(() => {
+    // Before a ceremony is chosen (or there's only one), use the first
+    // ceremony's template for the entrance's look. Once a ceremony is
+    // selected, switch to THAT ceremony's own template — each ceremony
+    // can have a completely different design.
     const templateId =
       lookup.status === 'legacy' ? lookup.invitation.templateId
-      : lookup.status === 'wedding' ? lookup.ceremonies[0]?.templateId
+      : lookup.status === 'wedding' ? (selectedCeremony?.templateId ?? lookup.ceremonies[0]?.templateId)
       : undefined
     if (templateId) templateService.getById(templateId).then(setTemplate)
-  }, [lookup])
+  }, [lookup, selectedCeremony])
 
   if (lookup.status === 'loading') return <InvitationPreviewSkeleton />
 

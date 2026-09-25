@@ -35,8 +35,9 @@ export function StepPreview() {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    if (draft.templateId) templateService.getById(draft.templateId).then(setTemplate)
-  }, [draft.templateId])
+    const activeTemplateId = previewCeremony.templateId || draft.templateId
+    if (activeTemplateId) templateService.getById(activeTemplateId).then(setTemplate)
+  }, [previewCeremony, draft.templateId])
 
   const previewInvitation = draftToPreviewInvitation(draft, previewCeremony)
 

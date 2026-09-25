@@ -74,7 +74,6 @@ export function DashboardEventsPage() {
           <>
             {weddings!.map(({ wedding, ceremonies }) => {
               const first = ceremonies[0]
-              const template = first ? templates[first.templateId] : undefined
               return (
                 <div key={wedding.id} className="flex flex-col gap-4 rounded-md border border-ink/10 bg-white p-6">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -87,7 +86,7 @@ export function DashboardEventsPage() {
                         {wedding.plan && <Badge tone="premium">{wedding.plan === 'gold' ? 'Gold' : 'Silver'}</Badge>}
                       </div>
                       <p className="mt-1 text-sm text-ink-soft">
-                        {template?.name ?? 'Template'} &middot; {ceremonies.length} {ceremonies.length === 1 ? 'ceremony' : 'ceremonies'}
+                        {ceremonies.length} {ceremonies.length === 1 ? 'ceremony' : 'ceremonies'}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-6 text-xs text-ink-soft/70">
                         <span>{formatNumber(wedding.views)} views</span>
@@ -112,6 +111,7 @@ export function DashboardEventsPage() {
                         <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                           <span className="text-ink-soft">
                             {ceremonyDisplayName(c)} &middot; {formatDate(c.weddingDate)}
+                            {templates[c.templateId] && <> &middot; {templates[c.templateId].name}</>}
                           </span>
                           <Link to={`/dashboard/events/${c.id}/guests`}>
                             <Button variant="ghost" size="sm" icon={<Users className="size-3.5" />}>Guests</Button>

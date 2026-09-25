@@ -13,24 +13,20 @@ function makeCeremonyId(): string {
   return `c_${Math.random().toString(36).slice(2, 9)}`
 }
 
-function blankCeremony(): CeremonyDraft {
-  return { id: makeCeremonyId(), ceremonyType: 'white' }
-}
-
 export function StepCeremonies() {
   const { draft, addCeremony, updateCeremony, removeCeremony } = useWizard()
   const [editing, setEditing] = useState<CeremonyDraft | null>(null)
   const [isNew, setIsNew] = useState(false)
 
-  const allComplete = draft.ceremonies.every((c) => !!c.weddingDate && !!c.venueName)
+  const allComplete = draft.ceremonies.every((c) => !!c.weddingDate && !!c.venueName && !!c.templateId)
 
   function openAdd() {
-    setEditing(blankCeremony())
+    setEditing({ id: makeCeremonyId(), ceremonyType: 'white', templateId: draft.templateId || undefined })
     setIsNew(true)
   }
 
   function openEdit(ceremony: CeremonyDraft) {
-    setEditing({ ...ceremony })
+    setEditing({ ...ceremony, templateId: ceremony.templateId ?? draft.templateId ?? undefined })
     setIsNew(false)
   }
 
@@ -48,7 +44,7 @@ export function StepCeremonies() {
     <WizardStepShell
       eyebrow="Step 3 of 7"
       title="Ceremonies"
-      description="Add every ceremony that's part of this wedding — they can be on the same day or months apart, each with its own date and venue."
+      description="Add every ceremony that's part of this wedding — they can be on the same day or months apart, each with its own date, venue, and design."
       backTo="/create/couple"
       nextTo="/create/story"
       onNext={() => allComplete}
@@ -70,6 +66,9 @@ export function StepCeremonies() {
                   {ceremony.venueName || 'Venue not set'}
                 </span>
               </div>
+              {!ceremony.templateId && (
+                <p className="mt-1 text-xs text-danger">No template chosen yet</p>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" icon={<Pencil className="size-3.5" />} onClick={() => openEdit(ceremony)}>
@@ -89,7 +88,7 @@ export function StepCeremonies() {
         </Button>
 
         {!allComplete && (
-          <p className="text-xs text-ink-soft/70">Give each ceremony at least a date and venue to continue.</p>
+          <p className="text-xs text-ink-soft/70">Give each ceremony a template, date, and venue to continue.</p>
         )}
       </div>
 
@@ -100,7 +99,7 @@ export function StepCeremonies() {
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={!editing.weddingDate || !editing.venueName}
+              disabled={!editing.weddingDate || !editing.venueName || !editing.templateId}
             >
               {isNew ? 'Add Ceremony' : 'Save Changes'}
             </Button>

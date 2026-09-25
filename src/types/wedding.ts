@@ -25,6 +25,9 @@ export interface Wedding {
 
 export interface CeremonyDraft {
   id: string
+  /** Each ceremony picks its own template — defaults to the wedding's
+   * initial template choice but can be overridden per ceremony. */
+  templateId?: string
   ceremonyType: CeremonyType
   ceremonyLabel?: string
   weddingDate?: string
