@@ -15,11 +15,20 @@ export type EventCategory =
 
 export const SUPPORTED_EVENT_CATEGORIES: EventCategory[] = ['wedding']
 
+/**
+ * Design Collections. A template belongs to exactly one collection:
+ * the four ceremony-specific collections, or 'universal' for designs
+ * that suit any ceremony.
+ */
+export type TemplateCollection = 'white' | 'igbo' | 'yoruba' | 'hausa' | 'universal'
+
 export interface InvitationTemplate {
   id: string
   name: string
   description: string
   category: EventCategory
+  /** Which Design Collection this template lives in. */
+  collection: TemplateCollection
   /** key used to look up the React renderer in the template registry */
   rendererKey: string
   previewTone: 'royal' | 'garden' | 'storybook' | 'modern' | 'heritage' | 'classic'
