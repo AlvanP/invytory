@@ -120,7 +120,7 @@ export const supabaseWeddingService = {
 
     const ceremonyPayloads = draft.ceremonies.map((c) => ({
       slug: null,
-      template_id: draft.templateId,
+      template_id: c.templateId || draft.templateId,
       owner_id: ownerId,
       wedding_id: weddingRow.id,
       bride_name: brideName,
