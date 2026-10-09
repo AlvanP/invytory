@@ -1,4 +1,5 @@
 import type { WeddingInvitation, CeremonyDraft } from '@/types'
+import { emptyGallery } from '@/types'
 import type { WeddingDraft } from '@/hooks/useWizard'
 
 export function draftToPreviewInvitation(draft: WeddingDraft, ceremony: CeremonyDraft): WeddingInvitation {
@@ -24,17 +25,12 @@ export function draftToPreviewInvitation(draft: WeddingDraft, ceremony: Ceremony
     loveStory: draft.loveStory,
     howWeMet: draft.howWeMet,
     vows: draft.vows,
-    heroImage: draft.heroImage ?? null,
-    galleryImages: draft.galleryImages ?? [
-      { id: 'g1', url: null },
-      { id: 'g2', url: null },
-      { id: 'g3', url: null },
-      { id: 'g4', url: null },
-    ],
+    heroImage: ceremony.heroImage ?? null,
+    galleryImages: ceremony.galleryImages ?? emptyGallery(),
     giftInformation: draft.giftInformation,
     weddingHashtag: draft.weddingHashtag,
     additionalMessage: draft.additionalMessage,
-    customRsvpMessage: draft.customRsvpMessage,
+    customRsvpMessage: ceremony.customRsvpMessage,
     createdAt: now,
     updatedAt: now,
     status: 'draft',

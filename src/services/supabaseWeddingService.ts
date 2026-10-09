@@ -1,4 +1,5 @@
 import type { Wedding, WeddingInvitation } from '@/types'
+import { emptyGallery } from '@/types'
 import type { WeddingDraft } from '@/hooks/useWizard'
 import type { PricingPlan } from '@/data/pricingPlans'
 import { supabase } from './supabaseClient'
@@ -139,12 +140,12 @@ export const supabaseWeddingService = {
       love_story: draft.loveStory ?? null,
       how_we_met: draft.howWeMet ?? null,
       vows: draft.vows ?? null,
-      hero_image: draft.heroImage ?? null,
-      gallery_images: draft.galleryImages ?? [],
+      hero_image: c.heroImage ?? null,
+      gallery_images: c.galleryImages ?? emptyGallery(),
       gift_information: draft.giftInformation ?? null,
       wedding_hashtag: draft.weddingHashtag ?? null,
       additional_message: draft.additionalMessage ?? null,
-      custom_rsvp_message: draft.customRsvpMessage ?? null,
+      custom_rsvp_message: c.customRsvpMessage ?? null,
       status: 'published' as const,
       ceremony_type: c.ceremonyType,
       ceremony_label: c.ceremonyLabel ?? null,

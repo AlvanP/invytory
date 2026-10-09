@@ -1,3 +1,5 @@
+import type { GalleryImageSlot } from './invitation'
+
 export type CeremonyType = 'white' | 'igbo' | 'yoruba' | 'hausa' | 'custom'
 
 export const CEREMONY_TYPE_LABELS: Record<CeremonyType, string> = {
@@ -40,6 +42,22 @@ export interface CeremonyDraft {
   mapUrl?: string
   dressCode?: string
   receptionInfo?: string
+  /** Per-ceremony photos. Undefined until the couple uploads something;
+   * use `emptyGallery()` to get the four blank slots. */
+  heroImage?: string | null
+  galleryImages?: GalleryImageSlot[]
+  /** Per-ceremony RSVP note shown above this ceremony's RSVP form. */
+  customRsvpMessage?: string
+}
+
+/** Four blank gallery slots — the shape the invitation templates expect. */
+export function emptyGallery(): GalleryImageSlot[] {
+  return [
+    { id: 'g1', url: null },
+    { id: 'g2', url: null },
+    { id: 'g3', url: null },
+    { id: 'g4', url: null },
+  ]
 }
 
 export function ceremonyDisplayName(c: { ceremonyType?: CeremonyType; ceremonyLabel?: string }): string {
