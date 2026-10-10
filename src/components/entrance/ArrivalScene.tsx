@@ -14,11 +14,14 @@ export function ArrivalScene({
   tone,
   brideName,
   groomName,
+  onTap,
   children,
 }: {
   tone: CoverTone
   brideName: string
   groomName: string
+  /** Passed to the entrance; runs inside the guest's tap (used to start music). */
+  onTap?: () => void
   children: React.ReactNode
 }) {
   const [exiting, setExiting] = useState(false)
@@ -50,7 +53,7 @@ export function ArrivalScene({
             exiting && 'pointer-events-none opacity-0'
           )}
         >
-          <DoorEntrance tone={tone} brideName={brideName} groomName={groomName} onOpen={handleOpen} />
+          <DoorEntrance tone={tone} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} />
         </div>
       )}
 

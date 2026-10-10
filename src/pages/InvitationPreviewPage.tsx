@@ -7,6 +7,8 @@ import { weddingService } from '@/services/weddingService'
 import { templateService } from '@/services/templateService'
 import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
 import { CeremonySelector } from '@/components/invitation/CeremonySelector'
+import { MusicToggle } from '@/components/invitation/MusicToggle'
+import { useInvitationMusic } from '@/hooks/useInvitationMusic'
 import { ArrivalScene } from '@/components/entrance/ArrivalScene'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/State'
@@ -77,6 +79,19 @@ export function InvitationPreviewPage() {
     if (templateId) templateService.getById(templateId).then(setTemplate)
   }, [lookup, selectedCeremony])
 
+  // Which track should be playing right now. On the ceremony list it is the
+  // first ceremony's; once a ceremony is open it is that ceremony's own, and
+  // silence if that ceremony has none. (Must run before any early return.)
+  const wantedMusicUrl =
+    lookup.status === 'legacy'
+      ? (lookup.invitation.musicUrl ?? null)
+      : lookup.status === 'wedding'
+        ? selectedCeremony
+          ? (selectedCeremony.musicUrl ?? null)
+          : (lookup.ceremonies[0]?.musicUrl ?? null)
+        : null
+  const music = useInvitationMusic(wantedMusicUrl)
+
   if (lookup.status === 'loading') return <InvitationPreviewSkeleton />
 
   if (lookup.status === 'notFound') {
@@ -111,7 +126,13 @@ export function InvitationPreviewPage() {
   const hasCeremonyList = lookup.status === 'wedding' && lookup.ceremonies.length > 1
 
   return (
-    <ArrivalScene tone={template?.previewTone ?? 'classic'} brideName={brideName ?? ''} groomName={groomName ?? ''}>
+    <>
+    <ArrivalScene
+      tone={template?.previewTone ?? 'classic'}
+      brideName={brideName ?? ''}
+      groomName={groomName ?? ''}
+      onTap={music.start}
+    >
       {hasCeremonyList && !selectedCeremony ? (
         <CeremonySelector
           brideName={brideName ?? ''}
@@ -139,5 +160,7 @@ export function InvitationPreviewPage() {
         )
       )}
     </ArrivalScene>
+    {music.visible && <MusicToggle muted={music.muted} needsTap={music.needsTap} onToggle={music.toggle} />}
+    </>
   )
 }

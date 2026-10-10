@@ -7,7 +7,7 @@
  * without touching any component that consumes this type.
   */
 
-import type { CeremonyType } from './wedding'
+import type { CeremonyType, MusicSource } from './wedding'
 
 export type InvitationStatus = 'draft' | 'published' | 'archived'
 
@@ -55,6 +55,11 @@ export interface WeddingInvitation {
   weddingHashtag?: string
   additionalMessage?: string
   customRsvpMessage?: string
+
+  // Music (per ceremony; absent on invitations created before music existed)
+  musicSource?: MusicSource
+  musicUrl?: string
+  musicTitle?: string
 
     // System
   createdAt: string

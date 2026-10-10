@@ -2,6 +2,9 @@ import type { GalleryImageSlot } from './invitation'
 
 export type CeremonyType = 'white' | 'igbo' | 'yoruba' | 'hausa' | 'custom'
 
+/** Where a ceremony's music came from: our library, or the couple's own file. */
+export type MusicSource = 'library' | 'upload'
+
 export const CEREMONY_TYPE_LABELS: Record<CeremonyType, string> = {
   white: 'White Wedding',
   igbo: 'Igbo Traditional Wedding',
@@ -48,6 +51,10 @@ export interface CeremonyDraft {
   galleryImages?: GalleryImageSlot[]
   /** Per-ceremony RSVP note shown above this ceremony's RSVP form. */
   customRsvpMessage?: string
+  /** Per-ceremony music. All three are set together, or all are empty. */
+  musicSource?: MusicSource | null
+  musicUrl?: string | null
+  musicTitle?: string | null
 }
 
 /** Four blank gallery slots — the shape the invitation templates expect. */

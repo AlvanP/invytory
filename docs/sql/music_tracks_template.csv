@@ -1,0 +1,3 @@
+title,artist_credit,collection,mood,url,duration_seconds,sort_order,is_active
+Example Igbo Track,Artist or licence credit,igbo,Joyful,https://bupcpcspsknbtracaozn.supabase.co/storage/v1/object/public/music-library/igbo/example-igbo-track.mp3,240,1,true
+Example White Wedding Track,Artist or licence credit,white,Romantic,https://bupcpcspsknbtracaozn.supabase.co/storage/v1/object/public/music-library/white/example-white-track.mp3,215,1,true

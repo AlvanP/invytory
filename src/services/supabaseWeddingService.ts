@@ -149,6 +149,15 @@ export const supabaseWeddingService = {
       status: 'published' as const,
       ceremony_type: c.ceremonyType,
       ceremony_label: c.ceremonyLabel ?? null,
+      // Only sent when a track was chosen, so weddings without music
+      // publish exactly as before (even before the music SQL has been run).
+      ...(c.musicUrl
+        ? {
+            music_source: c.musicSource ?? 'upload',
+            music_url: c.musicUrl,
+            music_title: c.musicTitle ?? null,
+          }
+        : {}),
     }))
 
     const { data: ceremonyRows, error: ceremonyError } = await supabase

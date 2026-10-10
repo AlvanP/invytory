@@ -36,11 +36,15 @@ export function DoorEntrance({
   brideName,
   groomName,
   onOpen,
+  onTap,
 }: {
   tone: CoverTone
   brideName: string
   groomName: string
   onOpen: () => void
+  /** Runs immediately inside the guest's tap, before the opening animation.
+   * Browsers only allow sound to start from inside a tap, so music starts here. */
+  onTap?: () => void
 }) {
   const [triggered, setTriggered] = useState(false)
   const config = entranceConfig[tone]
@@ -48,6 +52,7 @@ export function DoorEntrance({
   function handleOpen() {
     if (triggered) return
     setTriggered(true)
+    onTap?.()
     // Matches each variant's ~900ms opening animation, plus a small buffer.
     setTimeout(onOpen, 950)
   }

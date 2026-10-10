@@ -1,4 +1,4 @@
-import type { InvitationDraft, WeddingInvitation, GalleryImageSlot, CeremonyType } from '@/types'
+import type { InvitationDraft, WeddingInvitation, GalleryImageSlot, CeremonyType, MusicSource } from '@/types'
 import type { PricingPlan } from '@/data/pricingPlans'
 import { supabase } from './supabaseClient'
 
@@ -41,6 +41,9 @@ export interface InvitationRow {
   wedding_id: string | null
   ceremony_type: string | null
   ceremony_label: string | null
+  music_source?: string | null
+  music_url?: string | null
+  music_title?: string | null
 }
 
 export function rowToInvitation(row: InvitationRow): WeddingInvitation {
@@ -83,6 +86,9 @@ export function rowToInvitation(row: InvitationRow): WeddingInvitation {
     weddingId: row.wedding_id ?? undefined,
     ceremonyType: (row.ceremony_type as CeremonyType | null) ?? undefined,
     ceremonyLabel: row.ceremony_label ?? undefined,
+    musicSource: row.music_url ? ((row.music_source as MusicSource | null) ?? 'upload') : undefined,
+    musicUrl: row.music_url ?? undefined,
+    musicTitle: row.music_title ?? undefined,
   }
 }
 

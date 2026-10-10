@@ -5,6 +5,7 @@ import { storageService } from '@/services/storageService'
 import type { CeremonyDraft } from '@/types'
 import { ceremonyDisplayName, emptyGallery } from '@/types'
 import { CeremonyTabs } from '@/components/wizard/CeremonyTabs'
+import { MusicPicker } from '@/components/wizard/MusicPicker'
 import { WizardStepShell } from './WizardStepShell'
 import { cn } from '@/utils/cn'
 
@@ -82,8 +83,8 @@ export function StepPhotos() {
   return (
     <WizardStepShell
       eyebrow="Step 5 of 7"
-      title="Photos"
-      description="Upload a few photos for each ceremony. JPG or PNG, up to a few MB each."
+      title="Photos & music"
+      description="Add photos and, if you like, music for each ceremony. Photos can be JPG or PNG, up to a few MB each."
       backTo="/create/story"
       nextTo="/create/options"
       skippable
@@ -114,7 +115,7 @@ export function StepPhotos() {
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      <div key={active.id}>
+      <div key={active.id} className="flex flex-col gap-10">
         <div>
           <p className="mb-2 text-sm font-medium text-ink-soft">Hero image</p>
           <UploadSlot
@@ -129,7 +130,7 @@ export function StepPhotos() {
         </div>
 
         <div>
-          <p className="mb-2 mt-6 text-sm font-medium text-ink-soft">Gallery photos</p>
+          <p className="mb-2 text-sm font-medium text-ink-soft">Gallery photos</p>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {gallerySlotIds.map((slotId, i) => {
               const slot = gallery.find((s) => s.id === slotId)
@@ -147,6 +148,10 @@ export function StepPhotos() {
               )
             })}
           </div>
+        </div>
+
+        <div className="border-t border-ink/10 pt-8">
+          <MusicPicker ceremony={active} onChange={(patch) => updateCeremony(active.id, patch)} />
         </div>
       </div>
     </WizardStepShell>
