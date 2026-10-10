@@ -10,6 +10,12 @@ import { cn } from '@/utils/cn'
 
 const gallerySlotIds = ['g1', 'g2', 'g3', 'g4']
 
+/** Shows the real reason an upload failed, not a generic message. */
+function uploadErrorMessage(err: unknown): string {
+  const detail = err instanceof Error && err.message ? err.message : 'Unknown error.'
+  return `Upload failed: ${detail}`
+}
+
 function hasPhotos(c: CeremonyDraft): boolean {
   return !!c.heroImage || (c.galleryImages ?? []).some((s) => !!s.url)
 }
@@ -33,8 +39,8 @@ export function StepPhotos() {
     try {
       const url = await storageService.uploadImage(file, 'hero')
       updateCeremony(ceremonyId, { heroImage: url })
-    } catch {
-      setError('Upload failed. Please try a different image.')
+    } catch (err) {
+      setError(uploadErrorMessage(err))
     } finally {
       setUploadingKey(null)
     }
@@ -49,8 +55,8 @@ export function StepPhotos() {
       const url = await storageService.uploadImage(file, 'gallery')
       const next = current.map((slot) => (slot.id === slotId ? { ...slot, url } : slot))
       updateCeremony(ceremonyId, { galleryImages: next })
-    } catch {
-      setError('Upload failed. Please try a different image.')
+    } catch (err) {
+      setError(uploadErrorMessage(err))
     } finally {
       setUploadingKey(null)
     }

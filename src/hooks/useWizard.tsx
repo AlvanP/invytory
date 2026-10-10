@@ -1,7 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { GalleryImageSlot, CeremonyDraft } from '@/types'
+import type { CeremonyDraft } from '@/types'
 
+/**
+ * Wedding-wide details live here. Anything that differs per ceremony
+ * (type, date, venue, template, photos, RSVP message) lives on the
+ * ceremony itself — see CeremonyDraft.
+ */
 export interface WeddingDraft {
+  /** The starting template picked on step 1; new ceremonies default to it. */
   templateId: string
   brideName?: string
   groomName?: string
@@ -9,12 +15,9 @@ export interface WeddingDraft {
   loveStory?: string
   howWeMet?: string
   vows?: string
-  heroImage?: string | null
-  galleryImages: GalleryImageSlot[]
   giftInformation?: string
   weddingHashtag?: string
   additionalMessage?: string
-  customRsvpMessage?: string
   ceremonies: CeremonyDraft[]
 }
 
@@ -34,12 +37,6 @@ function makeCeremonyId(): string {
 function emptyDraft(): WeddingDraft {
   return {
     templateId: '',
-    galleryImages: [
-      { id: 'g1', url: null },
-      { id: 'g2', url: null },
-      { id: 'g3', url: null },
-      { id: 'g4', url: null },
-    ],
     ceremonies: [{ id: makeCeremonyId(), ceremonyType: 'white' }],
   }
 }
