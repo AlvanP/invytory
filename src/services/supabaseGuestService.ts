@@ -36,7 +36,15 @@ export const supabaseGuestService = {
     return (data as GuestRow[]).map(rowToGuest)
   },
 
-  async submitRsvp(invitationId: string, submission: RsvpSubmission): Promise<Guest> {
+  /**
+   * Records a guest's RSVP. Deliberately does NOT read the new row back
+   * (no `.select()`): guests are anonymous, and the only SELECT rule on
+   * `guests` lets the invitation's owner read them. Asking Postgres to
+   * return the row would fail that rule and report a misleading
+   * "violates row-level security policy" error, even though the insert
+   * itself is allowed.
+   */
+  async submitRsvp(invitationId: string, submission: RsvpSubmission): Promise<void> {
     const payload = {
       invitation_id: invitationId,
       full_name: submission.fullName,
@@ -47,7 +55,7 @@ export const supabaseGuestService = {
       response_date: new Date().toISOString(),
     }
 
-    const { data, error } = await supabase.from('guests').insert(payload).select().single()
+    const { error } = await supabase.from('guests').insert(payload)
     if (error) {
       // Supabase errors are plain objects, not Error instances, so the RSVP
       // form would never show their message. Re-throw as a real Error and
@@ -55,6 +63,5 @@ export const supabaseGuestService = {
       console.error('[rsvp] insert failed:', error)
       throw new Error(error.message || 'Could not save your RSVP.')
     }
-    return rowToGuest(data as GuestRow)
   },
 }
