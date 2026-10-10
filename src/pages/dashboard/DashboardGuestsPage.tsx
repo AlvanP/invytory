@@ -12,6 +12,16 @@ import { SEED_INVITATION_ID } from '@/utils/constants'
 
 type SortKey = 'name' | 'date'
 
+function SummaryTile({ label, value, note }: { label: string; value: number; note: string }) {
+  return (
+    <div className="rounded-md border border-ink/10 bg-white p-5">
+      <p className="text-xs uppercase tracking-wide text-ink-soft/70">{label}</p>
+      <p className="mt-2 font-display text-3xl text-ink">{value}</p>
+      <p className="mt-1 text-xs text-ink-soft">{note}</p>
+    </div>
+  )
+}
+
 export function DashboardGuestsPage() {
   const { eventId } = useParams<{ eventId: string }>()
   const [guests, setGuests] = useState<Guest[] | null>(null)
@@ -22,6 +32,19 @@ export function DashboardGuestsPage() {
   useEffect(() => {
     guestService.listByInvitation(eventId ?? SEED_INVITATION_ID).then(setGuests)
   }, [eventId])
+
+  // Totals always cover every response, whatever the search or filter shows.
+  const summary = useMemo(() => {
+    const all = guests ?? []
+    const confirmed = all.filter((g) => g.status === 'confirmed')
+    const declined = all.filter((g) => g.status === 'declined')
+    return {
+      attendingPeople: confirmed.reduce((sum, g) => sum + g.numberOfGuests, 0),
+      attendingResponses: confirmed.length,
+      declinedResponses: declined.length,
+      totalResponses: all.length,
+    }
+  }, [guests])
 
   const filtered = useMemo(() => {
     if (!guests) return []
@@ -45,6 +68,26 @@ export function DashboardGuestsPage() {
           Export
         </Button>
       </div>
+
+      {guests && (
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <SummaryTile
+            label="Attending"
+            value={summary.attendingPeople}
+            note={`${summary.attendingResponses} ${summary.attendingResponses === 1 ? 'RSVP' : 'RSVPs'}, counting each guest they bring`}
+          />
+          <SummaryTile
+            label="Declined"
+            value={summary.declinedResponses}
+            note={summary.declinedResponses === 1 ? 'person can’t make it' : 'people can’t make it'}
+          />
+          <SummaryTile
+            label="Total responses"
+            value={summary.totalResponses}
+            note="Yes and no replies combined"
+          />
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <div className="flex-1">

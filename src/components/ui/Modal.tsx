@@ -11,11 +11,22 @@ interface ModalProps {
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null)
 
+  // Callers usually pass a fresh `onClose` function on every render
+  // (e.g. `() => setEditing(null)`). If the effect below depended on it
+  // directly, it would re-run on every keystroke in a form inside the
+  // modal, and its `focus()` call would steal focus from the text field
+  // after each character. Holding the latest `onClose` in a ref lets the
+  // effect depend on `isOpen` alone.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
+
   useEffect(() => {
     if (!isOpen) return
     closeRef.current?.focus()
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') onCloseRef.current()
     }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
@@ -23,7 +34,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
     }
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   if (!isOpen) return null
 

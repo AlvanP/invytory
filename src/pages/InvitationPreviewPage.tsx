@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { weddingService } from '@/services/weddingService'
@@ -19,8 +20,9 @@ type LookupState =
 
 export function InvitationPreviewPage() {
   const { slug } = useParams<{ slug: string }>()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [lookup, setLookup] = useState<LookupState>({ status: 'loading' })
-  const [selectedCeremony, setSelectedCeremony] = useState<WeddingInvitation | null>(null)
   const [template, setTemplate] = useState<InvitationTemplate | undefined>()
 
   useEffect(() => {
@@ -33,7 +35,6 @@ export function InvitationPreviewPage() {
 
       if (weddingResult) {
         setLookup({ status: 'wedding', wedding: weddingResult.wedding, ceremonies: weddingResult.ceremonies })
-        if (weddingResult.ceremonies.length === 1) setSelectedCeremony(weddingResult.ceremonies[0])
         return
       }
 
@@ -48,7 +49,23 @@ export function InvitationPreviewPage() {
     }
   }, [slug])
 
-    useEffect(() => {
+  // Which ceremony is open is kept in the URL hash (#<ceremony id>), not in
+  // component state. That makes the phone's Back button return a guest to
+  // the ceremony list, and lets a specific ceremony be linked to directly.
+  // A wedding with a single ceremony skips the list entirely.
+  const selectedCeremony: WeddingInvitation | null =
+    lookup.status !== 'wedding'
+      ? null
+      : lookup.ceremonies.length === 1
+        ? lookup.ceremonies[0]
+        : (lookup.ceremonies.find((c) => c.id === location.hash.slice(1)) ?? null)
+
+  // Always start a newly opened ceremony (or the list) at the top.
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [location.hash])
+
+  useEffect(() => {
     // Before a ceremony is chosen (or there's only one), use the first
     // ceremony's template for the entrance's look. Once a ceremony is
     // selected, switch to THAT ceremony's own template — each ceremony
@@ -91,18 +108,35 @@ export function InvitationPreviewPage() {
   const brideName = lookup.status === 'wedding' ? lookup.ceremonies[0]?.brideName : lookup.invitation.brideName
   const groomName = lookup.status === 'wedding' ? lookup.ceremonies[0]?.groomName : lookup.invitation.groomName
   const activeInvitation = selectedCeremony ?? (lookup.status === 'legacy' ? lookup.invitation : null)
+  const hasCeremonyList = lookup.status === 'wedding' && lookup.ceremonies.length > 1
 
   return (
     <ArrivalScene tone={template?.previewTone ?? 'classic'} brideName={brideName ?? ''} groomName={groomName ?? ''}>
-      {lookup.status === 'wedding' && lookup.ceremonies.length > 1 && !selectedCeremony ? (
+      {hasCeremonyList && !selectedCeremony ? (
         <CeremonySelector
           brideName={brideName ?? ''}
           groomName={groomName ?? ''}
           ceremonies={lookup.ceremonies}
-          onSelect={setSelectedCeremony}
+          onSelect={(ceremony) => navigate({ hash: ceremony.id })}
         />
       ) : (
-        activeInvitation && <InvitationRenderer invitation={activeInvitation} template={template} />
+        activeInvitation && (
+          <>
+            {hasCeremonyList && (
+              <button
+                type="button"
+                onClick={() => navigate({ hash: '' })}
+                className="fixed left-4 top-4 z-40 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 text-xs text-ink shadow-lift backdrop-blur transition-colors hover:bg-white"
+              >
+                <ArrowLeft className="size-3.5" />
+                All ceremonies
+              </button>
+            )}
+            {/* Keyed by id so each ceremony starts fresh (e.g. its own RSVP
+                form), rather than inheriting the previous ceremony's state. */}
+            <InvitationRenderer key={activeInvitation.id} invitation={activeInvitation} template={template} />
+          </>
+        )
       )}
     </ArrivalScene>
   )
