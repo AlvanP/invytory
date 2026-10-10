@@ -48,7 +48,13 @@ export const supabaseGuestService = {
     }
 
     const { data, error } = await supabase.from('guests').insert(payload).select().single()
-    if (error) throw error
+    if (error) {
+      // Supabase errors are plain objects, not Error instances, so the RSVP
+      // form would never show their message. Re-throw as a real Error and
+      // keep the full details (code, hint) in the console for debugging.
+      console.error('[rsvp] insert failed:', error)
+      throw new Error(error.message || 'Could not save your RSVP.')
+    }
     return rowToGuest(data as GuestRow)
   },
 }
