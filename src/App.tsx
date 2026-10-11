@@ -54,6 +54,7 @@ function App() {
           <Route path="events" element={<DashboardEventsPage />} />
           <Route path="events/:eventId" element={<DashboardEventDetailPage />} />
           <Route path="events/:eventId/guests" element={<DashboardGuestsPage />} />
+          <Route path="weddings/:weddingId/guests" element={<DashboardGuestsPage />} />
           <Route path="events/:eventId/settings" element={<DashboardSettingsPage />} />
         </Route>
       </Route>

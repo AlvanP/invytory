@@ -66,6 +66,16 @@ export const supabaseWeddingService = {
     }
   },
 
+  async getCeremoniesById(weddingId: string): Promise<WeddingInvitation[]> {
+    const { data, error } = await supabase
+      .from('invitations')
+      .select('*')
+      .eq('wedding_id', weddingId)
+      .order('wedding_date', { ascending: true })
+    if (error) throw error
+    return ((data ?? []) as InvitationRow[]).map(rowToInvitation)
+  },
+
   async listByOwner(ownerId: string): Promise<Wedding[]> {
     const { data, error } = await supabase
       .from('weddings')

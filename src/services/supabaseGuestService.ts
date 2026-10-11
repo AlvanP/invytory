@@ -36,6 +36,17 @@ export const supabaseGuestService = {
     return (data as GuestRow[]).map(rowToGuest)
   },
 
+  async listByInvitations(invitationIds: string[]): Promise<Guest[]> {
+    if (invitationIds.length === 0) return []
+    const { data, error } = await supabase
+      .from('guests')
+      .select('*')
+      .in('invitation_id', invitationIds)
+      .order('response_date', { ascending: false })
+    if (error) throw error
+    return (data as GuestRow[]).map(rowToGuest)
+  },
+
   /**
    * Records a guest's RSVP. Deliberately does NOT read the new row back
    * (no `.select()`): guests are anonymous, and the only SELECT rule on

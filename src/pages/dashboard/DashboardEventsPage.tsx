@@ -99,6 +99,9 @@ export function DashboardEventsPage() {
                       <Link to={`/invitation/${wedding.slug}`}>
                         <Button variant="outline" size="sm" icon={<Eye className="size-4" />}>View</Button>
                       </Link>
+                      <Link to={`/dashboard/weddings/${wedding.id}/guests`}>
+                        <Button variant="outline" size="sm" icon={<Users className="size-4" />}>All guests</Button>
+                      </Link>
                       <Button variant="outline" size="sm" icon={<Share2 className="size-4" />} onClick={() => setShareSlug(wedding.slug)}>
                         Share
                       </Button>

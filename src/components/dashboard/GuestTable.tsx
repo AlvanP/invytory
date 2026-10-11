@@ -9,7 +9,13 @@ const statusTone: Record<Guest['status'], 'confirmed' | 'declined' | 'pending'> 
   pending: 'pending',
 }
 
-export function GuestTable({ guests }: { guests: Guest[] }) {
+interface GuestTableProps {
+  guests: Guest[]
+  /** When given, a Ceremony column is shown (invitation id -> ceremony name). */
+  ceremonyNames?: Record<string, string>
+}
+
+export function GuestTable({ guests, ceremonyNames }: GuestTableProps) {
   if (guests.length === 0) {
     return <EmptyState title="No guests match your search" description="Try a different name or filter." />
   }
@@ -20,6 +26,7 @@ export function GuestTable({ guests }: { guests: Guest[] }) {
         <thead>
           <tr className="border-b border-ink/10 text-xs uppercase tracking-wide text-ink-soft/70">
             <th className="px-4 py-3 font-medium">Guest Name</th>
+            {ceremonyNames && <th className="px-4 py-3 font-medium">Ceremony</th>}
             <th className="px-4 py-3 font-medium">Attendance</th>
             <th className="px-4 py-3 font-medium">Guests</th>
             <th className="px-4 py-3 font-medium">Phone</th>
@@ -31,6 +38,7 @@ export function GuestTable({ guests }: { guests: Guest[] }) {
           {guests.map((g) => (
             <tr key={g.id} className="border-b border-ink/8 last:border-0">
               <td className="px-4 py-4 text-ink">{g.fullName}</td>
+              {ceremonyNames && <td className="px-4 py-4 text-ink-soft">{ceremonyNames[g.invitationId] ?? '—'}</td>}
               <td className="px-4 py-4"><Badge tone={statusTone[g.status]}>{g.status}</Badge></td>
               <td className="px-4 py-4 text-ink-soft">{g.numberOfGuests}</td>
               <td className="px-4 py-4 text-ink-soft">{g.phone ?? '—'}</td>
