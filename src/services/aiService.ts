@@ -37,9 +37,12 @@ export interface AiResult {
 /** An error whose message is already fit to show the couple. */
 export class AiAssistError extends Error {
   code: string
-  constructor(message: string, code: string) {
+  /** Plain reasons from the server (key rejected, model not found, ...). Never a key. */
+  diagnostic: string
+  constructor(message: string, code: string, diagnostic = '') {
     super(message)
     this.code = code
+    this.diagnostic = diagnostic
   }
 }
 
@@ -56,7 +59,7 @@ export const aiService = {
       throw new AiAssistError('Could not reach the writer. Check your internet and try again.', 'network')
     }
 
-    let data: { text?: string; suggestions?: string[]; error?: string; code?: string } | null = null
+    let data: { text?: string; suggestions?: string[]; error?: string; code?: string; diagnostic?: string } | null = null
     try {
       data = await response.json()
     } catch {
@@ -69,7 +72,11 @@ export const aiService = {
       if (!data) {
         throw new AiAssistError('AI Assist only works on the live website, not on a local test copy.', 'unavailable')
       }
-      throw new AiAssistError(data.error || 'AI Assist is busy right now. Please try again in a moment.', data.code || 'busy')
+      throw new AiAssistError(
+        data.error || 'AI Assist is busy right now. Please try again in a moment.',
+        data.code || 'busy',
+        data.diagnostic || ''
+      )
     }
 
     return { text: data.text, suggestions: data.suggestions }

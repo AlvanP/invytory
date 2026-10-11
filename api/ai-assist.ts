@@ -226,10 +226,51 @@ function fallbackHashtags(r: CleanRequest): string[] {
 // ---------------------------------------------------------------------------
 
 class ProviderError extends Error {
-  retryable: boolean
-  constructor(message: string, retryable: boolean) {
+  /** HTTP status from the AI service, or 0 when it answered without any text. */
+  status: number
+  /** A short, key-free excerpt of the service's own explanation, if it gave one. */
+  snippet: string
+  constructor(message: string, status: number, snippet = '') {
     super(message)
-    this.retryable = retryable
+    this.status = status
+    this.snippet = snippet
+  }
+}
+
+/** Pulls the service's own error sentence out of its reply and removes the key from it. */
+function errorSnippet(rawBody: string, apiKey: string): string {
+  let message = rawBody
+  try {
+    const parsed = JSON.parse(rawBody) as { error?: { message?: string } | string }
+    if (typeof parsed.error === 'string') message = parsed.error
+    else if (parsed.error?.message) message = parsed.error.message
+  } catch {
+    // Not JSON: use the plain text.
+  }
+  return message.split(apiKey).join('[key]').replace(/\s+/g, ' ').trim().slice(0, 140)
+}
+
+/** A safe, plain-words reason a provider failed. Never contains keys or couple details. */
+function describeFailure(provider: string, err: unknown): string {
+  if (err instanceof ProviderError) {
+    const s = err.status
+    if (s === 401 || s === 403) return `${provider}: key rejected (${s})`
+    if (s === 404) return `${provider}: model not found (404)${err.snippet ? ' - ' + err.snippet : ''}`
+    if (s === 400) return `${provider}: request rejected (400)${err.snippet ? ' - ' + err.snippet : ''}`
+    if (s === 429) return `${provider}: free limit reached (429)`
+    if (s >= 500) return `${provider}: service error (${s})`
+    return `${provider}: ${err.message}`
+  }
+  if (err instanceof Error && err.name === 'AbortError') return `${provider}: timed out`
+  return `${provider}: could not connect`
+}
+
+/** Thrown when every configured provider failed; carries a reason for each. */
+class AllProvidersFailed extends Error {
+  diagnostic: string
+  constructor(diagnostic: string) {
+    super('all providers failed')
+    this.diagnostic = diagnostic
   }
 }
 
@@ -261,13 +302,13 @@ async function callGroq(
     signal,
   })
   if (!response.ok) {
-    const detail = (await response.text()).slice(0, 300)
-    console.error(`[ai-assist] groq ${response.status}: ${detail}`)
-    throw new ProviderError(`groq ${response.status}`, response.status === 429 || response.status >= 500 || response.status === 404 || response.status === 400)
+    const snippet = errorSnippet(await response.text(), apiKey)
+    console.error(`[ai-assist] groq ${response.status}: ${snippet}`)
+    throw new ProviderError(`groq ${response.status}`, response.status, snippet)
   }
   const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> }
   const text = data.choices?.[0]?.message?.content
-  if (!text) throw new ProviderError('groq returned no text', true)
+  if (!text) throw new ProviderError('returned no text', 0)
   return text
 }
 
@@ -288,37 +329,43 @@ async function callGemini(
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents: [{ role: 'user', parts: [{ text: user }] }],
-        generationConfig: { temperature, maxOutputTokens: 1024 },
+        generationConfig: { temperature, maxOutputTokens: 2048 },
       }),
       signal,
     }
   )
   if (!response.ok) {
-    const detail = (await response.text()).slice(0, 300)
-    console.error(`[ai-assist] gemini ${response.status}: ${detail}`)
-    throw new ProviderError(`gemini ${response.status}`, response.status === 429 || response.status >= 500 || response.status === 404 || response.status === 400)
+    const snippet = errorSnippet(await response.text(), apiKey)
+    console.error(`[ai-assist] gemini ${response.status}: ${snippet}`)
+    throw new ProviderError(`gemini ${response.status}`, response.status, snippet)
   }
   const data = (await response.json()) as {
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
   }
   const text = (data.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? '').join('')
-  if (!text.trim()) throw new ProviderError('gemini returned no text', true)
+  if (!text.trim()) throw new ProviderError('returned no text', 0)
   return text
+}
+
+function cleanSetting(value: string | undefined): string {
+  return (value ?? '').trim().replace(/^["']+|["']+$/g, '').trim()
 }
 
 function configuredProviders(): Provider[] {
   const providers: Provider[] = []
-  const groqKey = process.env.GROQ_API_KEY
-  const geminiKey = process.env.GEMINI_API_KEY
+  // A pasted key often carries a trailing space, a line break or quote marks,
+  // which makes the service reject it. Clean them off.
+  const groqKey = cleanSetting(process.env.GROQ_API_KEY)
+  const geminiKey = cleanSetting(process.env.GEMINI_API_KEY)
   if (groqKey) {
-    const model = process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL
+    const model = cleanSetting(process.env.GROQ_MODEL) || DEFAULT_GROQ_MODEL
     providers.push({
       name: 'groq',
       call: (system, user, temperature, signal) => callGroq(groqKey, model, system, user, temperature, signal),
     })
   }
   if (geminiKey) {
-    const model = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL
+    const model = cleanSetting(process.env.GEMINI_MODEL) || DEFAULT_GEMINI_MODEL
     providers.push({
       name: 'gemini',
       call: (system, user, temperature, signal) => callGemini(geminiKey, model, system, user, temperature, signal),
@@ -329,25 +376,26 @@ function configuredProviders(): Provider[] {
 
 async function generate(system: string, user: string, temperature: number, providers: Provider[]): Promise<string> {
   const deadline = Date.now() + TOTAL_BUDGET_MS
-  let lastError: unknown = null
+  const failures: string[] = []
 
   for (const provider of providers) {
     const remaining = deadline - Date.now()
-    if (remaining < MIN_CALL_MS) break
+    if (remaining < MIN_CALL_MS) {
+      failures.push(`${provider.name}: skipped, no time left`)
+      continue
+    }
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), Math.min(PER_CALL_MAX_MS, remaining))
     try {
       return await provider.call(system, user, temperature, controller.signal)
     } catch (err) {
-      lastError = err
-      const aborted = err instanceof Error && err.name === 'AbortError'
-      if (aborted) console.error(`[ai-assist] ${provider.name} timed out`)
       // Any failure moves on to the next provider; if none are left it surfaces below.
+      failures.push(describeFailure(provider.name, err))
     } finally {
       clearTimeout(timer)
     }
   }
-  throw lastError ?? new Error('no provider available')
+  throw new AllProvidersFailed(failures.join('; '))
 }
 
 // ---------------------------------------------------------------------------
@@ -457,12 +505,19 @@ export default async function handler(req: any, res: any) {
     }
     res.status(200).json({ text })
   } catch (err) {
-    console.error('[ai-assist] all providers failed:', err instanceof Error ? err.message : err)
+    const diagnostic = err instanceof AllProvidersFailed ? err.diagnostic : 'unexpected error'
+    console.error('[ai-assist] all providers failed:', diagnostic)
     if (request.field === 'hashtag') {
       // Hashtags can still be offered without any AI.
       res.status(200).json({ suggestions: fallbackHashtags(request).slice(0, 6) })
       return
     }
-    res.status(503).json({ error: 'AI Assist is busy right now. Please try again in a moment, or write it yourself.', code: 'busy' })
+    res.status(503).json({
+      error: 'AI Assist could not write that just now. Please try again in a moment, or write it yourself.',
+      code: 'busy',
+      // Plain reasons only (key rejected, model not found, limit reached...);
+      // never a key, and never anything the couple typed.
+      diagnostic,
+    })
   }
 }

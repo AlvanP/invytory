@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Sparkles, RefreshCw, Pencil, Check, X } from 'lucide-react'
 import { useWizard } from '@/hooks/useWizard'
 import { ceremonyDisplayName } from '@/types'
-import { aiService, type AiField, type AiResult } from '@/services/aiService'
+import { aiService, AiAssistError, type AiField, type AiResult } from '@/services/aiService'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
 
@@ -52,6 +52,7 @@ export function AiAssist({
   const [result, setResult] = useState<AiResult | null>(null)
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorDetail, setErrorDetail] = useState<string>('')
   const variationRef = useRef(0)
   const editRef = useRef<HTMLTextAreaElement>(null)
 
@@ -64,6 +65,7 @@ export function AiAssist({
     if (!hasNames || loading) return
     setLoading(true)
     setError(null)
+    setErrorDetail('')
     setEditing(false)
     if (isRetry) variationRef.current += 1
     else variationRef.current = 0
@@ -91,6 +93,7 @@ export function AiAssist({
       setResult(next)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      if (err instanceof AiAssistError) setErrorDetail(err.diagnostic)
     } finally {
       setLoading(false)
     }
@@ -100,6 +103,7 @@ export function AiAssist({
     setOpen(false)
     setResult(null)
     setError(null)
+    setErrorDetail('')
     setEditing(false)
     variationRef.current = 0
   }
@@ -158,7 +162,14 @@ export function AiAssist({
             />
           )}
 
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && (
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-danger">{error}</p>
+              {errorDetail && (
+                <p className="text-[11px] text-ink-soft/70">Technical detail (for support): {errorDetail}</p>
+              )}
+            </div>
+          )}
 
           {!result && (
             <div className="flex flex-wrap items-center gap-3">
