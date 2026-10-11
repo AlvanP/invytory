@@ -3,6 +3,7 @@ import { useWizard } from '@/hooks/useWizard'
 import { ceremonyDisplayName } from '@/types'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+import { AiAssist } from '@/components/wizard/AiAssist'
 import { CeremonyTabs } from '@/components/wizard/CeremonyTabs'
 import { WizardStepShell } from './WizardStepShell'
 
@@ -16,33 +17,54 @@ export function StepOptions() {
     <WizardStepShell
       eyebrow="Step 6 of 7"
       title="A few extra details"
-      description="All optional — add what feels useful to your guests."
+      description="All optional — add what feels useful to your guests. AI Assist can help with the wording."
       backTo="/create/photos"
       nextTo="/create/preview"
       skippable
     >
-      <div className="flex flex-col gap-5">
-        <Input
-          label="Wedding hashtag"
-          optional
-          value={draft.weddingHashtag ?? ''}
-          onChange={(e) => updateDraft({ weddingHashtag: e.target.value })}
-          placeholder="#AdaAndMichael2027"
-        />
-        <Textarea
-          label="Gift information"
-          optional
-          value={draft.giftInformation ?? ''}
-          onChange={(e) => updateDraft({ giftInformation: e.target.value })}
-          placeholder="Registry details or a note about gifts"
-        />
-        <Textarea
-          label="Additional message"
-          optional
-          value={draft.additionalMessage ?? ''}
-          onChange={(e) => updateDraft({ additionalMessage: e.target.value })}
-          placeholder="Anything else your guests should know"
-        />
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <Input
+            label="Wedding hashtag"
+            optional
+            value={draft.weddingHashtag ?? ''}
+            onChange={(e) => updateDraft({ weddingHashtag: e.target.value })}
+            placeholder="#AdaAndMichael2027"
+          />
+          <AiAssist
+            field="hashtag"
+            currentValue={draft.weddingHashtag}
+            onUse={(text) => updateDraft({ weddingHashtag: text })}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Textarea
+            label="Gift information"
+            optional
+            value={draft.giftInformation ?? ''}
+            onChange={(e) => updateDraft({ giftInformation: e.target.value })}
+            placeholder="Registry details or a note about gifts"
+          />
+          <AiAssist
+            field="giftInformation"
+            currentValue={draft.giftInformation}
+            onUse={(text) => updateDraft({ giftInformation: text })}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Textarea
+            label="Additional message"
+            optional
+            value={draft.additionalMessage ?? ''}
+            onChange={(e) => updateDraft({ additionalMessage: e.target.value })}
+            placeholder="Anything else your guests should know"
+          />
+          <AiAssist
+            field="additionalMessage"
+            currentValue={draft.additionalMessage}
+            onUse={(text) => updateDraft({ additionalMessage: text })}
+          />
+        </div>
 
         <div className="flex flex-col gap-3 border-t border-ink/10 pt-5">
           <CeremonyTabs ceremonies={draft.ceremonies} activeId={active.id} onChange={setActiveId} />
@@ -53,6 +75,14 @@ export function StepOptions() {
             value={active.customRsvpMessage ?? ''}
             onChange={(e) => updateCeremony(active.id, { customRsvpMessage: e.target.value })}
             placeholder="Kindly respond by..."
+          />
+          {/* Keyed by ceremony so switching tabs starts a fresh panel. */}
+          <AiAssist
+            key={`rsvp-${active.id}`}
+            field="rsvpMessage"
+            onlyCeremonyId={active.id}
+            currentValue={active.customRsvpMessage}
+            onUse={(text) => updateCeremony(active.id, { customRsvpMessage: text })}
           />
           {multiple && (
             <p className="text-xs text-ink-soft/70">
