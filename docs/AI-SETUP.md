@@ -31,12 +31,21 @@ quota for the day, the other answers automatically.
 
 ## 4. Optional settings
 
-These have working defaults. Add them only if a model is retired or you want another one.
+You normally do not need these. AI Assist tries several models in order and skips any
+your account cannot use (a free Groq account may not have every model), then remembers
+the one that worked.
 
-- `GROQ_MODEL` (default `llama-3.3-70b-versatile`)
-- `GEMINI_MODEL` (default `gemini-3.5-flash-lite`)
+- Groq tries: `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `llama-3.3-70b-versatile`,
+  `llama-3.1-8b-instant`.
+- Gemini tries: `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-3.8-flash`.
 
-After changing a setting, redeploy again.
+To put a model of your own first, add `GROQ_MODEL` or `GEMINI_MODEL` with its exact name
+(the names are listed in your Groq console and Google AI Studio). After changing a
+setting, redeploy again.
+
+If AI Assist ever fails, the red message has a "Technical detail" line underneath. It says
+in plain words why (for example "key rejected" or "no usable model"), and never shows a
+key or anything you typed.
 
 ## 5. Check it works (on the live site only)
 

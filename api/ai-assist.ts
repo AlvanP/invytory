@@ -45,8 +45,17 @@ const FIELDS: Field[] = [
   'rsvpMessage',
 ]
 
-const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile'
-const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite'
+// Models are tried in this order. A model the account cannot use (the service
+// answers 404) just moves on to the next one, so a retired or unavailable
+// model can never switch AI Assist off. Setting GROQ_MODEL / GEMINI_MODEL in
+// Vercel puts your choice first.
+const DEFAULT_GROQ_MODELS = [
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+]
+const DEFAULT_GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash']
 
 /** The whole request (all providers together) must finish inside this. */
 const TOTAL_BUDGET_MS = 9000
@@ -173,7 +182,8 @@ function cleanRequest(body: unknown): CleanRequest | null {
 // ---------------------------------------------------------------------------
 
 function cleanText(raw: string): string {
-  let text = raw.trim()
+  // Some models print their reasoning in <think> tags first; never show that.
+  let text = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
   // Remove a wrapping pair of quotes and any markdown the model added anyway.
   text = text.replace(/^["“”']+|["“”']+$/g, '')
   // [ \t] (not \s) so the blank line between two paragraphs is kept.
@@ -276,7 +286,14 @@ class AllProvidersFailed extends Error {
 
 interface Provider {
   name: string
-  call: (system: string, user: string, temperature: number, signal: AbortSignal) => Promise<string>
+  /** Models to try, best first. */
+  models: string[]
+  call: (model: string, system: string, user: string, temperature: number, signal: AbortSignal) => Promise<string>
+}
+
+/** gpt-oss models think before they answer, so they need room and a short think. */
+function isReasoningModel(model: string): boolean {
+  return model.startsWith('openai/gpt-oss')
 }
 
 async function callGroq(
@@ -287,13 +304,16 @@ async function callGroq(
   temperature: number,
   signal: AbortSignal
 ): Promise<string> {
+  const reasoning = isReasoningModel(model)
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       model,
       temperature,
-      max_tokens: 500,
+      // Thinking tokens count towards the limit, so reasoning models get more.
+      max_tokens: reasoning ? 1500 : 500,
+      ...(reasoning ? { reasoning_effort: 'low' } : {}),
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },
@@ -303,12 +323,12 @@ async function callGroq(
   })
   if (!response.ok) {
     const snippet = errorSnippet(await response.text(), apiKey)
-    console.error(`[ai-assist] groq ${response.status}: ${snippet}`)
+    console.error(`[ai-assist] groq ${model} ${response.status}: ${snippet}`)
     throw new ProviderError(`groq ${response.status}`, response.status, snippet)
   }
   const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> }
   const text = data.choices?.[0]?.message?.content
-  if (!text) throw new ProviderError('returned no text', 0)
+  if (!text || !text.trim()) throw new ProviderError('returned no text', 0)
   return text
 }
 
@@ -336,7 +356,7 @@ async function callGemini(
   )
   if (!response.ok) {
     const snippet = errorSnippet(await response.text(), apiKey)
-    console.error(`[ai-assist] gemini ${response.status}: ${snippet}`)
+    console.error(`[ai-assist] gemini ${model} ${response.status}: ${snippet}`)
     throw new ProviderError(`gemini ${response.status}`, response.status, snippet)
   }
   const data = (await response.json()) as {
@@ -351,6 +371,12 @@ function cleanSetting(value: string | undefined): string {
   return (value ?? '').trim().replace(/^["']+|["']+$/g, '').trim()
 }
 
+/** Your own choice (if set in Vercel) first, then the built-in list, without repeats. */
+function modelList(override: string | undefined, defaults: string[]): string[] {
+  const chosen = cleanSetting(override)
+  return chosen ? [chosen, ...defaults.filter((m) => m !== chosen)] : [...defaults]
+}
+
 function configuredProviders(): Provider[] {
   const providers: Provider[] = []
   // A pasted key often carries a trailing space, a line break or quote marks,
@@ -358,41 +384,70 @@ function configuredProviders(): Provider[] {
   const groqKey = cleanSetting(process.env.GROQ_API_KEY)
   const geminiKey = cleanSetting(process.env.GEMINI_API_KEY)
   if (groqKey) {
-    const model = cleanSetting(process.env.GROQ_MODEL) || DEFAULT_GROQ_MODEL
     providers.push({
       name: 'groq',
-      call: (system, user, temperature, signal) => callGroq(groqKey, model, system, user, temperature, signal),
+      models: modelList(process.env.GROQ_MODEL, DEFAULT_GROQ_MODELS),
+      call: (model, system, user, temperature, signal) => callGroq(groqKey, model, system, user, temperature, signal),
     })
   }
   if (geminiKey) {
-    const model = cleanSetting(process.env.GEMINI_MODEL) || DEFAULT_GEMINI_MODEL
     providers.push({
       name: 'gemini',
-      call: (system, user, temperature, signal) => callGemini(geminiKey, model, system, user, temperature, signal),
+      models: modelList(process.env.GEMINI_MODEL, DEFAULT_GEMINI_MODELS),
+      call: (model, system, user, temperature, signal) => callGemini(geminiKey, model, system, user, temperature, signal),
     })
   }
   return providers
 }
+
+/** The model that last worked for each provider and model list, so later requests skip the misses. */
+const workingModel = new Map<string, string>()
 
 async function generate(system: string, user: string, temperature: number, providers: Provider[]): Promise<string> {
   const deadline = Date.now() + TOTAL_BUDGET_MS
   const failures: string[] = []
 
   for (const provider of providers) {
-    const remaining = deadline - Date.now()
-    if (remaining < MIN_CALL_MS) {
-      failures.push(`${provider.name}: skipped, no time left`)
-      continue
+    const memoryKey = `${provider.name}|${provider.models.join(',')}`
+    const remembered = workingModel.get(memoryKey)
+    const order = remembered ? [remembered, ...provider.models.filter((m) => m !== remembered)] : provider.models
+
+    const notFound: string[] = []
+    let attempted = 0
+    let lastError: unknown = null
+
+    for (const model of order) {
+      const remaining = deadline - Date.now()
+      if (remaining < MIN_CALL_MS) break
+      attempted++
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), Math.min(PER_CALL_MAX_MS, remaining))
+      try {
+        const text = await provider.call(model, system, user, temperature, controller.signal)
+        workingModel.set(memoryKey, model)
+        return text
+      } catch (err) {
+        lastError = err
+        // 404 = this account cannot use that model: try the next one.
+        if (err instanceof ProviderError && err.status === 404) {
+          notFound.push(model)
+          continue
+        }
+        // Any other failure (key rejected, limit reached, timeout...) means this
+        // service is unhappy right now: move on to the next service.
+        break
+      } finally {
+        clearTimeout(timer)
+      }
     }
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), Math.min(PER_CALL_MAX_MS, remaining))
-    try {
-      return await provider.call(system, user, temperature, controller.signal)
-    } catch (err) {
-      // Any failure moves on to the next provider; if none are left it surfaces below.
-      failures.push(describeFailure(provider.name, err))
-    } finally {
-      clearTimeout(timer)
+
+    if (attempted === 0) {
+      failures.push(`${provider.name}: skipped, no time left`)
+    } else if (notFound.length === attempted) {
+      const last = lastError instanceof ProviderError && lastError.snippet ? ` - ${lastError.snippet}` : ''
+      failures.push(`${provider.name}: no usable model (tried ${notFound.join(', ')})${last}`)
+    } else {
+      failures.push(describeFailure(provider.name, lastError))
     }
   }
   throw new AllProvidersFailed(failures.join('; '))
