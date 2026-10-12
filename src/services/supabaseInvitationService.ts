@@ -107,7 +107,82 @@ export interface InvitationMediaUpdate {
   musicTitle: string | null
 }
 
+/** Details that belong to ONE ceremony. */
+export interface CeremonyDetailsUpdate {
+  weddingDate: string
+  weddingTime: string
+  venueName: string
+  venueAddress: string
+  city: string
+  state: string
+  dressCode: string
+  receptionInfo: string
+}
+
+/** Details shared by every ceremony of a wedding. */
+export interface CoupleDetailsUpdate {
+  brideName: string
+  groomName: string
+  tagline: string
+  loveStory: string
+  howWeMet: string
+  vows: string
+  weddingHashtag: string
+  giftInformation: string
+  additionalMessage: string
+}
+
+const orNull = (v: string) => v.trim() || null
+
 export const supabaseInvitationService = {
+  /** Saves this ceremony's own details (date, venue, ...). */
+  async updateCeremonyDetails(id: string, u: CeremonyDetailsUpdate): Promise<void> {
+    const { data, error } = await supabase
+      .from('invitations')
+      .update({
+        wedding_date: u.weddingDate,
+        wedding_time: orNull(u.weddingTime),
+        venue_name: u.venueName.trim(),
+        venue_address: orNull(u.venueAddress),
+        city: orNull(u.city),
+        state: orNull(u.state),
+        dress_code: orNull(u.dressCode),
+        reception_info: orNull(u.receptionInfo),
+      })
+      .eq('id', id)
+      .select('id')
+    if (error) throw new Error(error.message || 'Could not save the ceremony details.')
+    if (!data || data.length === 0) throw new Error('Could not save: not found, or you are not the owner.')
+  },
+
+  /** Saves couple-wide details on EVERY ceremony of the wedding (or just this
+   * row for an older single invitation), so all ceremonies stay consistent.
+   * The invitation link is never changed, so links already sent keep working. */
+  async updateCoupleDetails(id: string, weddingId: string | undefined, u: CoupleDetailsUpdate): Promise<void> {
+    const query = supabase
+      .from('invitations')
+      .update({
+        bride_name: u.brideName.trim(),
+        groom_name: u.groomName.trim(),
+        tagline: orNull(u.tagline),
+        love_story: orNull(u.loveStory),
+        how_we_met: orNull(u.howWeMet),
+        vows: orNull(u.vows),
+        wedding_hashtag: orNull(u.weddingHashtag),
+        gift_information: orNull(u.giftInformation),
+        additional_message: orNull(u.additionalMessage),
+      })
+    const { data, error } = await (weddingId ? query.eq('wedding_id', weddingId) : query.eq('id', id)).select('id')
+    if (error) throw new Error(error.message || 'Could not save the couple details.')
+    if (!data || data.length === 0) throw new Error('Could not save: not found, or you are not the owner.')
+  },
+
+  /** When a wedding's hosting ends (null if unknown). */
+  async getWeddingExpiry(weddingId: string): Promise<string | null> {
+    const { data } = await supabase.from('weddings').select('expires_at').eq('id', weddingId).maybeSingle()
+    return (data as { expires_at: string | null } | null)?.expires_at ?? null
+  },
+
   /** Saves edits to one published ceremony. Row-level security only lets the
    * owner update, and it hides other rows silently, so we ask for the row back
    * and treat "nothing came back" as "not allowed / not found". */
