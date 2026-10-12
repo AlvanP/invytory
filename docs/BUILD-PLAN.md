@@ -1,6 +1,6 @@
 # Invytory build plan
 
-Last updated: 11 Oct 2026. This is the working order of what gets built next.
+Last updated: 12 Oct 2026. This is the working order of what gets built next.
 Reorder freely; each item says what it depends on.
 
 ## Done and live
@@ -13,6 +13,8 @@ Reorder freely; each item says what it depends on.
 - Duplicate-RSVP safeguard (per device), guest-list summary, ceremony "back" navigation.
 - Edit-ceremony typing fix (modal no longer steals focus).
 - Music: library + uploads per ceremony, tap-to-start player, 8:00 cap with fade and restart.
+- Dashboard polish: guest CSV export, all-ceremonies guest list with ceremony filter,
+  editing photos / music / RSVP message after publishing, lazy-loaded pages, unused mock files removed.
 
 ## Build order
 
@@ -50,11 +52,10 @@ then Use text / Regenerate / Edit (hashtags: tap one of six).
 
 Your own designs replace the placeholder entries in `src/data/templates.ts`.
 
-### 5. Dashboard polish
+### 5. Dashboard polish: BUILT
 
-Per-ceremony guest views inside a wedding card, settings/manage pages for ceremony ids,
-editing music / photos after publishing, unused mock-file cleanup, code-splitting,
-CSV export of guests.
+Left over: editing names, dates and venues after publishing, and a settings page for
+ceremony ids (the Settings page is still the old placeholder).
 
 ### 6. Entrance artwork integration
 
@@ -136,4 +137,4 @@ confirming they have the right to use the music).
   downloads what it plays, so a long file is not fully downloaded. Check your Supabase
   plan's storage and bandwidth limits as the library and guest numbers grow.
 - **Not in v1:** music preview inside the wizard's final Preview step; editing music after
-  publishing (planned with dashboard polish).
+  publishing (now done from Dashboard > Edit).
