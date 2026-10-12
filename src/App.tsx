@@ -21,6 +21,7 @@ import { StepPreview } from '@/pages/create/StepPreview'
 import { DashboardOverviewPage } from '@/pages/dashboard/DashboardOverviewPage'
 import { DashboardEventsPage } from '@/pages/dashboard/DashboardEventsPage'
 import { DashboardEventDetailPage } from '@/pages/dashboard/DashboardEventDetailPage'
+import { DashboardEditCeremonyPage } from '@/pages/dashboard/DashboardEditCeremonyPage'
 import { DashboardGuestsPage } from '@/pages/dashboard/DashboardGuestsPage'
 import { DashboardSettingsPage } from '@/pages/dashboard/DashboardSettingsPage'
 
@@ -54,6 +55,7 @@ function App() {
           <Route path="events" element={<DashboardEventsPage />} />
           <Route path="events/:eventId" element={<DashboardEventDetailPage />} />
           <Route path="events/:eventId/guests" element={<DashboardGuestsPage />} />
+          <Route path="ceremonies/:ceremonyId/edit" element={<DashboardEditCeremonyPage />} />
           <Route path="weddings/:weddingId/guests" element={<DashboardGuestsPage />} />
           <Route path="events/:eventId/settings" element={<DashboardSettingsPage />} />
         </Route>

@@ -97,7 +97,37 @@ function generateSlug(brideName: string, groomName: string): string {
   return `${clean(brideName)}-and-${clean(groomName)}`
 }
 
+/** What the owner may change after publishing (photos, music, RSVP note). */
+export interface InvitationMediaUpdate {
+  heroImage: string | null
+  galleryImages: GalleryImageSlot[]
+  customRsvpMessage: string
+  musicSource: MusicSource | null
+  musicUrl: string | null
+  musicTitle: string | null
+}
+
 export const supabaseInvitationService = {
+  /** Saves edits to one published ceremony. Row-level security only lets the
+   * owner update, and it hides other rows silently, so we ask for the row back
+   * and treat "nothing came back" as "not allowed / not found". */
+  async updateMedia(id: string, update: InvitationMediaUpdate): Promise<void> {
+    const { data, error } = await supabase
+      .from('invitations')
+      .update({
+        hero_image: update.heroImage,
+        gallery_images: update.galleryImages,
+        custom_rsvp_message: update.customRsvpMessage.trim() || null,
+        music_source: update.musicUrl ? update.musicSource ?? 'upload' : null,
+        music_url: update.musicUrl,
+        music_title: update.musicUrl ? update.musicTitle : null,
+      })
+      .eq('id', id)
+      .select('id')
+    if (error) throw new Error(error.message || 'Could not save your changes.')
+    if (!data || data.length === 0) throw new Error('Could not save: this invitation was not found, or you are not signed in as its owner.')
+  },
+
   /** Pass the signed-in user's id to list only their invitations
    * (used by the dashboard). Omit it to rely on RLS's public-read
    * rule for published invitations only (not used directly today,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Users, Share2, Settings, ScrollText } from 'lucide-react'
+import { Eye, Users, Share2, Settings, ScrollText, Pencil } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { ceremonyDisplayName } from '@/types'
 import { invitationService } from '@/services/invitationService'
@@ -116,9 +116,14 @@ export function DashboardEventsPage() {
                             {ceremonyDisplayName(c)} &middot; {formatDate(c.weddingDate)}
                             {templates[c.templateId] && <> &middot; {templates[c.templateId].name}</>}
                           </span>
-                          <Link to={`/dashboard/events/${c.id}/guests`}>
-                            <Button variant="ghost" size="sm" icon={<Users className="size-3.5" />}>Guests</Button>
-                          </Link>
+                          <div className="flex gap-1">
+                            <Link to={`/dashboard/ceremonies/${c.id}/edit`}>
+                              <Button variant="ghost" size="sm" icon={<Pencil className="size-3.5" />}>Edit</Button>
+                            </Link>
+                            <Link to={`/dashboard/events/${c.id}/guests`}>
+                              <Button variant="ghost" size="sm" icon={<Users className="size-3.5" />}>Guests</Button>
+                            </Link>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -152,6 +157,9 @@ export function DashboardEventsPage() {
                     </Link>
                     <Link to={`/dashboard/events/${inv.id}`}>
                       <Button variant="outline" size="sm" icon={<ScrollText className="size-4" />}>Manage</Button>
+                    </Link>
+                    <Link to={`/dashboard/ceremonies/${inv.id}/edit`}>
+                      <Button variant="outline" size="sm" icon={<Pencil className="size-4" />}>Edit</Button>
                     </Link>
                     <Link to={`/dashboard/events/${inv.id}/guests`}>
                       <Button variant="outline" size="sm" icon={<Users className="size-4" />}>Guests</Button>
