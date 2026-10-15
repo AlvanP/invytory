@@ -5,6 +5,7 @@ import type { CoverTone } from './TemplateCover'
 import { formatDate, formatTime } from '@/utils/format'
 import { InvitationSection } from '@/components/invitation/InvitationSection'
 import { CountdownDisplay } from '@/components/invitation/CountdownDisplay'
+import { SaveAndShare } from '@/components/invitation/SaveAndShare'
 import { RsvpForm } from '@/components/invitation/RsvpForm'
 import { RevealOnScroll } from '@/components/animation/RevealOnScroll'
 
@@ -134,6 +135,10 @@ export function InvitationBody({ invitation, tone }: { invitation: WeddingInvita
         <div className="rounded-md bg-[color:var(--iv-paper)] p-6 text-left text-[color:var(--iv-ink)] shadow-lg">
           <RsvpForm invitationId={invitation.id} customMessage={invitation.customRsvpMessage} />
         </div>
+      </InvitationSection>
+
+      <InvitationSection eyebrow="Save The Date" title="Keep It Handy" tone={tone}>
+        <SaveAndShare invitation={invitation} />
       </InvitationSection>
 
       {hasMore && (
