@@ -10,6 +10,7 @@ export function TemplateCard({ template }: { template: InvitationTemplate }) {
       <Link to={`/templates/${template.id}`} className="block">
         <TemplatePreviewPlaceholder
           tone={template.previewTone}
+          templateId={template.id}
           className="transition-transform duration-300 group-hover:scale-[1.01]"
         />
       </Link>

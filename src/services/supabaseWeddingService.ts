@@ -161,6 +161,8 @@ export const supabaseWeddingService = {
       ceremony_label: c.ceremonyLabel ?? null,
       // Only sent when a track was chosen, so weddings without music
       // publish exactly as before (even before the music SQL has been run).
+      // Same idea for the colour: only sent when chosen.
+      ...(c.themeColor ? { theme_color: c.themeColor } : {}),
       ...(c.musicUrl
         ? {
             music_source: c.musicSource ?? 'upload',

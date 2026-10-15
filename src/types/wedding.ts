@@ -55,6 +55,8 @@ export interface CeremonyDraft {
   musicSource?: MusicSource | null
   musicUrl?: string | null
   musicTitle?: string | null
+  /** Colour of the day for this ceremony (#RRGGBB). */
+  themeColor?: string | null
 }
 
 /** Four blank gallery slots — the shape the invitation templates expect. */

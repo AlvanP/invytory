@@ -31,6 +31,7 @@ export function FeaturedTemplatesSection() {
               <Link key={t.id} to={`/templates/${t.id}`} className="group flex flex-col gap-3">
                 <TemplatePreviewPlaceholder
                   tone={t.previewTone}
+                  templateId={t.id}
                   className="transition-transform duration-300 group-hover:scale-[1.01]"
                 />
                 <span className="font-display text-lg text-ink">{t.name}</span>

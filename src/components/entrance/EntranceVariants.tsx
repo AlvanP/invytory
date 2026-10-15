@@ -28,8 +28,8 @@ export function SplitPanelsVariant({
     <>
       <div
         className={cn(
-          'absolute inset-y-0 left-0 w-1/2 border-r bg-cover bg-center transition-transform',
-          DURATION, EASE, borderColorClass,
+          'absolute inset-y-0 left-0 w-1/2 bg-cover bg-right transition-transform',
+          DURATION, EASE, !assets?.leftPanel && ['border-r', borderColorClass],
           triggered && '-translate-x-full'
         )}
         style={{
@@ -38,8 +38,8 @@ export function SplitPanelsVariant({
       />
       <div
         className={cn(
-          'absolute inset-y-0 right-0 w-1/2 border-l bg-cover bg-center transition-transform',
-          DURATION, EASE, borderColorClass,
+          'absolute inset-y-0 right-0 w-1/2 bg-cover bg-left transition-transform',
+          DURATION, EASE, !assets?.rightPanel && ['border-l', borderColorClass],
           triggered && 'translate-x-full'
         )}
         style={{
@@ -71,7 +71,7 @@ export function BookVariant({ triggered, assets }: { triggered: boolean; assets?
       )}
     >
       <div
-        className="flex h-2/3 w-2/3 max-w-xs flex-col items-center justify-center gap-3 rounded-sm border-4 border-double border-gold/50 bg-ivory bg-cover bg-center shadow-lift"
+        className="flex aspect-[4/5] w-3/4 max-w-xs flex-col items-center justify-center gap-3 rounded-sm border-4 border-double border-gold/50 bg-ivory bg-cover bg-center shadow-lift"
         style={assets?.cover ? { backgroundImage: `url(${assets.cover})` } : undefined}
       >
         {!assets?.cover && (
@@ -91,24 +91,44 @@ export function EnvelopeVariant({ triggered, assets }: { triggered: boolean; ass
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <div
-        className="relative h-48 w-72 max-w-[80vw] rounded-sm bg-cover bg-center shadow-lift"
+        className={cn(
+          'relative aspect-[3/2] w-[85vw] max-w-sm rounded-sm bg-cover bg-center transition-all',
+          DURATION, EASE,
+          assets?.envelope ? 'shadow-none' : 'shadow-lift',
+          // Real artwork already has its flap drawn in, so the whole envelope
+          // drifts up and fades instead of the placeholder flap lifting.
+          assets?.envelope && triggered && '-translate-y-4 scale-105 opacity-0'
+        )}
         style={{
           backgroundImage: assets?.envelope ? `url(${assets.envelope})` : undefined,
           backgroundColor: assets?.envelope ? undefined : 'var(--color-ivory-deep)',
         }}
       >
-        <div
-          className={cn('absolute inset-x-0 top-0 h-1/2 bg-linen transition-all', DURATION, EASE, triggered && '-translate-y-6 opacity-0')}
-          style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }}
-        />
-        <div
-          className={cn(
-            'absolute left-1/2 top-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gold text-ivory shadow-soft transition-opacity duration-300',
-            triggered && 'opacity-0'
-          )}
-        >
-          <Heart className="size-4" fill="currentColor" strokeWidth={0} />
-        </div>
+        {!assets?.envelope && (
+          <div
+            className={cn('absolute inset-x-0 top-0 h-1/2 bg-linen transition-all', DURATION, EASE, triggered && '-translate-y-6 opacity-0')}
+            style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }}
+          />
+        )}
+        {assets?.seal ? (
+          <img
+            src={assets.seal}
+            alt=""
+            className={cn(
+              'absolute left-1/2 top-1/2 size-16 -translate-x-1/2 -translate-y-1/2 object-contain transition-opacity duration-300',
+              triggered && 'opacity-0'
+            )}
+          />
+        ) : (
+          <div
+            className={cn(
+              'absolute left-1/2 top-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gold text-ivory shadow-soft transition-opacity duration-300',
+              triggered && 'opacity-0'
+            )}
+          >
+            <Heart className="size-4" fill="currentColor" strokeWidth={0} />
+          </div>
+        )}
       </div>
     </div>
   )

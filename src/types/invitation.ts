@@ -60,6 +60,8 @@ export interface WeddingInvitation {
   musicSource?: MusicSource
   musicUrl?: string
   musicTitle?: string
+  /** The couple's colour of the day (#RRGGBB). Undefined = the design's own colour. */
+  themeColor?: string
 
     // System
   createdAt: string

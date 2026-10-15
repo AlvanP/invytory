@@ -1,5 +1,6 @@
 import { ImageIcon, MapPin, QrCode, DoorOpen, Sparkles } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { getTemplateArt } from '@/utils/templateArt'
 
 /**
  * A shared family of tasteful placeholder surfaces. These stand in for
@@ -80,7 +81,27 @@ export function QrPlaceholder({ className }: { className?: string }) {
   )
 }
 
-export function TemplatePreviewPlaceholder({ tone, className }: { tone: string; className?: string }) {
+export function TemplatePreviewPlaceholder({
+  tone,
+  templateId,
+  className,
+}: {
+  tone: string
+  /** When this design has a preview image file, it is shown instead of the placeholder. */
+  templateId?: string
+  className?: string
+}) {
+  const previewImage = getTemplateArt(templateId).preview
+  if (previewImage) {
+    return (
+      <img
+        src={previewImage}
+        alt=""
+        loading="lazy"
+        className={cn('aspect-[3/4] w-full rounded-md object-cover', className)}
+      />
+    )
+  }
   const toneGradients: Record<string, string> = {
     royal: 'linear-gradient(160deg, #3B1522 0%, #5C2435 60%, #B08D57 100%)',
     garden: 'linear-gradient(160deg, #EFEFE2 0%, #DCE3CD 60%, #8FA37E 100%)',

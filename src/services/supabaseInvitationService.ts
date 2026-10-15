@@ -44,6 +44,7 @@ export interface InvitationRow {
   music_source?: string | null
   music_url?: string | null
   music_title?: string | null
+  theme_color?: string | null
 }
 
 export function rowToInvitation(row: InvitationRow): WeddingInvitation {
@@ -89,6 +90,7 @@ export function rowToInvitation(row: InvitationRow): WeddingInvitation {
     musicSource: row.music_url ? ((row.music_source as MusicSource | null) ?? 'upload') : undefined,
     musicUrl: row.music_url ?? undefined,
     musicTitle: row.music_title ?? undefined,
+    themeColor: row.theme_color ?? undefined,
   }
 }
 
@@ -174,6 +176,18 @@ export const supabaseInvitationService = {
       })
     const { data, error } = await (weddingId ? query.eq('wedding_id', weddingId) : query.eq('id', id)).select('id')
     if (error) throw new Error(error.message || 'Could not save the couple details.')
+    if (!data || data.length === 0) throw new Error('Could not save: not found, or you are not the owner.')
+  },
+
+  /** Saves the colour of the day. Kept separate from other edits so that, if the
+   * database column has not been added yet, nothing else fails with it. */
+  async updateThemeColor(id: string, themeColor: string | null): Promise<void> {
+    const { data, error } = await supabase
+      .from('invitations')
+      .update({ theme_color: themeColor })
+      .eq('id', id)
+      .select('id')
+    if (error) throw new Error(error.message || 'Could not save the colour.')
     if (!data || data.length === 0) throw new Error('Could not save: not found, or you are not the owner.')
   },
 

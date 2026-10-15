@@ -75,7 +75,7 @@ export function StepTemplate() {
           selected ? 'ring-2 ring-gold' : 'ring-1 ring-ink/10 hover:ring-ink/30'
         )}
       >
-        <TemplatePreviewPlaceholder tone={t.previewTone} />
+        <TemplatePreviewPlaceholder tone={t.previewTone} templateId={t.id} />
         <div className="flex items-center justify-between px-1 pb-1">
           <span className="text-sm font-medium text-ink">{t.name}</span>
           {t.isPremium && <Badge tone="premium">Premium</Badge>}

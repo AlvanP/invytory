@@ -149,7 +149,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
           onClick={() => setAttending(true)}
           className={cn(
             'flex flex-col items-center gap-2 rounded-sm border px-4 py-5 text-sm transition-colors',
-            attending === true ? 'border-success bg-success/10 text-success' : 'border-ink/15 text-ink-soft hover:border-ink/30'
+            attending === true ? 'border-[color:var(--iv-main)] bg-[color:var(--iv-main)] text-[color:var(--iv-on-main)]' : 'border-ink/20 text-ink hover:border-ink/40'
           )}
           aria-pressed={attending === true}
         >
@@ -161,7 +161,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
           onClick={() => setAttending(false)}
           className={cn(
             'flex flex-col items-center gap-2 rounded-sm border px-4 py-5 text-sm transition-colors',
-            attending === false ? 'border-danger bg-danger/10 text-danger' : 'border-ink/15 text-ink-soft hover:border-ink/30'
+            attending === false ? 'border-ink bg-ink text-white' : 'border-ink/20 text-ink hover:border-ink/40'
           )}
           aria-pressed={attending === false}
         >
@@ -213,7 +213,12 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
             </div>
           )}
 
-          <Button type="submit" isLoading={submitting} className="w-full">
+          <Button
+            type="submit"
+            isLoading={submitting}
+            className="w-full"
+            style={{ backgroundColor: 'var(--iv-main)', color: 'var(--iv-on-main)', borderColor: 'var(--iv-main)' }}
+          >
             Confirm Attendance
           </Button>
         </div>

@@ -5,6 +5,7 @@ import { templateService } from '@/services/templateService'
 import { collectionForCeremonyType, groupTemplates, COLLECTION_LABELS } from '@/utils/templateCollections'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { ColourPicker } from '@/components/wizard/ColourPicker'
 import { TemplatePreviewPlaceholder } from '@/components/ui/Placeholder'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/utils/cn'
@@ -50,7 +51,7 @@ export function CeremonyFormFields({
           selected ? 'ring-2 ring-gold' : 'ring-1 ring-ink/10 hover:ring-ink/30'
         )}
       >
-        <TemplatePreviewPlaceholder tone={t.previewTone} />
+        <TemplatePreviewPlaceholder tone={t.previewTone} templateId={t.id} />
         <div className="flex items-center gap-1 px-0.5">
           <span className="truncate text-[11px] text-ink">{t.name}</span>
           {t.isPremium && <Badge tone="premium">Pro</Badge>}
@@ -187,6 +188,8 @@ export function CeremonyFormFields({
           onChange={(e) => onChange({ receptionInfo: e.target.value })}
         />
       </div>
+
+      <ColourPicker value={value.themeColor} onChange={(hex) => onChange({ themeColor: hex })} />
     </div>
   )
 }

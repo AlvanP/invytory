@@ -13,12 +13,14 @@ import type { CeremonyDetailsUpdate, CoupleDetailsUpdate } from '@/services/supa
 import { ErrorState } from '@/components/ui/State'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 import { MusicPicker } from '@/components/wizard/MusicPicker'
+import { ColourPicker } from '@/components/wizard/ColourPicker'
 import { UploadSlot, uploadErrorMessage } from '@/components/wizard/UploadSlot'
 
 const gallerySlotIds = ['g1', 'g2', 'g3', 'g4']
 
 /** The part of a ceremony an owner can change after publishing. */
 interface Editable {
+  themeColor: string | null
   details: CeremonyDetailsUpdate
   couple: CoupleDetailsUpdate
   heroImage: string | null
@@ -33,6 +35,7 @@ function toEditable(inv: WeddingInvitation): Editable {
   const base = emptyGallery()
   const gallery = base.map((slot) => inv.galleryImages?.find((g) => g.id === slot.id) ?? slot)
   return {
+    themeColor: inv.themeColor ?? null,
     details: {
       weddingDate: inv.weddingDate ?? '',
       weddingTime: inv.weddingTime ?? '',
@@ -184,6 +187,11 @@ export function DashboardEditCeremonyPage() {
         done = { ...done, details: edit.details }
         setSaved(done)
       }
+      if (edit.themeColor !== saved.themeColor) {
+        await invitationService.updateThemeColor(invitation.id, edit.themeColor)
+        done = { ...done, themeColor: edit.themeColor }
+        setSaved(done)
+      }
       if (!same(edit.couple, saved.couple)) {
         await invitationService.updateCoupleDetails(invitation.id, invitation.weddingId, edit.couple)
         done = { ...done, couple: edit.couple }
@@ -298,6 +306,10 @@ export function DashboardEditCeremonyPage() {
                 : `Your invitation is hosted until ${formatDate(expiresAt.slice(0, 10))}. Moving a date does not change this.`}
             </p>
           )}
+        </section>
+
+        <section className="max-w-2xl border-t border-ink/10 pt-8">
+          <ColourPicker value={edit.themeColor} onChange={(hex) => patch({ themeColor: hex })} />
         </section>
 
         <section className="flex max-w-2xl flex-col gap-4 border-t border-ink/10 pt-8">

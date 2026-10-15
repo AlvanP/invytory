@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/utils/cn'
 import type { CoverTone } from '@/templates/TemplateCover'
 import { DoorEntrance } from './DoorEntrance'
+import { RevealedContext } from '@/hooks/useRevealed'
 
 /**
  * The Transition Engine. The entrance sits as a full-screen overlay
@@ -12,12 +13,14 @@ import { DoorEntrance } from './DoorEntrance'
  */
 export function ArrivalScene({
   tone,
+  templateId,
   brideName,
   groomName,
   onTap,
   children,
 }: {
   tone: CoverTone
+  templateId?: string
   brideName: string
   groomName: string
   /** Passed to the entrance; runs inside the guest's tap (used to start music). */
@@ -43,7 +46,7 @@ export function ArrivalScene({
   return (
     <div className="relative">
       <div className={cn('transition-opacity duration-700', revealed ? 'opacity-100' : 'opacity-0')}>
-        {children}
+        <RevealedContext.Provider value={revealed}>{children}</RevealedContext.Provider>
       </div>
 
       {!revealed && (
@@ -53,7 +56,7 @@ export function ArrivalScene({
             exiting && 'pointer-events-none opacity-0'
           )}
         >
-          <DoorEntrance tone={tone} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} />
+          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} />
         </div>
       )}
 

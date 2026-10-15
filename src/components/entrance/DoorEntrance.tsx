@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { cn } from '@/utils/cn'
 import type { CoverTone } from '@/templates/TemplateCover'
+import type { EntranceStyle } from '@/templates/entranceConfig'
 import { entranceConfig } from '@/templates/entranceConfig'
+import { getTemplateArt, pickEntranceStyle } from '@/utils/templateArt'
 import { SplitPanelsVariant, BookVariant, EnvelopeVariant } from './EntranceVariants'
+import { GatefoldVariant, WaxEnvelopeVariant } from './LayeredEntrance'
 
 const doorPalette = {
   from: 'linear-gradient(135deg, #5C2435 0%, #3B1522 100%)',
@@ -25,6 +28,10 @@ const diamondOrnament = (
   </svg>
 )
 
+function definedOnly<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>
+}
+
 /**
  * The Door Engine's entry point: <DoorEntrance tone="royal" ... />
  * Renders the entrance mechanic that matches the template's tone (see
@@ -33,12 +40,18 @@ const diamondOrnament = (
  */
 export function DoorEntrance({
   tone,
+  templateId,
+  forceStyle,
   brideName,
   groomName,
   onOpen,
   onTap,
 }: {
   tone: CoverTone
+  /** When this design has its own artwork files, they replace the placeholders. */
+  templateId?: string
+  /** Used by the preview lab to try a style before any artwork exists. */
+  forceStyle?: EntranceStyle
   brideName: string
   groomName: string
   onOpen: () => void
@@ -47,14 +60,39 @@ export function DoorEntrance({
   onTap?: () => void
 }) {
   const [triggered, setTriggered] = useState(false)
-  const config = entranceConfig[tone]
+  const baseConfig = entranceConfig[tone]
+  // Artwork files dropped into src/assets/templates/<id>/ win over the defaults.
+  const config = {
+    ...baseConfig,
+    assets: { ...baseConfig.assets, ...definedOnly(getTemplateArt(templateId).entrance) },
+  }
+  config.style = forceStyle ?? pickEntranceStyle(baseConfig.style, config.assets)
+
+  // Light-coloured designs get dark writing so it can be read on pale artwork.
+  const lightDesign = tone === 'garden' || tone === 'storybook' || tone === 'classic'
+
+  const layered = config.style === 'gatefold' || config.style === 'waxenvelope'
+  const cardWithArt =
+    layered ||
+    (config.style === 'book' && !!config.assets.cover) ||
+    (config.style === 'envelope' && !!config.assets.envelope)
+  const hint =
+    config.style === 'gatefold' ? 'Tap the bow to open' : config.style === 'waxenvelope' ? 'Tap the seal to open' : config.hint
+  const initials = `${brideName.trim().charAt(0)}&${groomName.trim().charAt(0)}`.toUpperCase()
 
   function handleOpen() {
     if (triggered) return
     setTriggered(true)
     onTap?.()
-    // Matches each variant's ~900ms opening animation, plus a small buffer.
-    setTimeout(onOpen, 950)
+    // A tiny buzz on phones that allow it, so the tap feels real.
+    try {
+      navigator.vibrate?.(18)
+    } catch {
+      // Not supported: nothing to do.
+    }
+    // Matches each variant's opening animation, plus a small buffer. The
+    // layered styles take longer because they swing and fold in 3D.
+    setTimeout(onOpen, layered ? 2500 : 950)
   }
 
   return (
@@ -70,7 +108,7 @@ export function DoorEntrance({
           rightGradient={doorPalette.from}
           borderColorClass={doorPalette.border}
           assets={config.assets}
-          ornament={diamondOrnament}
+          ornament={config.assets.leftPanel ? undefined : diamondOrnament}
         />
       )}
       {config.style === 'gate' && (
@@ -80,28 +118,38 @@ export function DoorEntrance({
           rightGradient={gatePalette.from}
           borderColorClass={gatePalette.border}
           assets={config.assets}
-          ornament={leafOrnament}
+          ornament={config.assets.leftPanel ? undefined : leafOrnament}
         />
       )}
       {config.style === 'book' && <BookVariant triggered={triggered} assets={config.assets} />}
       {config.style === 'envelope' && <EnvelopeVariant triggered={triggered} assets={config.assets} />}
+      {config.style === 'gatefold' && <GatefoldVariant triggered={triggered} assets={config.assets} onTrigger={handleOpen} />}
+      {config.style === 'waxenvelope' && (
+        <WaxEnvelopeVariant triggered={triggered} assets={config.assets} initials={initials} onTrigger={handleOpen} />
+      )}
 
       <div
         className={cn(
-          'absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 px-6 text-center text-ivory transition-opacity duration-500',
+          'pointer-events-none absolute inset-0 z-20 flex flex-col items-center px-6 text-center transition-opacity duration-500',
+          // A book or envelope sits in the middle of the screen, so the words go
+          // above it and the button below it. Doors keep everything centred.
+          cardWithArt ? 'justify-between py-[9vh]' : 'justify-center gap-6',
+          lightDesign ? 'text-ink' : 'text-ivory',
           triggered && 'pointer-events-none opacity-0'
         )}
       >
-        <p className="text-xs tracking-[0.3em] text-gold">You Are Invited</p>
-        <h1 className="font-display text-3xl sm:text-4xl">
-          {brideName} <span className="text-gold">&amp;</span> {groomName}
-        </h1>
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-xs tracking-[0.3em] text-gold">You Are Invited</p>
+          <h1 className="font-display text-3xl sm:text-4xl">
+            {brideName} <span className="text-gold">&amp;</span> {groomName}
+          </h1>
+        </div>
         <button
           type="button"
           onClick={handleOpen}
-          className="mt-4 rounded-full border border-gold/60 px-6 py-3 text-xs uppercase tracking-[0.2em] text-gold transition-colors hover:bg-gold/10"
+          className={cn('pointer-events-auto rounded-full border border-gold/60 px-6 py-3 text-xs uppercase tracking-[0.2em] text-gold transition-colors hover:bg-gold/10', !cardWithArt && 'mt-4')}
         >
-          {config.hint}
+          {hint}
         </button>
       </div>
     </div>

@@ -11,6 +11,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 
 // Pages most visitors never open are loaded only when needed, so the first
 // page (usually a guest's invitation) downloads less code.
+const EntranceLabPage = lazy(() => import('@/pages/EntranceLabPage').then((m) => ({ default: m.EntranceLabPage })))
 const SignInPage = lazy(() => import('@/pages/SignInPage').then((m) => ({ default: m.SignInPage })))
 const PublishSuccessPage = lazy(() => import('@/pages/PublishSuccessPage').then((m) => ({ default: m.PublishSuccessPage })))
 const CreateLayout = lazy(() => import('@/pages/create/CreateLayout').then((m) => ({ default: m.CreateLayout })))
@@ -43,6 +44,7 @@ function App() {
       </Route>
 
       <Route path="/sign-in" element={<SignInPage />} />
+      <Route path="/entrance-lab" element={<EntranceLabPage />} />
 
       <Route path="/create" element={<CreateLayout />}>
         <Route index element={<StepTemplate />} />

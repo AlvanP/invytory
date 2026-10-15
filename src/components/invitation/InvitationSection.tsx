@@ -44,11 +44,44 @@ function SectionOrnament({ type, colorClass }: { type: 'diamond' | 'leaf' | 'pat
   }
 }
 
+/** Keeps a design's fonts and spacing but drops its fixed colours, so the couple's colour rules. */
+function withoutTextColour(classes: string): string {
+  return classes
+    .split(' ')
+    .filter((c) => !/^text-(ink|gold|sage|ink-soft|\[#[0-9A-Fa-f]+\])$/.test(c))
+    .join(' ')
+}
+
+export type SectionVariant = 'plain' | 'soft' | 'band'
+
+const sectionColours: Record<SectionVariant, { bg: string; eyebrow: string; title: string; ornament: string }> = {
+  plain: {
+    bg: 'bg-[color:var(--iv-paper)]',
+    eyebrow: 'text-[color:var(--iv-accent)]',
+    title: 'text-[color:var(--iv-ink)]',
+    ornament: 'text-[color:var(--iv-accent)]',
+  },
+  soft: {
+    bg: 'bg-[color:var(--iv-soft)]',
+    eyebrow: 'text-[color:var(--iv-accent)]',
+    title: 'text-[color:var(--iv-ink)]',
+    ornament: 'text-[color:var(--iv-accent)]',
+  },
+  // A block of the couple's colour. Everything on it uses the readable text colour.
+  band: {
+    bg: 'bg-[color:var(--iv-main)] text-[color:var(--iv-on-main)]',
+    eyebrow: 'text-[color:var(--iv-on-main)]',
+    title: 'text-[color:var(--iv-on-main)]',
+    ornament: 'text-[color:var(--iv-on-main)]',
+  },
+}
+
 export function InvitationSection({
   id,
   eyebrow,
   title,
   tone,
+  variant = 'plain',
   children,
   className,
 }: {
@@ -56,19 +89,31 @@ export function InvitationSection({
   eyebrow?: string
   title?: string
   tone?: CoverTone
+  variant?: SectionVariant
   children: ReactNode
   className?: string
 }) {
   const style = tone ? toneStyles[tone] : null
+  const colours = sectionColours[variant]
 
   return (
-    <section id={id} className={cn('mx-auto max-w-xl px-6 py-14 text-center', className)}>
-      <RevealOnScroll className={style?.frameClass}>
-        {eyebrow && <p className={style?.eyebrowClass ?? 'text-xs tracking-[0.2em] text-gold'}>{eyebrow}</p>}
-        {style && <SectionOrnament type={style.ornament} colorClass={style.ornamentColorClass} />}
-        {title && <h2 className={cn(style?.titleClass ?? 'font-display text-3xl text-ink', !style && 'mt-2')}>{title}</h2>}
-        <div className={cn(title || eyebrow ? 'mt-6' : undefined)}>{children}</div>
-      </RevealOnScroll>
+    <section id={id} className={cn('w-full', colours.bg, className)}>
+      <div className="mx-auto max-w-xl px-6 py-16 text-center">
+        <RevealOnScroll>
+          {eyebrow && (
+            <p className={cn(withoutTextColour(style?.eyebrowClass ?? 'text-xs tracking-[0.2em]'), colours.eyebrow)}>
+              {eyebrow}
+            </p>
+          )}
+          {style && <SectionOrnament type={style.ornament} colorClass={colours.ornament} />}
+          {title && (
+            <h2 className={cn(withoutTextColour(style?.titleClass ?? 'font-display text-3xl'), colours.title, !style && 'mt-2')}>
+              {title}
+            </h2>
+          )}
+          <div className={cn(title || eyebrow ? 'mt-8' : undefined)}>{children}</div>
+        </RevealOnScroll>
+      </div>
     </section>
   )
 }

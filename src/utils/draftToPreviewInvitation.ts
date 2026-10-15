@@ -34,6 +34,7 @@ export function draftToPreviewInvitation(draft: WeddingDraft, ceremony: Ceremony
     musicSource: ceremony.musicUrl ? (ceremony.musicSource ?? 'upload') : undefined,
     musicUrl: ceremony.musicUrl ?? undefined,
     musicTitle: ceremony.musicTitle ?? undefined,
+    themeColor: ceremony.themeColor ?? undefined,
     createdAt: now,
     updatedAt: now,
     status: 'draft',

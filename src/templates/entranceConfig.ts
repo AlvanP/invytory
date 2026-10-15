@@ -7,7 +7,7 @@ import type { CoverTone } from './TemplateCover'
  * "doors" but with different colors/patterns), matching how real
  * invitation styles work.
  */
-export type EntranceStyle = 'doors' | 'gate' | 'book' | 'envelope'
+export type EntranceStyle = 'doors' | 'gate' | 'book' | 'envelope' | 'gatefold' | 'waxenvelope'
 
 export interface EntranceAssets {
   /** Full-bleed background image behind the whole entrance scene. */
@@ -20,6 +20,12 @@ export interface EntranceAssets {
   /** "envelope" style: the envelope + seal artwork. */
   envelope?: string
   seal?: string
+  /** "gatefold" style: the knot / bow / label in the middle that the guest taps. */
+  bow?: string
+  /** "waxenvelope" style: the top flap, hinged at the top edge. */
+  flap?: string
+  /** "gatefold" style: what is revealed behind the doors. */
+  inside?: string
 }
 
 export interface EntranceConfig {

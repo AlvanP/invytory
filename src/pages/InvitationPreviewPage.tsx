@@ -129,6 +129,7 @@ export function InvitationPreviewPage() {
     <>
     <ArrivalScene
       tone={template?.previewTone ?? 'classic'}
+      templateId={template?.id}
       brideName={brideName ?? ''}
       groomName={groomName ?? ''}
       onTap={music.start}
