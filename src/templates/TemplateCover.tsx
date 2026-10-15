@@ -35,6 +35,47 @@ function CoverPattern({ tone }: { tone: CoverTone }) {
   )
 }
 
+/**
+ * A name written letter by letter. Each letter rises in after the one before it, then a
+ * soft sheen passes along the name every few seconds. The sheen only dims and restores
+ * the letter, so the name stays readable on any colour.
+ */
+function AnimatedName({ text, revealed, startIndex }: { text: string; revealed: boolean; startIndex: number }) {
+  return (
+    <span aria-label={text} className="block">
+      <style>{`
+        @keyframes ivSheen { 0% { background-position: 100% 0 } 30%, 100% { background-position: 0% 0 } }
+        .iv-letter {
+          display: inline-block; white-space: pre; color: transparent;
+          background-image: linear-gradient(100deg, var(--iv-on-main) 40%, color-mix(in srgb, var(--iv-on-main) 35%, transparent) 50%, var(--iv-on-main) 60%);
+          background-size: 300% 100%; -webkit-background-clip: text; background-clip: text;
+          animation: ivSheen 6s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) { .iv-letter { animation: none; color: var(--iv-on-main); background: none; } }
+      `}</style>
+      {Array.from(text).map((ch, i) => {
+        const n = startIndex + i
+        return (
+          <span
+            key={i}
+            aria-hidden
+            className={cn(
+              'iv-letter transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              revealed ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            )}
+            style={{
+              transitionDelay: revealed ? `${700 + n * 70}ms` : '0ms',
+              animationDelay: `${3 + n * 0.07}s`,
+            }}
+          >
+            {ch}
+          </span>
+        )
+      })}
+    </span>
+  )
+}
+
 function ArchPlaceholder({ bride, groom }: { bride: string; groom: string }) {
   return (
     <div
@@ -107,13 +148,20 @@ export function TemplateCover({
           </div>
         </div>
 
-        <div {...rise(2)} className={rise(2).className}>
+        <div>
           <h1 className="font-display text-5xl leading-tight sm:text-6xl">
-            {invitation.brideName}
+            <AnimatedName text={invitation.brideName} revealed={revealed} startIndex={0} />
             <span className="my-1 block text-3xl opacity-80">&amp;</span>
-            {invitation.groomName}
+            <AnimatedName text={invitation.groomName} revealed={revealed} startIndex={invitation.brideName.length} />
           </h1>
-          {invitation.tagline && <p className="mt-3 text-sm opacity-85">{invitation.tagline}</p>}
+          {invitation.tagline && (
+            <p
+              className={cn('mt-3 text-sm opacity-85 transition-opacity duration-1000', !revealed && '!opacity-0')}
+              style={{ transitionDelay: revealed ? '1800ms' : '0ms' }}
+            >
+              {invitation.tagline}
+            </p>
+          )}
         </div>
 
         <div {...rise(3)} className={cn('flex flex-col items-center gap-2', rise(3).className)}>
