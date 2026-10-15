@@ -142,3 +142,14 @@ export function themeStyle(hex: string): CSSProperties {
     '--iv-paper': PAPER,
   } as CSSProperties
 }
+
+/** The first swatch colour named in some text, e.g. "Red and gold" -> Red. */
+export function swatchInText(text: string): ColourSwatch | null {
+  let best: { s: ColourSwatch; at: number } | null = null
+  const lower = text.toLowerCase()
+  for (const s of COLOUR_SWATCHES) {
+    const at = lower.search(new RegExp(`\\b${s.name.toLowerCase()}\\b`))
+    if (at >= 0 && (!best || at < best.at)) best = { s, at }
+  }
+  return best ? best.s : null
+}

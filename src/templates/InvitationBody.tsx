@@ -61,6 +61,10 @@ export function InvitationBody({ invitation, tone }: { invitation: WeddingInvita
           {invitation.dressCode && (
             <DetailCard icon={<Shirt className="size-5" />} label="Dress Code">
               {invitation.dressCode}
+              <span className="mt-2 flex items-center gap-2 text-sm opacity-90">
+                <span className="size-5 rounded-full border-2 border-[color:var(--iv-ink)]/30 bg-[color:var(--iv-main)]" aria-hidden />
+                Our colour of the day
+              </span>
             </DetailCard>
           )}
           {invitation.receptionInfo && (

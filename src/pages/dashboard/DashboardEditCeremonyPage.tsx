@@ -13,7 +13,7 @@ import type { CeremonyDetailsUpdate, CoupleDetailsUpdate } from '@/services/supa
 import { ErrorState } from '@/components/ui/State'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 import { MusicPicker } from '@/components/wizard/MusicPicker'
-import { ColourPicker } from '@/components/wizard/ColourPicker'
+import { DressCodeField } from '@/components/wizard/DressCodeField'
 import { UploadSlot, uploadErrorMessage } from '@/components/wizard/UploadSlot'
 
 const gallerySlotIds = ['g1', 'g2', 'g3', 'g4']
@@ -296,8 +296,15 @@ export function DashboardEditCeremonyPage() {
             <Input label="Venue address" optional className="sm:col-span-2" value={edit.details.venueAddress} onChange={(e) => setDetails({ venueAddress: e.target.value })} />
             <Input label="City" optional value={edit.details.city} onChange={(e) => setDetails({ city: e.target.value })} />
             <Input label="State" optional value={edit.details.state} onChange={(e) => setDetails({ state: e.target.value })} />
-            <Input label="Dress code" optional value={edit.details.dressCode} onChange={(e) => setDetails({ dressCode: e.target.value })} />
             <Input label="Reception info" optional value={edit.details.receptionInfo} onChange={(e) => setDetails({ receptionInfo: e.target.value })} />
+            <DressCodeField
+              dressCode={edit.details.dressCode}
+              themeColor={edit.themeColor}
+              onChange={(c) => {
+                if (c.dressCode !== undefined) setDetails({ dressCode: c.dressCode })
+                if (c.themeColor !== undefined) patch({ themeColor: c.themeColor })
+              }}
+            />
           </div>
           {expiresAt && (
             <p className={dateAfterHosting ? 'text-xs text-danger' : 'text-xs text-ink-soft/70'}>
@@ -306,10 +313,6 @@ export function DashboardEditCeremonyPage() {
                 : `Your invitation is hosted until ${formatDate(expiresAt.slice(0, 10))}. Moving a date does not change this.`}
             </p>
           )}
-        </section>
-
-        <section className="max-w-2xl border-t border-ink/10 pt-8">
-          <ColourPicker value={edit.themeColor} onChange={(hex) => patch({ themeColor: hex })} />
         </section>
 
         <section className="flex max-w-2xl flex-col gap-4 border-t border-ink/10 pt-8">

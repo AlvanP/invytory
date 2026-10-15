@@ -9,9 +9,13 @@ import { cn } from '@/utils/cn'
 export function ColourPicker({
   value,
   onChange,
+  title = 'Colour of the day',
+  help = 'Your invitation\u2019s bands, countdown and buttons use this colour. Writing on top of it is chosen automatically so it is easy to read.',
 }: {
   value: string | null | undefined
   onChange: (hex: string | null) => void
+  title?: string
+  help?: string
 }) {
   const current = isHexColour(value) ? value.toUpperCase() : null
   const theme = current ? buildTheme(current) : null
@@ -19,13 +23,8 @@ export function ColourPicker({
   return (
     <div className="flex flex-col gap-3">
       <div>
-        <p className="text-sm font-medium text-ink-soft">
-          Colour of the day <span className="font-normal text-ink-soft/60">(optional)</span>
-        </p>
-        <p className="mt-1 text-xs text-ink-soft/70">
-          Your invitation&rsquo;s bands, countdown and buttons use this colour. Writing on top of it is chosen
-          automatically so it is easy to read.
-        </p>
+        <p className="text-sm font-medium text-ink-soft">{title}</p>
+        <p className="mt-1 text-xs text-ink-soft/70">{help}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">

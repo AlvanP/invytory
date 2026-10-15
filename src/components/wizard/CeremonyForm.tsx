@@ -5,7 +5,7 @@ import { templateService } from '@/services/templateService'
 import { collectionForCeremonyType, groupTemplates, COLLECTION_LABELS } from '@/utils/templateCollections'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { ColourPicker } from '@/components/wizard/ColourPicker'
+import { DressCodeField } from '@/components/wizard/DressCodeField'
 import { TemplatePreviewPlaceholder } from '@/components/ui/Placeholder'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/utils/cn'
@@ -176,12 +176,6 @@ export function CeremonyFormFields({
           onChange={(e) => onChange({ state: e.target.value })}
         />
         <Input
-          label="Dress code"
-          optional
-          value={value.dressCode ?? ''}
-          onChange={(e) => onChange({ dressCode: e.target.value })}
-        />
-        <Input
           label="Reception info"
           optional
           value={value.receptionInfo ?? ''}
@@ -189,7 +183,11 @@ export function CeremonyFormFields({
         />
       </div>
 
-      <ColourPicker value={value.themeColor} onChange={(hex) => onChange({ themeColor: hex })} />
+      <DressCodeField
+        dressCode={value.dressCode ?? ''}
+        themeColor={value.themeColor}
+        onChange={(c) => onChange(c)}
+      />
     </div>
   )
 }
