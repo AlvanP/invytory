@@ -1,23 +1,12 @@
 import type { ComponentType } from 'react'
 import type { TemplateRendererProps } from './types'
-import { WeddingTemplateRoyal } from './WeddingTemplateRoyal'
-import { WeddingTemplateGarden } from './WeddingTemplateGarden'
-import { WeddingTemplateStorybook } from './WeddingTemplateStorybook'
-import { WeddingTemplateModern } from './WeddingTemplateModern'
-import { WeddingTemplateAfrican } from './WeddingTemplateAfrican'
-import { WeddingTemplateClassic } from './WeddingTemplateClassic'
+import { DesignedInvitation } from './DesignedInvitation'
 
 /**
- * The template engine's lookup table. `InvitationRenderer` (in
- * `src/components/invitation/InvitationRenderer.tsx`) reads a template's
- * `rendererKey` and pulls the matching component from here. Adding a
- * seventh template later means: build the component, add one line below.
+ * The template engine's lookup table. Every template now uses the one `designed`
+ * renderer, which builds the invitation from the shared sections (see sections.ts) and
+ * the template's own design (see designs.ts).
  */
 export const templateRegistry: Record<string, ComponentType<TemplateRendererProps>> = {
-  royal: WeddingTemplateRoyal,
-  garden: WeddingTemplateGarden,
-  storybook: WeddingTemplateStorybook,
-  modern: WeddingTemplateModern,
-  african: WeddingTemplateAfrican,
-  classic: WeddingTemplateClassic,
+  designed: DesignedInvitation,
 }

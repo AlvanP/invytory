@@ -1,4 +1,5 @@
 import type { EntranceAssets, EntranceStyle } from '@/templates/entranceConfig'
+import { SECTION_IDS, SECTION_ART_PIECES, type SectionId, type SectionArtPiece } from '@/templates/sections'
 
 /**
  * Drop-in artwork. Put image files in
@@ -19,6 +20,8 @@ export interface TemplateArt {
   coverBackground?: string
   /** Pieces for the opening animation (doors, gate, book, envelope). */
   entrance: EntranceAssets
+  /** Section-by-section artwork: `<section>-bg`, `<section>-divider`, `<section>-corner`. */
+  sections: Partial<Record<SectionId, Partial<Record<SectionArtPiece, string>>>>
 }
 
 const SLOT_NAMES = [
@@ -33,6 +36,7 @@ const SLOT_NAMES = [
   'entrance-bow',
   'entrance-flap',
   'entrance-inside',
+  ...SECTION_IDS.flatMap((id) => SECTION_ART_PIECES.map((piece) => `${id}-${piece}`)),
 ] as const
 
 /** template id -> slot name -> url. Built once when the site loads. */
@@ -48,12 +52,20 @@ for (const [path, url] of Object.entries(files)) {
   byTemplate[id][slot] = url
 }
 
-const EMPTY: TemplateArt = { entrance: {} }
+const EMPTY: TemplateArt = { entrance: {}, sections: {} }
 
 export function getTemplateArt(templateId: string | undefined): TemplateArt {
   const slots = templateId ? byTemplate[templateId.toLowerCase()] : undefined
   if (!slots) return EMPTY
+  const sections: TemplateArt['sections'] = {}
+  for (const id of SECTION_IDS) {
+    for (const piece of SECTION_ART_PIECES) {
+      const url = slots[`${id}-${piece}`]
+      if (url) (sections[id] ??= {})[piece] = url
+    }
+  }
   return {
+    sections,
     preview: slots['preview'],
     coverBackground: slots['cover-background'],
     entrance: {

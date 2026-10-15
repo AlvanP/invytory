@@ -59,9 +59,13 @@ export interface CeremonyDraft {
   themeColor?: string | null
 }
 
-/** Four blank gallery slots — the shape the invitation templates expect. */
+/** Photo slot id for the one photo that floats in the body of the invitation. */
+export const FEATURE_SLOT_ID = 'feature'
+
+/** The slots after the hero: one floating "feature" photo and four slider photos (6 photos in all with the hero). */
 export function emptyGallery(): GalleryImageSlot[] {
   return [
+    { id: FEATURE_SLOT_ID, url: null },
     { id: 'g1', url: null },
     { id: 'g2', url: null },
     { id: 'g3', url: null },
@@ -73,4 +77,10 @@ export function ceremonyDisplayName(c: { ceremonyType?: CeremonyType; ceremonyLa
   const type = c.ceremonyType ?? 'white'
   if (type === 'custom' && c.ceremonyLabel) return c.ceremonyLabel
   return CEREMONY_TYPE_LABELS[type]
+}
+/** Sets one slot's photo, adding the slot if an older invitation does not have it yet. */
+export function setGallerySlot(gallery: GalleryImageSlot[], id: string, url: string | null): GalleryImageSlot[] {
+  return gallery.some((s) => s.id === id)
+    ? gallery.map((s) => (s.id === id ? { ...s, url } : s))
+    : [...gallery, { id, url }]
 }

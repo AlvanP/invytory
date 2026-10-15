@@ -9,7 +9,11 @@ const button =
  * "Save the date" and "Share on WhatsApp". Sits on a light section, so the
  * main button is a block of the couple's colour and the others are outlined.
  */
-export function SaveAndShare({ invitation }: { invitation: WeddingInvitation }) {
+export function SaveAndShare({ invitation, onBand = false }: { invitation: WeddingInvitation; onBand?: boolean }) {
+  const solid = onBand ? 'bg-[color:var(--iv-paper)] text-[color:var(--iv-ink)]' : 'bg-[color:var(--iv-main)] text-[color:var(--iv-on-main)]'
+  const outline = onBand
+    ? 'border-2 border-[color:var(--iv-on-main)] text-[color:var(--iv-on-main)]'
+    : 'border-2 border-[color:var(--iv-main)] text-[color:var(--iv-ink)]'
   const link = typeof window !== 'undefined' ? window.location.href.split('#')[0] : ''
 
   function downloadIcs() {
@@ -42,14 +46,14 @@ export function SaveAndShare({ invitation }: { invitation: WeddingInvitation }) 
         href={googleCalendarUrl(invitation, link)}
         target="_blank"
         rel="noreferrer"
-        className={`${button} bg-[color:var(--iv-main)] text-[color:var(--iv-on-main)]`}
+        className={`${button} ${solid}`}
       >
         <CalendarPlus className="size-4" /> Add to Google Calendar
       </a>
       <button
         type="button"
         onClick={downloadIcs}
-        className={`${button} border-2 border-[color:var(--iv-main)] text-[color:var(--iv-ink)]`}
+        className={`${button} ${outline}`}
       >
         <CalendarPlus className="size-4" /> Apple / other calendar
       </button>
@@ -57,11 +61,11 @@ export function SaveAndShare({ invitation }: { invitation: WeddingInvitation }) 
         href={whatsappShareUrl(invitation, link)}
         target="_blank"
         rel="noreferrer"
-        className={`${button} border-2 border-[color:var(--iv-main)] text-[color:var(--iv-ink)]`}
+        className={`${button} ${outline}`}
       >
         <Share2 className="size-4" /> Share on WhatsApp
       </a>
-      <button type="button" onClick={share} className="text-xs text-[color:var(--iv-ink)] underline underline-offset-2 opacity-70">
+      <button type="button" onClick={share} className={`text-xs underline underline-offset-2 opacity-80 ${onBand ? 'text-[color:var(--iv-on-main)]' : 'text-[color:var(--iv-ink)]'}`}>
         More ways to share
       </button>
     </div>

@@ -1,6 +1,8 @@
 import { ImageIcon, MapPin, QrCode, DoorOpen, Sparkles } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { getTemplateArt } from '@/utils/templateArt'
+import { designs } from '@/templates/designs'
+import { buildTheme } from '@/utils/colorTheme'
 
 /**
  * A shared family of tasteful placeholder surfaces. These stand in for
@@ -100,6 +102,28 @@ export function TemplatePreviewPlaceholder({
         loading="lazy"
         className={cn('aspect-[3/4] w-full rounded-md object-cover', className)}
       />
+    )
+  }
+  // A small stand-in for the design's own cover, in the design's own colour.
+  const design = templateId ? designs[templateId.toLowerCase()] : undefined
+  if (design) {
+    const t = buildTheme(design.colour)
+    const arch = design.cover === 'arch'
+    return (
+      <div
+        className={cn('relative flex flex-col items-center justify-center gap-2 overflow-hidden rounded-md aspect-[3/4]', className)}
+        style={{
+          backgroundImage: `linear-gradient(165deg, color-mix(in srgb, ${t.main} 82%, white) 0%, ${t.main} 55%, color-mix(in srgb, ${t.main} 78%, black) 100%)`,
+          color: t.onMain,
+        }}
+      >
+        <div className="absolute inset-3 border" style={{ borderColor: 'color-mix(in srgb, currentColor 35%, transparent)' }} />
+        {arch && <div className="h-1/3 w-1/3 rounded-t-full border" style={{ borderColor: 'color-mix(in srgb, currentColor 45%, transparent)', backgroundColor: 'color-mix(in srgb, currentColor 14%, transparent)' }} />}
+        <p className={cn('text-center leading-tight', design.names === 'caps' ? 'font-body text-[11px] font-semibold tracking-[0.18em]' : 'font-display text-lg')}>
+          {design.names === 'caps' ? 'A & B' : 'Ada & Bayo'}
+        </p>
+        <p className="text-[8px] uppercase tracking-[0.3em] opacity-80">Save the date</p>
+      </div>
     )
   }
   const toneGradients: Record<string, string> = {

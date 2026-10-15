@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useWizard } from '@/hooks/useWizard'
 import { storageService } from '@/services/storageService'
 import type { CeremonyDraft } from '@/types'
-import { ceremonyDisplayName, emptyGallery } from '@/types'
+import { ceremonyDisplayName, emptyGallery, setGallerySlot, FEATURE_SLOT_ID } from '@/types'
 import { CeremonyTabs } from '@/components/wizard/CeremonyTabs'
 import { MusicPicker } from '@/components/wizard/MusicPicker'
 import { UploadSlot, uploadErrorMessage } from '@/components/wizard/UploadSlot'
@@ -47,8 +47,7 @@ export function StepPhotos() {
     setError(null)
     try {
       const url = await storageService.uploadImage(file, 'gallery')
-      const next = current.map((slot) => (slot.id === slotId ? { ...slot, url } : slot))
-      updateCeremony(ceremonyId, { galleryImages: next })
+      updateCeremony(ceremonyId, { galleryImages: setGallerySlot(current, slotId, url) })
     } catch (err) {
       setError(uploadErrorMessage(err))
     } finally {
@@ -62,7 +61,7 @@ export function StepPhotos() {
 
   function removeGallery(slotId: string) {
     updateCeremony(active.id, {
-      galleryImages: gallery.map((slot) => (slot.id === slotId ? { ...slot, url: null } : slot)),
+      galleryImages: setGallerySlot(gallery, slotId, null),
     })
   }
 
@@ -110,7 +109,8 @@ export function StepPhotos() {
 
       <div key={active.id} className="flex flex-col gap-10">
         <div>
-          <p className="mb-2 text-sm font-medium text-ink-soft">Hero image</p>
+          <p className="text-sm font-medium text-ink-soft">Hero image</p>
+          <p className="mb-2 text-xs text-ink-soft/70">The big photo at the top, with the names written over it. A portrait or landscape photo of the couple works well.</p>
           <UploadSlot
             label="Hero image"
             url={active.heroImage ?? null}
@@ -123,14 +123,29 @@ export function StepPhotos() {
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-ink-soft">Gallery photos</p>
+          <p className="text-sm font-medium text-ink-soft">Floating photo</p>
+          <p className="mb-2 text-xs text-ink-soft/70">Appears in the middle of the invitation in a light frame that tilts as guests scroll.</p>
+          <UploadSlot
+            label="Floating photo"
+            url={gallery.find((s) => s.id === FEATURE_SLOT_ID)?.url ?? null}
+            isUploading={uploadingKey === `${active.id}:${FEATURE_SLOT_ID}`}
+            disabled={busy}
+            onSelect={(file) => handleGalleryUpload(FEATURE_SLOT_ID, file)}
+            onRemove={() => removeGallery(FEATURE_SLOT_ID)}
+            className="aspect-[4/5] w-40"
+          />
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-ink-soft">Slider photos (up to 4)</p>
+          <p className="mb-2 text-xs text-ink-soft/70">Guests swipe through these to the left. With the hero and floating photo, that makes 6 photos in all.</p>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {gallerySlotIds.map((slotId, i) => {
               const slot = gallery.find((s) => s.id === slotId)
               return (
                 <UploadSlot
                   key={slotId}
-                  label={`Gallery image ${i + 1}`}
+                  label={`Slider photo ${i + 1}`}
                   url={slot?.url ?? null}
                   isUploading={uploadingKey === `${active.id}:${slotId}`}
                   disabled={busy}

@@ -1,7 +1,8 @@
 import type { InvitationTemplate, WeddingInvitation } from '@/types'
 import { templateRegistry } from '@/templates/registry'
-import { WeddingTemplateClassic } from '@/templates/WeddingTemplateClassic'
-import { DEFAULT_THEME_COLOUR, isHexColour, themeStyle } from '@/utils/colorTheme'
+import { DesignedInvitation } from '@/templates/DesignedInvitation'
+import { getDesign } from '@/templates/designs'
+import { isHexColour, themeStyle } from '@/utils/colorTheme'
 
 /**
  * Invitation → receives invitation data → receives a template →
@@ -16,12 +17,12 @@ export function InvitationRenderer({
   invitation: WeddingInvitation
   template: InvitationTemplate | undefined
 }) {
-  const Renderer = (template && templateRegistry[template.rendererKey]) || WeddingTemplateClassic
+  const Renderer = (template && templateRegistry[template.rendererKey]) || DesignedInvitation
   // The couple's colour of the day, or the design's own colour. Every piece of the
   // invitation reads its colours from these variables.
   const colour = isHexColour(invitation.themeColor)
     ? invitation.themeColor
-    : (DEFAULT_THEME_COLOUR[template?.previewTone ?? 'classic'] ?? DEFAULT_THEME_COLOUR.classic)
+    : getDesign(invitation.templateId).colour
   return (
     <div style={themeStyle(colour)} className="bg-[color:var(--iv-paper)] text-[color:var(--iv-ink)]">
       <Renderer invitation={invitation} />

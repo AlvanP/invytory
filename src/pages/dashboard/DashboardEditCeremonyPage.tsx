@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { CeremonyDraft, GalleryImageSlot, WeddingInvitation } from '@/types'
-import { ceremonyDisplayName, emptyGallery } from '@/types'
+import { ceremonyDisplayName, emptyGallery, setGallerySlot, FEATURE_SLOT_ID } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { storageService } from '@/services/storageService'
 import { Button } from '@/components/ui/Button'
@@ -153,9 +153,7 @@ export function DashboardEditCeremonyPage() {
     setUploadError(null)
     try {
       const url = await storageService.uploadImage(file, 'gallery')
-      setEdit((cur) =>
-        cur ? { ...cur, gallery: cur.gallery.map((s) => (s.id === slotId ? { ...s, url } : s)) } : cur
-      )
+      setEdit((cur) => (cur ? { ...cur, gallery: setGallerySlot(cur.gallery, slotId, url) } : cur))
       setJustSaved(false)
     } catch (err) {
       setUploadError(uploadErrorMessage(err))
@@ -342,7 +340,8 @@ export function DashboardEditCeremonyPage() {
         </p>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-ink-soft">Hero image</p>
+          <p className="text-sm font-medium text-ink-soft">Hero image</p>
+          <p className="mb-2 text-xs text-ink-soft/70">The big photo at the top, with the names written over it.</p>
           <UploadSlot
             label="Hero image"
             url={edit.heroImage}
@@ -355,22 +354,38 @@ export function DashboardEditCeremonyPage() {
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-ink-soft">Gallery photos</p>
+          <p className="text-sm font-medium text-ink-soft">Floating photo</p>
+          <p className="mb-2 text-xs text-ink-soft/70">Appears in the middle of the invitation in a light frame that tilts as guests scroll.</p>
+          <UploadSlot
+            label="Floating photo"
+            url={edit.gallery.find((s) => s.id === FEATURE_SLOT_ID)?.url ?? null}
+            isUploading={uploadingKey === FEATURE_SLOT_ID}
+            disabled={busy}
+            onSelect={(file) => uploadGallery(FEATURE_SLOT_ID, file)}
+            onRemove={() => {
+              setEdit((cur) => (cur ? { ...cur, gallery: setGallerySlot(cur.gallery, FEATURE_SLOT_ID, null) } : cur))
+              setJustSaved(false)
+            }}
+            className="aspect-[4/5] w-40"
+          />
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-ink-soft">Slider photos (up to 4)</p>
+          <p className="mb-2 text-xs text-ink-soft/70">Guests swipe through these to the left. With the hero and floating photo, that makes 6 photos in all.</p>
           <div className="grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
             {gallerySlotIds.map((slotId, i) => {
               const slot = edit.gallery.find((s) => s.id === slotId)
               return (
                 <UploadSlot
                   key={slotId}
-                  label={`Gallery image ${i + 1}`}
+                  label={`Slider photo ${i + 1}`}
                   url={slot?.url ?? null}
                   isUploading={uploadingKey === slotId}
                   disabled={busy}
                   onSelect={(file) => uploadGallery(slotId, file)}
                   onRemove={() => {
-                    setEdit((cur) =>
-                      cur ? { ...cur, gallery: cur.gallery.map((s) => (s.id === slotId ? { ...s, url: null } : s)) } : cur
-                    )
+                    setEdit((cur) => (cur ? { ...cur, gallery: setGallerySlot(cur.gallery, slotId, null) } : cur))
                     setJustSaved(false)
                   }}
                   className="aspect-square"
