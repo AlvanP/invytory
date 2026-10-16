@@ -5,7 +5,9 @@ import { InvitationSection } from '@/components/invitation/InvitationSection'
 import { useDateGate } from '@/templates/DateGate'
 import { DetailCard } from './DetailCard'
 
-/** SECTION 3: Programme & reception. Date, time and reception information in cards. */
+export const hasDetailsContent = (i: WeddingInvitation) => !!(formatTime(i.weddingTime) || i.receptionInfo?.trim())
+
+/** SECTION 3: Programme & reception. Date, time and reception information in cards (only what was filled in). */
 export function DetailsSection({ invitation }: { invitation: WeddingInvitation }) {
   const gate = useDateGate()
   return (
@@ -14,9 +16,11 @@ export function DetailsSection({ invitation }: { invitation: WeddingInvitation }
         <DetailCard icon={<CalendarDays className="size-5" />} label="Date">
           {gate.hidden ? 'Revealed when you scratch it off' : formatDate(invitation.weddingDate)}
         </DetailCard>
-        <DetailCard icon={<Clock className="size-5" />} label="Time">
-          {formatTime(invitation.weddingTime) || 'To be announced'}
-        </DetailCard>
+        {formatTime(invitation.weddingTime) && (
+          <DetailCard icon={<Clock className="size-5" />} label="Time">
+            {formatTime(invitation.weddingTime)}
+          </DetailCard>
+        )}
         {invitation.receptionInfo && (
           <DetailCard icon={<PartyPopper className="size-5" />} label="Reception">
             {invitation.receptionInfo}

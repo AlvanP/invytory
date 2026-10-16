@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 import { GuestTable } from '@/components/dashboard/GuestTable'
+import { WallModeration } from '@/components/dashboard/WallModeration'
 import { GuestRowSkeleton } from '@/components/ui/Skeleton'
 import { SEED_INVITATION_ID } from '@/utils/constants'
 
@@ -192,6 +193,11 @@ export function DashboardGuestsPage() {
       <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-soft/60">
         <Search className="size-3.5" /> {filtered.length} of {scoped?.length ?? 0} guests shown
       </p>
+
+      <WallModeration
+        invitationIds={ceremonyNames ? Object.keys(ceremonyNames) : [eventId ?? SEED_INVITATION_ID]}
+        ceremonyNames={ceremonyNames}
+      />
     </div>
   )
 }

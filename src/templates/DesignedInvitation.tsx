@@ -4,6 +4,7 @@ import { SECTION_IDS } from './sections'
 import { sectionRegistry } from './sections/index'
 import { DesignContext, makeDesignContext } from './DesignContext'
 import { DateGateProvider } from './DateGate'
+import { WallProvider } from './WallContext'
 
 /**
  * The one renderer for every template. It lays out the same sections, in the same order, for
@@ -15,12 +16,14 @@ export function DesignedInvitation({ invitation }: TemplateRendererProps) {
   return (
     <DesignContext.Provider value={ctx}>
       <DateGateProvider enabled={!!ctx.design.scratchDate}>
+        <WallProvider invitationId={invitation.id} published={invitation.status === 'published'}>
         <div>
           {SECTION_IDS.filter((id) => sectionRegistry[id].has(invitation)).map((id) => {
             const { Component } = sectionRegistry[id]
             return <Component key={id} invitation={invitation} />
           })}
         </div>
+        </WallProvider>
       </DateGateProvider>
     </DesignContext.Provider>
   )

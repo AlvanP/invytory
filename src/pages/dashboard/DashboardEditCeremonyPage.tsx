@@ -14,6 +14,7 @@ import { ErrorState } from '@/components/ui/State'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 import { MusicPicker } from '@/components/wizard/MusicPicker'
 import { DressCodeField } from '@/components/wizard/DressCodeField'
+import { parseColours, joinColours } from '@/utils/colorTheme'
 import { UploadSlot, uploadErrorMessage } from '@/components/wizard/UploadSlot'
 
 const gallerySlotIds = ['g1', 'g2', 'g3', 'g4']
@@ -297,10 +298,10 @@ export function DashboardEditCeremonyPage() {
             <Input label="Reception info" optional value={edit.details.receptionInfo} onChange={(e) => setDetails({ receptionInfo: e.target.value })} />
             <DressCodeField
               dressCode={edit.details.dressCode}
-              themeColor={edit.themeColor}
+              colours={parseColours(edit.themeColor)}
               onChange={(c) => {
                 if (c.dressCode !== undefined) setDetails({ dressCode: c.dressCode })
-                if (c.themeColor !== undefined) patch({ themeColor: c.themeColor })
+                if (c.colours !== undefined) patch({ themeColor: joinColours(c.colours) })
               }}
             />
           </div>

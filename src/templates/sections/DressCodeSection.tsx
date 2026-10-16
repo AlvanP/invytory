@@ -1,18 +1,48 @@
 import type { WeddingInvitation } from '@/types'
 import { InvitationSection } from '@/components/invitation/InvitationSection'
+import { parseColours, swatchName } from '@/utils/colorTheme'
 
-/** SECTION 5: Dress code, shown with the colour of the day. */
+export const hasDressCodeContent = (i: WeddingInvitation) => !!i.dressCode?.trim() || parseColours(i.themeColor).length > 0
+
+const SIZES = ['size-20', 'size-16', 'size-12']
+
+/**
+ * SECTION 5: Our colour of the day. The colours (up to three) come first, then the
+ * Dress Code heading with whatever the couple wrote. Whatever was left empty is not shown.
+ */
 export function DressCodeSection({ invitation }: { invitation: WeddingInvitation }) {
+  const colours = parseColours(invitation.themeColor)
+  const dressCode = invitation.dressCode?.trim()
+  const title = colours.length === 0 ? 'Dress Code' : colours.length === 1 ? 'Our Colour Of The Day' : 'Our Colours Of The Day'
+
   return (
-    <InvitationSection id="dresscode" eyebrow="What To Wear" title="Dress Code">
-      <div className="flex flex-col items-center gap-6">
-        <div className="flex items-center" aria-hidden>
-          <span className="size-20 rounded-full border-4 border-[color:var(--iv-paper)] bg-[color:var(--iv-main)] shadow-md" />
-          <span className="-ml-5 size-14 rounded-full border-4 border-[color:var(--iv-paper)] bg-[color:var(--iv-accent)] shadow-md" />
-          <span className="-ml-4 size-10 rounded-full border-4 border-[color:var(--iv-paper)] bg-[color:var(--iv-soft)] shadow-md" />
-        </div>
-        <p className="font-display text-3xl text-[color:var(--iv-ink)]">{invitation.dressCode}</p>
-        <p className="text-xs uppercase tracking-[0.28em] text-[color:var(--iv-accent)]">Our colour of the day</p>
+    <InvitationSection id="dresscode" eyebrow="What To Wear" title={title}>
+      <div className="flex flex-col items-center gap-8">
+        {colours.length > 0 && (
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center" aria-hidden>
+              {colours.map((hex, i) => (
+                <span
+                  key={hex}
+                  className={`${SIZES[i]} ${i > 0 ? '-ml-4' : ''} rounded-full border-4 border-[color:var(--iv-paper)] shadow-md`}
+                  style={{ backgroundColor: hex }}
+                />
+              ))}
+            </div>
+            {colours.some((c) => swatchName(c)) && (
+              <p className="text-xs uppercase tracking-[0.25em] text-[color:var(--iv-ink)] opacity-70">
+                {colours.map((c) => swatchName(c) ?? c).join('  ·  ')}
+              </p>
+            )}
+          </div>
+        )}
+        {dressCode && colours.length > 0 && (
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-[color:var(--iv-accent)]">Dress Code</p>
+            <p className="mt-3 font-display text-3xl text-[color:var(--iv-ink)]">{dressCode}</p>
+          </div>
+        )}
+        {dressCode && colours.length === 0 && <p className="font-display text-3xl text-[color:var(--iv-ink)]">{dressCode}</p>}
       </div>
     </InvitationSection>
   )

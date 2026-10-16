@@ -8,12 +8,12 @@ import { useRevealed } from '@/hooks/useRevealed'
 import { useDesign } from '@/templates/DesignContext'
 import { useDateGate } from '@/templates/DateGate'
 import type { NameStyle } from '@/templates/designs'
+import { NAME_FONT, AND_FONT } from '@/templates/fonts'
+import { MotifDivider } from '@/components/invitation/Motifs'
 
 export type CoverTone = 'royal' | 'garden' | 'storybook' | 'modern' | 'heritage' | 'classic'
 
 /** SECTION 1: Cover & summary. Names, date, time and venue over the hero photo. */
-
-const SCRIPT = "'Great Vibes', 'Cormorant Garamond', cursive"
 
 function CoverPattern() {
   const id = useId()
@@ -35,8 +35,12 @@ function CoverPattern() {
  * the letter, so the name stays readable on any colour.
  */
 function AnimatedName({ text, revealed, startIndex, style }: { text: string; revealed: boolean; startIndex: number; style: NameStyle }) {
-  const font: CSSProperties =
-    style === 'script' ? { fontFamily: SCRIPT } : style === 'caps' ? { letterSpacing: '0.18em' } : {}
+  // All three are Bodoni; they differ in case, slant and spacing.
+  const font: CSSProperties = {
+    fontFamily: NAME_FONT,
+    ...(style === 'caps' ? { letterSpacing: '0.16em' } : {}),
+    ...(style === 'serif' ? { fontStyle: 'italic' } : {}),
+  }
   return (
     <span aria-label={text} className="block" style={font}>
       <style>{`
@@ -98,18 +102,20 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     : [formatDate(invitation.weddingDate), formatTime(invitation.weddingTime)].filter(Boolean).join('  ·  ')
 
   const nameClass =
-    design.names === 'script'
-      ? 'text-[4.5rem] leading-[0.95] sm:text-[6rem]'
-      : design.names === 'caps'
-        ? 'font-body text-3xl font-semibold leading-snug sm:text-5xl'
-        : 'font-display text-5xl leading-tight sm:text-6xl'
+    design.names === 'caps' ? 'text-3xl leading-snug sm:text-5xl' : 'text-[3.4rem] leading-[1.08] sm:text-7xl'
 
   const names = (
     <>
       <h1 className={nameClass}>
         <AnimatedName text={invitation.brideName} revealed={revealed} startIndex={0} style={design.names} />
-        <span className={cn('block opacity-80', design.names === 'script' ? 'my-0 text-4xl' : 'my-1 text-2xl')} style={design.names === 'script' ? { fontFamily: SCRIPT } : undefined}>
-          &amp;
+        <span
+          className={cn(
+            'block text-[2.6rem] leading-[1.1] opacity-90 transition-all duration-1000',
+            revealed ? 'translate-y-0 opacity-90' : 'translate-y-3 !opacity-0'
+          )}
+          style={{ fontFamily: AND_FONT, transitionDelay: revealed ? '1100ms' : '0ms' }}
+        >
+          and
         </span>
         <AnimatedName text={invitation.groomName} revealed={revealed} startIndex={invitation.brideName.length} style={design.names} />
       </h1>
@@ -140,6 +146,9 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     </p>
   )
 
+  // Without a hero photo the cover is just writing, so it gets a small drawing to feel finished.
+  const ornament = !hasPhoto ? <MotifDivider motif={design.motif} className="opacity-80" /> : null
+
   const chevron = <ChevronDown aria-hidden className="absolute bottom-6 left-1/2 size-6 -translate-x-1/2 animate-bounce opacity-80" />
 
   // ── Full-width photo with a dark overlay and the names over it ─────────────
@@ -161,6 +170,7 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
         <div aria-hidden className="absolute inset-4 border" style={{ borderColor: line }} />
         <div className="relative z-10 flex flex-col items-center gap-8">
           {eyebrowEl}
+          {ornament}
           <div {...rise(1)} className={rise(1).className}>
             {names}
           </div>
@@ -171,29 +181,23 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     )
   }
 
-  // ── Photo on top, names on a block of colour below ─────────────────────────
+  // ── Photo on top, names on a block of colour below (no photo: just the colour block) ──
   if (design.cover === 'stacked') {
     return (
       <div className="relative flex min-h-[100svh] flex-col bg-[color:var(--iv-main)] text-center text-[color:var(--iv-on-main)]">
-        <div className="relative h-[52svh] overflow-hidden">
-          {hasPhoto ? (
+        {hasPhoto && (
+          <div className="relative h-[52svh] overflow-hidden">
             <img src={invitation.heroImage ?? ''} alt="" className={cn('size-full object-cover', photoIntro)} />
-          ) : (
-            <div
-              className="relative size-full"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--iv-on-main) 12%, var(--iv-main))',
-                backgroundImage: coverBackground ? `url(${coverBackground})` : undefined,
-                backgroundSize: 'cover',
-              }}
-            >
-              {!coverBackground && <CoverPattern />}
-            </div>
-          )}
-          <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[color:var(--iv-main)] to-transparent" />
-        </div>
-        <div className="relative flex flex-1 flex-col items-center justify-center gap-6 px-6 pb-16 pt-2">
+            <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[color:var(--iv-main)] to-transparent" />
+          </div>
+        )}
+        {!hasPhoto && !coverBackground && <CoverPattern />}
+        {!hasPhoto && coverBackground && (
+          <div aria-hidden className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${coverBackground})` }} />
+        )}
+        <div className={cn('relative flex flex-1 flex-col items-center justify-center gap-6 px-6 pb-16', hasPhoto ? 'pt-2' : 'py-24')}>
           {eyebrowEl}
+          {ornament}
           <div {...rise(1)} className={rise(1).className}>
             {names}
           </div>
@@ -204,7 +208,7 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     )
   }
 
-  // ── Photo in an arch (default) ──────────────────────────────────────────────
+  // ── Photo in an arch (default). No photo: no empty arch, just the writing ──────
   return (
     <div
       className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[color:var(--iv-main)] bg-cover bg-center px-6 py-20 text-center text-[color:var(--iv-on-main)]"
@@ -215,22 +219,15 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
       <div aria-hidden className="absolute inset-3 border" style={{ borderColor: line }} />
       <div className="relative z-10 flex flex-col items-center gap-6">
         {eyebrowEl}
-        <div {...rise(1)} className={cn('rounded-t-full border p-2', rise(1).className)} style={{ ...rise(1).style, borderColor: line }}>
-          <div className="aspect-[3/4] w-48 overflow-hidden rounded-t-full sm:w-56">
-            {hasPhoto ? (
+        {hasPhoto ? (
+          <div {...rise(1)} className={cn('rounded-t-full border p-2', rise(1).className)} style={{ ...rise(1).style, borderColor: line }}>
+            <div className="aspect-[3/4] w-48 overflow-hidden rounded-t-full sm:w-56">
               <img src={invitation.heroImage ?? ''} alt="" className={cn('size-full object-cover', photoIntro)} />
-            ) : (
-              <div
-                className="flex size-full flex-col items-center justify-center font-display"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--iv-on-main) 12%, transparent)' }}
-              >
-                <span className="text-5xl">{invitation.brideName.trim().charAt(0).toUpperCase()}</span>
-                <span className="text-xl opacity-70">&amp;</span>
-                <span className="text-5xl">{invitation.groomName.trim().charAt(0).toUpperCase()}</span>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        ) : (
+          ornament
+        )}
         <div>{names}</div>
         {summary}
       </div>

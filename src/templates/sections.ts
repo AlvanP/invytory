@@ -16,6 +16,7 @@ export const SECTION_IDS = [
   'moment',
   'gallery',
   'rsvp',
+  'wall',
   'gifts',
   'footer',
 ] as const
@@ -76,6 +77,11 @@ export const SECTION_INFO: Record<SectionId, SectionInfo> = {
     label: 'RSVP',
     shows: 'Yes / no, name, guests and a message',
     from: 'RSVP message',
+  },
+  wall: {
+    label: 'Guest messages',
+    shows: 'Messages guests chose to leave in public when they RSVP, in a box that scrolls',
+    from: 'Guests\u2019 RSVP messages (only the ones they tick to share)',
   },
   gifts: {
     label: 'Gifts & notes',

@@ -1,24 +1,32 @@
 import { Check } from 'lucide-react'
-import { COLOUR_SWATCHES, buildTheme, isHexColour } from '@/utils/colorTheme'
+import { COLOUR_SWATCHES, MAX_COLOURS, buildTheme } from '@/utils/colorTheme'
 import { cn } from '@/utils/cn'
 
 /**
- * Picks the "colour of the day" for one ceremony: tap a swatch, or choose any
- * colour. The sample strip shows how the writing will look on that colour.
+ * Picks the colours of the day for one ceremony: up to three. Tap a swatch to add it and
+ * tap again to remove it, or add any colour with the + button. The first colour chosen is
+ * the main one: the invitation's colour blocks and buttons use it.
  */
 export function ColourPicker({
-  value,
+  values,
   onChange,
-  title = 'Colour of the day',
-  help = 'Your invitation\u2019s bands, countdown and buttons use this colour. Writing on top of it is chosen automatically so it is easy to read.',
+  title = 'Colours of the day',
+  help = `Pick up to ${MAX_COLOURS}. The first one is your main colour: the invitation’s colour blocks, countdown and buttons use it, and the writing on top is chosen automatically so it is easy to read.`,
 }: {
-  value: string | null | undefined
-  onChange: (hex: string | null) => void
+  values: string[]
+  onChange: (hexes: string[]) => void
   title?: string
   help?: string
 }) {
-  const current = isHexColour(value) ? value.toUpperCase() : null
-  const theme = current ? buildTheme(current) : null
+  const current = values.map((v) => v.toUpperCase())
+  const full = current.length >= MAX_COLOURS
+  const theme = current[0] ? buildTheme(current[0]) : null
+
+  function toggle(hex: string) {
+    const upper = hex.toUpperCase()
+    if (current.includes(upper)) onChange(current.filter((c) => c !== upper))
+    else if (!full) onChange([...current, upper])
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -29,58 +37,71 @@ export function ColourPicker({
 
       <div className="flex flex-wrap gap-2">
         {COLOUR_SWATCHES.map((s) => {
-          const selected = current === s.hex.toUpperCase()
+          const index = current.indexOf(s.hex.toUpperCase())
+          const selected = index >= 0
           const on = buildTheme(s.hex)
           return (
             <button
               key={s.hex}
               type="button"
-              onClick={() => onChange(selected ? null : s.hex)}
+              onClick={() => toggle(s.hex)}
+              disabled={!selected && full}
               aria-label={s.name}
               aria-pressed={selected}
               title={s.name}
               className={cn(
-                'flex size-9 items-center justify-center rounded-full border-2 transition-transform hover:scale-105',
+                'relative flex size-9 items-center justify-center rounded-full border-2 text-xs font-semibold transition-transform hover:scale-105 disabled:opacity-35 disabled:hover:scale-100',
                 selected ? 'border-ink' : 'border-white shadow-soft'
               )}
-              style={{ backgroundColor: s.hex }}
+              style={{ backgroundColor: s.hex, color: on.onMain }}
             >
-              {selected && <Check className="size-4" style={{ color: on.onMain }} />}
+              {selected ? index + 1 : null}
             </button>
           )
         })}
 
         <label
-          className="relative flex size-9 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-ink/30 text-[10px] text-ink-soft"
-          title="Choose any colour"
+          className={cn(
+            'relative flex size-9 items-center justify-center rounded-full border-2 border-dashed border-ink/30 text-sm text-ink-soft',
+            full ? 'opacity-35' : 'cursor-pointer'
+          )}
+          title="Add any colour"
         >
           <span aria-hidden>+</span>
           <input
             type="color"
-            aria-label="Choose any colour"
-            value={current ?? '#B08D57'}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 cursor-pointer opacity-0"
+            aria-label="Add any colour"
+            disabled={full}
+            value="#B08D57"
+            onChange={(e) => toggle(e.target.value)}
+            className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-default"
           />
         </label>
       </div>
 
+      {current.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {current.map((hex, i) => (
+            <span key={hex} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-2.5 py-1 text-xs text-ink-soft">
+              <span className="size-3.5 rounded-full border border-ink/20" style={{ backgroundColor: hex }} />
+              {i === 0 ? 'Main' : `Colour ${i + 1}`}
+              <button type="button" onClick={() => onChange(current.filter((c) => c !== hex))} className="text-ink-soft/60 hover:text-ink" aria-label={`Remove colour ${i + 1}`}>
+                &times;
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
       {theme ? (
-        <div className="flex flex-col gap-2">
-          <div
-            className="flex items-center justify-between rounded-sm px-4 py-3 text-sm"
-            style={{ backgroundColor: theme.main, color: theme.onMain }}
-          >
-            <span className="font-display text-base">Ada &amp; Michael</span>
-            <span className="text-xs tracking-[0.2em]">SAVE THE DATE</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onChange(null)}
-            className="w-fit text-xs text-ink-soft underline underline-offset-2 hover:text-ink"
-          >
-            Use the design&rsquo;s own colour instead
-          </button>
+        <div
+          className="flex items-center justify-between rounded-sm px-4 py-3 text-sm"
+          style={{ backgroundColor: theme.main, color: theme.onMain }}
+        >
+          <span className="font-display text-base">Ada &amp; Michael</span>
+          <span className="flex items-center gap-1 text-xs tracking-[0.2em]">
+            <Check className="size-3.5" /> SAVE THE DATE
+          </span>
         </div>
       ) : (
         <p className="text-xs text-ink-soft/70">No colour chosen, so the design&rsquo;s own colours are used.</p>

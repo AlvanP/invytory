@@ -17,8 +17,9 @@ This file is the map for designing artwork section by section. The code lives in
 | 7 | `moment` | One photo in a minimal frame that tilts as guests scroll | Floating photo | Skipped when empty |
 | 8 | `gallery` | Up to four photos that guests swipe through to the left | Slider photos | Skipped when empty |
 | 9 | `rsvp` | Yes / no, name, guests and a message | RSVP message | Always shown |
-| 10 | `gifts` | Gift information and any additional message | Gift information, additional message | Skipped when empty |
-| 11 | `footer` | The names, the wedding hashtag and the sign-off | Names, hashtag | Always shown |
+| 10 | `wall` | Messages guests chose to leave in public when they RSVP, in a box that scrolls | Guests’ RSVP messages (only the ones they tick to share) | Skipped when empty |
+| 11 | `gifts` | Gift information and any additional message | Gift information, additional message | Skipped when empty |
+| 12 | `footer` | The names, the wedding hashtag and the sign-off | Names, hashtag | Always shown |
 
 ### Photos (6 at most)
 1. **Hero photo** — the big photo in the cover (section 1). Dark overlay with names over it in the full-width and stacked covers.
@@ -63,20 +64,20 @@ This file is the map for designing artwork section by section. The code lives in
 
 B = a block of the couple's colour, s = a soft tint of it, p = plain paper.
 
-| Template | cover | countdown | details | venue | dresscode | story | moment | gallery | rsvp | gifts | footer |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Classic Elegance | B | s | p | s | p | s | p | s | B | p | B |
-| Garden Romance | B | p | s | p | s | s | p | s | B | p | B |
-| Modern Luxury | B | p | s | p | s | p | s | p | B | p | B |
-| Coral Crown | B | B | p | s | p | s | p | s | B | p | B |
-| Mahogany Gold | B | s | s | p | s | s | p | s | B | p | B |
-| Ozo Regalia | B | B | p | s | p | p | s | p | B | p | B |
-| Aso-Oke Blue | B | B | p | s | p | s | p | s | B | p | B |
-| Gele Purple | B | s | s | p | s | s | p | s | B | p | B |
-| Palace Navy | B | B | p | s | p | p | s | p | B | p | B |
-| Emerald Arabesque | B | B | p | s | p | s | p | s | B | p | B |
-| Crimson Sands | B | s | s | p | s | s | p | s | B | p | B |
-| Storybook | B | s | p | s | p | p | s | p | B | p | B |
+| Template | cover | countdown | details | venue | dresscode | story | moment | gallery | rsvp | wall | gifts | footer |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Classic Elegance | B | s | p | s | p | s | p | s | B | s | p | B |
+| Garden Romance | B | p | s | p | s | s | p | s | B | s | p | B |
+| Modern Luxury | B | p | s | p | s | p | s | p | B | s | p | B |
+| Coral Crown | B | B | p | s | p | s | p | s | B | s | p | B |
+| Mahogany Gold | B | s | s | p | s | s | p | s | B | s | p | B |
+| Ozo Regalia | B | B | p | s | p | p | s | p | B | s | p | B |
+| Aso-Oke Blue | B | B | p | s | p | s | p | s | B | s | p | B |
+| Gele Purple | B | s | s | p | s | s | p | s | B | s | p | B |
+| Palace Navy | B | B | p | s | p | p | s | p | B | s | p | B |
+| Emerald Arabesque | B | B | p | s | p | s | p | s | B | s | p | B |
+| Crimson Sands | B | s | s | p | s | s | p | s | B | s | p | B |
+| Storybook | B | s | p | s | p | p | s | p | B | s | p | B |
 
 ## 4. Artwork, section by section
 
@@ -94,4 +95,4 @@ The cover keeps its own pieces: `cover-background` (behind the cover when there 
 
 **Keep backgrounds quiet.** Text sits straight on a background, so use pale, low-contrast artwork, or keep the busy part to the edges. A section's text is dark on light sections and automatically light or dark on colour blocks.
 
-Section ids you can use: `cover`, `countdown`, `details`, `venue`, `dresscode`, `story`, `moment`, `gallery`, `rsvp`, `gifts`, `footer`.
+Section ids you can use: `cover`, `countdown`, `details`, `venue`, `dresscode`, `story`, `moment`, `gallery`, `rsvp`, `wall`, `gifts`, `footer`.

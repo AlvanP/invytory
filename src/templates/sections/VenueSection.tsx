@@ -16,7 +16,7 @@ export function VenueSection({ invitation }: { invitation: WeddingInvitation }) 
     <InvitationSection id="venue" eyebrow="Getting There" title="Venue & Map">
       <div className="rounded-md bg-[color:var(--iv-paper)] p-6 text-[color:var(--iv-ink)] shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]">
         <MapPin className="mx-auto size-7 text-[color:var(--iv-accent)]" />
-        <p className="mt-3 font-display text-2xl">{invitation.venueName || 'Venue to be announced'}</p>
+        {invitation.venueName && <p className="mt-3 font-display text-2xl">{invitation.venueName}</p>}
         {invitation.venueAddress && <p className="mt-1 text-sm opacity-80">{invitation.venueAddress}</p>}
         {place && <p className="text-sm opacity-80">{place}</p>}
         {maps && (

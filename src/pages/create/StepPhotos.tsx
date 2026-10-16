@@ -20,11 +20,20 @@ export function StepPhotos() {
   // Key is `${ceremonyId}:${slot}` so a spinner only shows on the right tab.
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Ceremonies the couple chose to make without any photos.
+  const [noPhotos, setNoPhotos] = useState<Record<string, boolean>>({})
 
   const active = draft.ceremonies.find((c) => c.id === activeId) ?? draft.ceremonies[0]
   const gallery = active.galleryImages ?? emptyGallery()
   const copySources = draft.ceremonies.filter((c) => c.id !== active.id && hasPhotos(c))
   const busy = uploadingKey !== null
+  const skipped = !!noPhotos[active.id]
+
+  function setSkipped(on: boolean) {
+    if (on && hasPhotos(active) && !window.confirm('This removes the photos you added for this ceremony. Continue?')) return
+    if (on) updateCeremony(active.id, { heroImage: null, galleryImages: emptyGallery() })
+    setNoPhotos((cur) => ({ ...cur, [active.id]: on }))
+  }
 
   async function handleHeroUpload(file: File) {
     const ceremonyId = active.id
@@ -89,7 +98,15 @@ export function StepPhotos() {
         </p>
       )}
 
-      {copySources.length > 0 && (
+      <label className="flex items-start gap-3 rounded-md border border-ink/10 bg-white p-4 text-sm text-ink">
+        <input type="checkbox" checked={skipped} disabled={busy} onChange={(e) => setSkipped(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[color:var(--color-gold)]" />
+        <span>
+          I don&rsquo;t want any photos on this invitation
+          <span className="block text-xs text-ink-soft/70">Your invitation is made without photos and has no empty picture spaces. You can change this any time.</span>
+        </span>
+      </label>
+
+      {!skipped && copySources.length > 0 && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
           {copySources.map((source) => (
             <button
@@ -108,6 +125,8 @@ export function StepPhotos() {
       {error && <p className="text-sm text-danger">{error}</p>}
 
       <div key={active.id} className="flex flex-col gap-10">
+        {!skipped && (
+        <>
         <div>
           <p className="text-sm font-medium text-ink-soft">Hero image</p>
           <p className="mb-2 text-xs text-ink-soft/70">The big photo at the top, with the names written over it. A portrait or landscape photo of the couple works well.</p>
@@ -158,7 +177,10 @@ export function StepPhotos() {
           </div>
         </div>
 
-        <div className="border-t border-ink/10 pt-8">
+        </>
+        )}
+
+        <div className={skipped ? undefined : 'border-t border-ink/10 pt-8'}>
           <MusicPicker ceremony={active} onChange={(patch) => updateCeremony(active.id, patch)} />
         </div>
       </div>

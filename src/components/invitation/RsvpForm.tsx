@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/Textarea'
 import { SuccessState } from '@/components/ui/State'
 import { guestService } from '@/services/guestService'
 import { cn } from '@/utils/cn'
+import { wallService } from '@/services/wallService'
+import { useWall } from '@/templates/WallContext'
 
 /**
  * What this device last submitted for an invitation. Remembering it lets
@@ -53,6 +55,9 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
   const [numberOfGuests, setNumberOfGuests] = useState(1)
   const [phone, setPhone] = useState('')
   const [message, setMessage] = useState('')
+  const [shareOnWall, setShareOnWall] = useState(false)
+  const [onWall, setOnWall] = useState(false)
+  const wall = useWall()
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [previous, setPrevious] = useState<StoredRsvp | null>(() => readStoredRsvp(invitationId))
@@ -77,6 +82,23 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
         phone: phone.trim() || undefined,
         message: message.trim() || undefined,
       })
+      // The RSVP is saved. If the guest ticked the box, also leave the message on the couple's wall.
+      // A problem here must not undo or hide the RSVP, so it is only logged.
+      if (shareOnWall && message.trim()) {
+        try {
+          await wallService.post(invitationId, fullName, message)
+          wall.add({
+            id: `local-${Date.now()}`,
+            invitationId,
+            guestName: fullName.trim().slice(0, 80),
+            message: message.trim().slice(0, 500),
+            createdAt: new Date().toISOString(),
+          })
+          setOnWall(true)
+        } catch (wallErr) {
+          console.error('[rsvp] wall message failed:', wallErr)
+        }
+      }
       writeStoredRsvp(invitationId, {
         name: fullName.trim(),
         attending,
@@ -101,6 +123,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
     setNumberOfGuests(1)
     setPhone('')
     setMessage('')
+    setShareOnWall(false)
     setFormError(null)
   }
 
@@ -108,7 +131,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
     return (
       <SuccessState
         title="Thank you!"
-        description="Your RSVP has been received."
+        description={onWall ? 'Your RSVP has been received, and your message is now on the couple\u2019s wall.' : 'Your RSVP has been received.'}
       />
     )
   }
@@ -204,7 +227,21 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Leave a note for the couple"
             rows={3}
+            maxLength={500}
           />
+          <label className="flex items-start gap-3 text-sm text-ink-soft">
+            <input
+              type="checkbox"
+              checked={shareOnWall}
+              disabled={!message.trim()}
+              onChange={(e) => setShareOnWall(e.target.checked)}
+              className="mt-0.5 size-4 shrink-0 accent-[color:var(--iv-main)]"
+            />
+            <span>
+              Leave this message on the couple&rsquo;s wall
+              <span className="block text-xs text-ink-soft/70">Everyone who opens this invitation will be able to read it, with your name.</span>
+            </span>
+          </label>
 
           {formError && (
             <div className="flex items-start gap-2 rounded-xs border border-danger/30 bg-danger/5 px-3 py-2.5 text-sm text-danger">

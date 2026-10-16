@@ -153,3 +153,51 @@ export function swatchInText(text: string): ColourSwatch | null {
   }
   return best ? best.s : null
 }
+
+/** Most colours of the day a ceremony can have. The first one drives the theme. */
+export const MAX_COLOURS = 3
+
+/** Reads the saved colours. They are stored in one text field as "#AAAAAA,#BBBBBB,#CCCCCC" (first = main). */
+export function parseColours(value: string | null | undefined): string[] {
+  if (!value) return []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const part of value.split(',')) {
+    const hex = part.trim().toUpperCase()
+    if (isHexColour(hex) && !seen.has(hex)) {
+      seen.add(hex)
+      out.push(hex)
+    }
+  }
+  return out.slice(0, MAX_COLOURS)
+}
+
+export function joinColours(colours: string[]): string | null {
+  const list = parseColours(colours.join(','))
+  return list.length ? list.join(',') : null
+}
+
+/** Swatches named in some text, in the order they appear: "Red, gold and royal blue". */
+export function swatchesInText(text: string): ColourSwatch[] {
+  const lower = text.toLowerCase()
+  const found: { s: ColourSwatch; at: number }[] = []
+  for (const s of COLOUR_SWATCHES) {
+    const at = lower.search(new RegExp(`\\b${s.name.toLowerCase()}\\b`))
+    if (at >= 0) found.push({ s, at })
+  }
+  return found
+    .sort((a, b) => a.at - b.at)
+    .map((f) => f.s)
+    .slice(0, MAX_COLOURS)
+}
+
+/** "Red", "Red and Gold", "Red, Gold and Teal". */
+export function joinNames(names: string[]): string {
+  if (names.length <= 1) return names.join('')
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+}
+
+/** The swatch name for a colour, if it is one of the ready-made ones. */
+export function swatchName(hex: string): string | null {
+  return COLOUR_SWATCHES.find((s) => s.hex.toLowerCase() === hex.toLowerCase())?.name ?? null
+}

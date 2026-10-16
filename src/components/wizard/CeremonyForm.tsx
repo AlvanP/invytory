@@ -6,6 +6,7 @@ import { collectionForCeremonyType, groupTemplates, COLLECTION_LABELS } from '@/
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { DressCodeField } from '@/components/wizard/DressCodeField'
+import { parseColours, joinColours } from '@/utils/colorTheme'
 import { TemplatePreviewPlaceholder } from '@/components/ui/Placeholder'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/utils/cn'
@@ -185,8 +186,11 @@ export function CeremonyFormFields({
 
       <DressCodeField
         dressCode={value.dressCode ?? ''}
-        themeColor={value.themeColor}
-        onChange={(c) => onChange(c)}
+        colours={parseColours(value.themeColor)}
+        onChange={(c) => {
+          const { colours, ...rest } = c
+          onChange(colours ? { ...rest, themeColor: joinColours(colours) } : rest)
+        }}
       />
     </div>
   )

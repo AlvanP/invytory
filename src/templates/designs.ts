@@ -38,6 +38,7 @@ export const DEFAULT_RHYTHM: Record<SectionId, SectionVariant> = {
   moment: 'plain',
   gallery: 'soft',
   rsvp: 'band',
+  wall: 'soft',
   gifts: 'plain',
   footer: 'band',
 }

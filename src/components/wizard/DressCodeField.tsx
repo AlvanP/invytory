@@ -1,38 +1,48 @@
 import { Input } from '@/components/ui/Input'
 import { ColourPicker } from '@/components/wizard/ColourPicker'
-import { COLOUR_SWATCHES, swatchInText } from '@/utils/colorTheme'
+import { COLOUR_SWATCHES, MAX_COLOURS, joinNames, swatchName, swatchesInText } from '@/utils/colorTheme'
 
 export interface DressCodeChange {
   dressCode?: string
-  themeColor?: string | null
+  /** All the colours of the day (up to three); the first is the main one. */
+  colours?: string[]
 }
 
-const isSwatchName = (t: string) => COLOUR_SWATCHES.some((s) => s.name.toLowerCase() === t.trim().toLowerCase())
+/** True when the dress code is only colour names ("Red and Gold"), so it can be rewritten safely. */
+function isOnlyColourNames(text: string): boolean {
+  const words = text.toLowerCase().replace(/[,&]/g, ' ').split(/\s+/).filter(Boolean)
+  if (words.length === 0) return true
+  let rest = ' ' + words.join(' ') + ' '
+  for (const s of COLOUR_SWATCHES) rest = rest.split(` ${s.name.toLowerCase()} `).join(' ')
+  return rest.replace(/ and /g, ' ').trim() === ''
+}
 
 /**
- * The dress code and the colour of the day in one place. Picking a colour
- * fills in the dress code (if it is empty), and naming a colour in the dress
- * code ("Red and gold") picks that colour. The whole invitation then uses it.
+ * The dress code and the colours of the day in one place. Picking colours writes their names
+ * into the dress code (if it is empty or only colour names), and naming colours in the dress
+ * code ("Red and gold") picks them. The invitation then uses them.
  */
 export function DressCodeField({
   dressCode,
-  themeColor,
+  colours,
   onChange,
 }: {
   dressCode: string
-  themeColor: string | null | undefined
+  colours: string[]
   onChange: (change: DressCodeChange) => void
 }) {
   function onText(text: string) {
-    const found = swatchInText(text)
-    onChange(found ? { dressCode: text, themeColor: found.hex } : { dressCode: text })
+    const found = swatchesInText(text)
+    onChange(found.length ? { dressCode: text, colours: found.map((s) => s.hex) } : { dressCode: text })
   }
 
-  function onColour(hex: string | null) {
-    const swatch = COLOUR_SWATCHES.find((s) => s.hex.toLowerCase() === hex?.toLowerCase())
-    if (swatch && (!dressCode.trim() || isSwatchName(dressCode))) onChange({ themeColor: hex, dressCode: swatch.name })
-    else if (!hex && isSwatchName(dressCode)) onChange({ themeColor: null, dressCode: '' })
-    else onChange({ themeColor: hex })
+  function onColours(hexes: string[]) {
+    const names = hexes.map(swatchName)
+    if (names.every((n): n is string => !!n) && isOnlyColourNames(dressCode)) {
+      onChange({ colours: hexes, dressCode: joinNames(names) })
+    } else {
+      onChange({ colours: hexes })
+    }
   }
 
   return (
@@ -45,10 +55,9 @@ export function DressCodeField({
         onChange={(e) => onText(e.target.value)}
       />
       <ColourPicker
-        value={themeColor}
-        onChange={onColour}
-        title="Dress code colour (colour of the day)"
-        help="Pick the colour your guests should wear. Your invitation uses it for its colour bands, countdown and buttons, and the writing on it is chosen automatically so it is easy to read."
+        values={colours}
+        onChange={onColours}
+        title={`Colours of the day (up to ${MAX_COLOURS})`}
       />
     </div>
   )
