@@ -150,7 +150,7 @@ export const templates: InvitationTemplate[] = [
     isPremium: true,
     status: 'available',
   },
-  // ── Other events (creation opens up in the next update) ──
+  // ── Other events (child dedication, birthday, corporate, funeral) ──
   {
     id: 'dedication-heavenly-blue',
     name: 'Heavenly Blue',
@@ -160,7 +160,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'garden',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'dedication-blush-blessing',
@@ -171,7 +171,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'classic',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'dedication-golden-grace',
@@ -182,7 +182,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'modern',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'dedication-little-lamb',
@@ -193,7 +193,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'storybook',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'dedication-royal-heritage',
@@ -204,7 +204,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'royal',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'birthday-confetti-pop',
@@ -215,7 +215,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'heritage',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'birthday-golden-hour',
@@ -226,7 +226,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'classic',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'birthday-midnight-party',
@@ -237,7 +237,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'royal',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'corporate-boardroom',
@@ -248,7 +248,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'modern',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'corporate-summit',
@@ -259,7 +259,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'garden',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'corporate-gala',
@@ -270,7 +270,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'classic',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'funeral-serene',
@@ -281,7 +281,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'garden',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'funeral-life-celebrated',
@@ -292,7 +292,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'storybook',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'funeral-white-lily',
@@ -303,7 +303,7 @@ export const templates: InvitationTemplate[] = [
     rendererKey: 'designed',
     previewTone: 'modern',
     isPremium: false,
-    status: 'coming-soon',
+    status: 'available',
   },
 ]
 

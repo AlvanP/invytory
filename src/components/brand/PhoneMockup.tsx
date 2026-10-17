@@ -25,6 +25,7 @@ export function PhoneMockup({
   className?: string
 }) {
   const screen = useRef<HTMLDivElement | null>(null)
+  const frame = useRef<HTMLIFrameElement | null>(null)
   const [scale, setScale] = useState(0.5)
   const [height, setHeight] = useState(SCREEN_H)
   const [near, setNear] = useState(false)
@@ -41,10 +42,14 @@ export function PhoneMockup({
     })
     resize.observe(node)
     const seen = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: '300px' })
+    // Pause the moving sample while the phone is off screen, so the page stays light.
+    const watch = new IntersectionObserver(([e]) => frame.current?.contentWindow?.postMessage(e.isIntersecting ? 'invytory:play' : 'invytory:pause', '*'))
+    watch.observe(node)
     seen.observe(node)
     return () => {
       resize.disconnect()
       seen.disconnect()
+      watch.disconnect()
     }
   }, [])
 
@@ -62,6 +67,7 @@ export function PhoneMockup({
       <div ref={screen} className="relative size-full overflow-hidden rounded-[2.05rem] bg-ivory">
         {near && (
           <iframe
+            ref={frame}
             key={src}
             src={src}
             title={`Sample invitation`}
@@ -73,7 +79,7 @@ export function PhoneMockup({
               ready ? 'opacity-100' : 'opacity-0',
               !interactive && 'pointer-events-none'
             )}
-            style={{ width: SCREEN_W, height, transform: `scale(${scale})` }}
+            style={{ width: SCREEN_W, height, transform: `scale(${scale})`, willChange: 'transform' }}
           />
         )}
         <div aria-hidden className="pointer-events-none absolute left-1/2 top-[7px] h-[11px] w-[58px] -translate-x-1/2 rounded-full bg-[#1d1214]" />

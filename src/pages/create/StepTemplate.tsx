@@ -11,6 +11,7 @@ import { CollectionTabs, type CollectionFilter } from '@/components/templates/Co
 import { ceremonyTypeForCollection, groupTemplates } from '@/utils/templateCollections'
 import { WizardStepShell } from './WizardStepShell'
 import { cn } from '@/utils/cn'
+import { eventCopy, EVENT_KINDS, type EventKind } from '@/templates/events'
 
 export function StepTemplate() {
   const { draft, updateDraft, updateCeremony } = useWizard()
@@ -18,9 +19,13 @@ export function StepTemplate() {
   const navigate = useNavigate()
   const [templates, setTemplates] = useState<InvitationTemplate[] | null>(null)
   const [filter, setFilter] = useState<CollectionFilter>(null)
+  const askedEvent = params.get('event')
+  const [kind, setKind] = useState<EventKind>(
+    EVENT_KINDS.includes(askedEvent as EventKind) ? (askedEvent as EventKind) : draft.eventType
+  )
 
   useEffect(() => {
-    templateService.list().then(setTemplates)
+    templateService.listAll().then(setTemplates)
   }, [])
 
   /**
@@ -32,8 +37,21 @@ export function StepTemplate() {
    * so nothing the couple already chose is overwritten.
    */
   function applyTemplate(template: InvitationTemplate) {
-    updateDraft({ templateId: template.id })
-    if (draft.ceremonies.length === 1) {
+    const eventType = template.category as EventKind
+    if (eventType !== 'wedding') {
+      // Every other kind of event is a single occasion: one date, one place, one design.
+      updateDraft({
+        templateId: template.id,
+        eventType,
+        ceremonies: draft.ceremonies.slice(0, 1).map((c) => ({ ...c, templateId: template.id, ceremonyType: 'custom' as const })),
+      })
+      return
+    }
+    updateDraft({ templateId: template.id, eventType })
+    if (draft.eventType !== 'wedding') {
+      // Coming back to a wedding from another event: the first ceremony is a wedding ceremony again.
+      updateCeremony(draft.ceremonies[0].id, { templateId: template.id, ceremonyType: ceremonyTypeForCollection(template.collection) ?? 'white' })
+    } else if (draft.ceremonies.length === 1) {
       const first = draft.ceremonies[0]
       const impliedType = ceremonyTypeForCollection(template.collection)
       updateCeremony(first.id, {
@@ -51,8 +69,6 @@ export function StepTemplate() {
     // templates they just picked from.
     if (preselected && !draft.templateId) {
       const template = getTemplateById(preselected)
-      // Only wedding designs can be created for now; other events open up in the next update.
-      if (template && template.category !== 'wedding') return
       if (template) {
         applyTemplate(template)
       } else {
@@ -63,7 +79,8 @@ export function StepTemplate() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params])
 
-  const groups = templates ? groupTemplates(templates, filter) : null
+  const ofKind = templates ? templates.filter((t) => t.category === kind) : null
+  const groups = ofKind ? groupTemplates(ofKind, kind === 'wedding' ? filter : null) : null
 
   function renderCard(t: InvitationTemplate) {
     const selected = draft.templateId === t.id
@@ -90,11 +107,35 @@ export function StepTemplate() {
     <WizardStepShell
       eyebrow="Step 1 of 7"
       title="Choose a template"
-      description="Pick a starting point. Each ceremony can have its own design later, and you can change this without losing your details."
+      description={
+        kind === 'wedding'
+          ? 'Pick a starting point. Each ceremony can have its own design later, and you can change this without losing your details.'
+          : 'Pick a design for your event. You can change it later without losing your details.'
+      }
       nextTo="/create/couple"
       onNext={() => !!draft.templateId}
     >
-      <CollectionTabs value={filter} onChange={setFilter} />
+      <div role="tablist" aria-label="Event types" className="flex flex-wrap gap-2">
+        {EVENT_KINDS.map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={k === kind}
+            onClick={() => {
+              setKind(k)
+              setFilter(null)
+            }}
+            className={cn(
+              'rounded-full border px-4 py-1.5 text-sm transition-colors',
+              k === kind ? 'border-wine bg-wine text-ivory' : 'border-wine/25 text-wine hover:border-wine'
+            )}
+          >
+            {eventCopy[k].plural}
+          </button>
+        ))}
+      </div>
+      {kind === 'wedding' && <CollectionTabs value={filter} onChange={setFilter} />}
 
       {!groups ? (
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">

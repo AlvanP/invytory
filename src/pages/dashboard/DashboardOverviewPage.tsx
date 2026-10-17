@@ -1,3 +1,4 @@
+import { namesTitle } from '@/utils/format'
 import { useEffect, useState } from 'react'
 import { Eye, CheckCircle2, XCircle, Users, Clock, MessageSquare } from 'lucide-react'
 import type { DashboardStats, WeddingInvitation } from '@/types'
@@ -40,7 +41,7 @@ export function DashboardOverviewPage() {
   }, [user])
 
   const greetingName = primaryInvitation
-    ? `${primaryInvitation.brideName} & ${primaryInvitation.groomName}`
+    ? namesTitle(primaryInvitation.brideName, primaryInvitation.groomName)
     : user?.email ?? 'there'
 
   return (

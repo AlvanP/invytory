@@ -8,7 +8,8 @@ import { storageService } from '@/services/storageService'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-import { formatDate } from '@/utils/format'
+import { getWizardCopy } from '@/templates/events'
+import { formatDate, namesTitle } from '@/utils/format'
 import type { CeremonyDetailsUpdate, CoupleDetailsUpdate } from '@/services/supabaseInvitationService'
 import { ErrorState } from '@/components/ui/State'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
@@ -70,6 +71,8 @@ function toEditable(inv: WeddingInvitation): Editable {
 export function DashboardEditCeremonyPage() {
   const { ceremonyId } = useParams<{ ceremonyId: string }>()
   const [invitation, setInvitation] = useState<WeddingInvitation | null | undefined>(undefined)
+  const isWedding = (invitation?.eventType ?? 'wedding') === 'wedding'
+  const wizard = getWizardCopy(invitation?.eventType)
   const [edit, setEdit] = useState<Editable | null>(null)
   const [saved, setSaved] = useState<Editable | null>(null)
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
@@ -166,8 +169,8 @@ export function DashboardEditCeremonyPage() {
   async function save() {
     if (!edit || !saved || !invitation) return
     const { details, couple } = edit
-    if (!couple.brideName.trim() || !couple.groomName.trim()) {
-      setSaveError("Both names are needed.")
+    if (!couple.brideName.trim() || (isWedding && !couple.groomName.trim())) {
+      setSaveError(isWedding ? 'Both names are needed.' : 'The name is needed.')
       return
     }
     if (!details.weddingDate || !details.venueName.trim()) {
@@ -251,7 +254,7 @@ export function DashboardEditCeremonyPage() {
         <div>
           <p className="text-xs tracking-[0.2em] text-gold">Edit</p>
           <h1 className="mt-2 font-display text-3xl text-ink">
-            {saved?.couple.brideName ?? invitation.brideName} &amp; {saved?.couple.groomName ?? invitation.groomName}
+            {namesTitle(saved?.couple.brideName ?? invitation.brideName, saved?.couple.groomName ?? invitation.groomName)}
           </h1>
           <p className="mt-1 text-sm text-ink-soft">{name}</p>
         </div>
@@ -316,7 +319,7 @@ export function DashboardEditCeremonyPage() {
 
         <section className="flex max-w-2xl flex-col gap-4 border-t border-ink/10 pt-8">
           <div>
-            <p className="text-sm font-medium text-ink">About the couple</p>
+            <p className="text-sm font-medium text-ink">{isWedding ? 'About the couple' : 'About the event'}</p>
             <p className="mt-1 text-xs text-ink-soft/70">
               {invitation.weddingId
                 ? 'Shared by every ceremony of this wedding, so saving updates all of them.'
@@ -324,15 +327,15 @@ export function DashboardEditCeremonyPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Bride's name" required value={edit.couple.brideName} onChange={(e) => setCouple({ brideName: e.target.value })} />
-            <Input label="Groom's name" required value={edit.couple.groomName} onChange={(e) => setCouple({ groomName: e.target.value })} />
+            <Input label={isWedding ? "Bride's name" : wizard.firstLabel} required className={isWedding ? undefined : 'sm:col-span-2'} value={edit.couple.brideName} onChange={(e) => setCouple({ brideName: e.target.value })} />
+            {isWedding && <Input label="Groom's name" required value={edit.couple.groomName} onChange={(e) => setCouple({ groomName: e.target.value })} />}
             <Input label="Short phrase" optional className="sm:col-span-2" value={edit.couple.tagline} onChange={(e) => setCouple({ tagline: e.target.value })} />
           </div>
-          <Textarea label="Our story" optional value={edit.couple.loveStory} onChange={(e) => setCouple({ loveStory: e.target.value })} />
-          <Textarea label="How we met" optional value={edit.couple.howWeMet} onChange={(e) => setCouple({ howWeMet: e.target.value })} />
-          <Textarea label="Vows" optional value={edit.couple.vows} onChange={(e) => setCouple({ vows: e.target.value })} />
-          <Input label="Wedding hashtag" optional value={edit.couple.weddingHashtag} onChange={(e) => setCouple({ weddingHashtag: e.target.value })} />
-          <Textarea label="Gift information" optional value={edit.couple.giftInformation} onChange={(e) => setCouple({ giftInformation: e.target.value })} />
+          <Textarea label={wizard.storyMain.label} optional value={edit.couple.loveStory} onChange={(e) => setCouple({ loveStory: e.target.value })} />
+          <Textarea label={wizard.storySecond.label} optional value={edit.couple.howWeMet} onChange={(e) => setCouple({ howWeMet: e.target.value })} />
+          <Textarea label={wizard.storyThird.label} optional value={edit.couple.vows} onChange={(e) => setCouple({ vows: e.target.value })} />
+          {wizard.hashtag && <Input label={wizard.hashtag.label} optional value={edit.couple.weddingHashtag} onChange={(e) => setCouple({ weddingHashtag: e.target.value })} />}
+          <Textarea label={wizard.gift.label} optional value={edit.couple.giftInformation} onChange={(e) => setCouple({ giftInformation: e.target.value })} />
           <Textarea label="Additional message" optional value={edit.couple.additionalMessage} onChange={(e) => setCouple({ additionalMessage: e.target.value })} />
         </section>
 

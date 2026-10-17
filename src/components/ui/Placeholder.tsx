@@ -3,6 +3,8 @@ import { cn } from '@/utils/cn'
 import { getTemplateArt } from '@/utils/templateArt'
 import { designs } from '@/templates/designs'
 import { buildTheme } from '@/utils/colorTheme'
+import { getTemplateById } from '@/data/templates'
+import { getEventCopy } from '@/templates/events'
 
 /**
  * A shared family of tasteful placeholder surfaces. These stand in for
@@ -109,6 +111,10 @@ export function TemplatePreviewPlaceholder({
   if (design) {
     const t = buildTheme(design.colour)
     const arch = design.cover === 'arch'
+    const kind = getTemplateById(templateId)?.category ?? 'wedding'
+    const sampleName = ({ wedding: 'Ada & Bayo', 'child-dedication': 'Baby Zara', birthday: 'Adaeze', corporate: 'Summit 2027', funeral: 'In Loving Memory' } as Record<string, string>)[kind] ?? 'Ada & Bayo'
+    const title = design.names === 'caps' ? (kind === 'wedding' ? 'A & B' : sampleName.toUpperCase()) : sampleName
+    const small = kind === 'wedding' ? 'Save the date' : getEventCopy(kind).coverTag ?? 'Save the date'
     return (
       <div
         className={cn('relative flex flex-col items-center justify-center gap-2 overflow-hidden rounded-md aspect-[3/4]', className)}
@@ -120,9 +126,9 @@ export function TemplatePreviewPlaceholder({
         <div className="absolute inset-3 border" style={{ borderColor: 'color-mix(in srgb, currentColor 35%, transparent)' }} />
         {arch && <div className="h-1/3 w-1/3 rounded-t-full border" style={{ borderColor: 'color-mix(in srgb, currentColor 45%, transparent)', backgroundColor: 'color-mix(in srgb, currentColor 14%, transparent)' }} />}
         <p className={cn('text-center leading-tight', design.names === 'caps' ? 'font-body text-[11px] font-semibold tracking-[0.18em]' : 'font-display text-lg')}>
-          {design.names === 'caps' ? 'A & B' : 'Ada & Bayo'}
+          {title}
         </p>
-        <p className="text-[8px] uppercase tracking-[0.3em] opacity-80">Save the date</p>
+        <p className="text-[8px] uppercase tracking-[0.3em] opacity-80">{small}</p>
       </div>
     )
   }

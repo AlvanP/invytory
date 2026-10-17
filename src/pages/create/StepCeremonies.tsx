@@ -7,6 +7,7 @@ import { formatDate, formatTime } from '@/utils/format'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { CeremonyFormFields } from '@/components/wizard/CeremonyForm'
+import { getWizardCopy } from '@/templates/events'
 import { WizardStepShell } from './WizardStepShell'
 
 function makeCeremonyId(): string {
@@ -15,6 +16,8 @@ function makeCeremonyId(): string {
 
 export function StepCeremonies() {
   const { draft, addCeremony, updateCeremony, removeCeremony } = useWizard()
+  const copy = getWizardCopy(draft.eventType)
+  const isWedding = draft.eventType === 'wedding'
   const [editing, setEditing] = useState<CeremonyDraft | null>(null)
   const [isNew, setIsNew] = useState(false)
 
@@ -40,11 +43,33 @@ export function StepCeremonies() {
     setEditing(null)
   }
 
+  // Every event except a wedding is a single occasion, so its details are one form on the page.
+  if (!isWedding) {
+    const only = draft.ceremonies[0]
+    return (
+      <WizardStepShell
+        eyebrow="Step 3 of 7"
+        title={copy.detailsTitle}
+        description={copy.detailsDescription}
+        backTo="/create/couple"
+        nextTo="/create/story"
+        onNext={() => allComplete}
+      >
+        <CeremonyFormFields
+          value={only}
+          eventType={draft.eventType}
+          onChange={(patch) => updateCeremony(only.id, patch)}
+        />
+        {!allComplete && <p className="text-xs text-ink-soft/70">Add the date and the venue to continue.</p>}
+      </WizardStepShell>
+    )
+  }
+
   return (
     <WizardStepShell
       eyebrow="Step 3 of 7"
       title="Ceremonies"
-      description="Add every ceremony that's part of this wedding — they can be on the same day or months apart, each with its own date, venue, and design."
+      description="Add every ceremony that's part of this wedding. They can be on the same day or months apart, each with its own date, venue, and design."
       backTo="/create/couple"
       nextTo="/create/story"
       onNext={() => allComplete}

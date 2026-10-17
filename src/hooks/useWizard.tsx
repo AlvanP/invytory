@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import type { CeremonyDraft } from '@/types'
+import type { EventKind } from '@/templates/events'
 
 /**
  * Wedding-wide details live here. Anything that differs per ceremony
@@ -7,6 +8,8 @@ import type { CeremonyDraft } from '@/types'
  * ceremony itself — see CeremonyDraft.
  */
 export interface WeddingDraft {
+  /** What the invitation is for. Weddings by default. */
+  eventType: EventKind
   /** The starting template picked on step 1; new ceremonies default to it. */
   templateId: string
   brideName?: string
@@ -36,6 +39,7 @@ function makeCeremonyId(): string {
 
 function emptyDraft(): WeddingDraft {
   return {
+    eventType: 'wedding',
     templateId: '',
     ceremonies: [{ id: makeCeremonyId(), ceremonyType: 'white' }],
   }

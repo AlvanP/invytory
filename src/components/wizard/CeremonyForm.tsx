@@ -10,24 +10,30 @@ import { parseColours, joinColours } from '@/utils/colorTheme'
 import { TemplatePreviewPlaceholder } from '@/components/ui/Placeholder'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/utils/cn'
+import { getEventCopy, type EventKind } from '@/templates/events'
 
 export function CeremonyFormFields({
   value,
   onChange,
+  eventType = 'wedding',
 }: {
   value: CeremonyDraft
   onChange: (patch: Partial<CeremonyDraft>) => void
+  /** Weddings pick a ceremony type and design; every other event only picks a design for its own kind. */
+  eventType?: EventKind
 }) {
+  const isWedding = eventType === 'wedding'
+  const event = getEventCopy(eventType)
   const [templates, setTemplates] = useState<InvitationTemplate[] | null>(null)
   const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
-    templateService.list().then(setTemplates)
-  }, [])
+    templateService.listAll().then((all) => setTemplates(all.filter((t) => t.category === eventType)))
+  }, [eventType])
 
   // Which collection this ceremony type browses first. Custom Traditional
   // has none, so it simply shows every design.
-  const collection = collectionForCeremonyType(value.ceremonyType)
+  const collection = isWedding ? collectionForCeremonyType(value.ceremonyType) : null
   const groups = templates ? groupTemplates(templates, collection, showAll) : null
 
   // A template the couple already chose is never hidden by the filter:
@@ -65,7 +71,7 @@ export function CeremonyFormFields({
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-medium text-ink-soft">Template for this ceremony</p>
+          <p className="text-sm font-medium text-ink-soft">{isWedding ? 'Template for this ceremony' : 'Design'}</p>
           {collection && (
             <button
               type="button"
@@ -112,6 +118,7 @@ export function CeremonyFormFields({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {isWedding && (
         <Select
           label="Ceremony type"
           className="sm:col-span-2"
@@ -125,8 +132,9 @@ export function CeremonyFormFields({
             <option key={v} value={v}>{label}</option>
           ))}
         </Select>
+        )}
 
-        {value.ceremonyType === 'custom' && (
+        {isWedding && value.ceremonyType === 'custom' && (
           <Input
             label="Ceremony name"
             className="sm:col-span-2"
@@ -151,7 +159,7 @@ export function CeremonyFormFields({
           onChange={(e) => onChange({ weddingTime: e.target.value })}
         />
         <Input
-          label="Venue name"
+          label={isWedding ? "Venue name" : "Venue"}
           className="sm:col-span-2"
           value={value.venueName ?? ''}
           onChange={(e) => onChange({ venueName: e.target.value })}
@@ -177,7 +185,7 @@ export function CeremonyFormFields({
           onChange={(e) => onChange({ state: e.target.value })}
         />
         <Input
-          label="Reception info"
+          label={isWedding ? "Reception info" : event.receptionLabel}
           optional
           value={value.receptionInfo ?? ''}
           onChange={(e) => onChange({ receptionInfo: e.target.value })}

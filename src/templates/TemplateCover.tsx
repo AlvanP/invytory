@@ -53,22 +53,33 @@ function AnimatedName({ text, revealed, startIndex, style }: { text: string; rev
         }
         @media (prefers-reduced-motion: reduce) { .iv-letter { animation: none; color: var(--iv-on-main); background: none; } }
       `}</style>
-      {Array.from(style === 'caps' ? text.toUpperCase() : text).map((ch, i) => {
-        const n = startIndex + i
-        return (
-          <span
-            key={i}
-            aria-hidden
-            className={cn(
-              'iv-letter transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              revealed ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-            )}
-            style={{ transitionDelay: revealed ? `${700 + n * 70}ms` : '0ms', animationDelay: `${3 + n * 0.07}s` }}
-          >
-            {ch}
+      {(() => {
+        // Letters are grouped into words, so a long name wraps between words and never in the middle of one.
+        const shown = style === 'caps' ? text.toUpperCase() : text
+        let n = startIndex - 1
+        return shown.split(' ').map((word, w) => (
+          <span key={w} className="inline-block whitespace-nowrap">
+            {Array.from(word).map((ch, i) => {
+              n += 1
+              const index = n
+              return (
+                <span
+                  key={i}
+                  aria-hidden
+                  className={cn(
+                    'iv-letter transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                    revealed ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                  )}
+                  style={{ transitionDelay: revealed ? `${700 + index * 70}ms` : '0ms', animationDelay: `${3 + index * 0.07}s` }}
+                >
+                  {ch}
+                </span>
+              )
+            })}
+            {w < shown.split(' ').length - 1 && <span className="iv-letter" aria-hidden>{'\u00A0'}</span>}
           </span>
-        )
-      })}
+        ))
+      })()}
     </span>
   )
 }
@@ -102,8 +113,16 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     ? 'The date is waiting below'
     : [formatDate(invitation.weddingDate), formatTime(invitation.weddingTime)].filter(Boolean).join('  ·  ')
 
+  // Long names (a company, a full name with a title) get a smaller size so they stay on a few lines.
+  const longest = Math.max(invitation.brideName.length, invitation.groomName.length)
   const nameClass =
-    design.names === 'caps' ? 'text-3xl leading-snug sm:text-5xl' : 'text-[3.4rem] leading-[1.08] sm:text-7xl'
+    design.names === 'caps'
+      ? longest > 14
+        ? 'text-2xl leading-snug sm:text-4xl'
+        : 'text-3xl leading-snug sm:text-5xl'
+      : longest > 14
+        ? 'text-[2.6rem] leading-[1.1] sm:text-6xl'
+        : 'text-[3.4rem] leading-[1.08] sm:text-7xl'
 
   const names = (
     <>

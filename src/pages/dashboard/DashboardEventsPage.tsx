@@ -7,7 +7,7 @@ import { invitationService } from '@/services/invitationService'
 import { weddingService } from '@/services/weddingService'
 import { templateService } from '@/services/templateService'
 import { useAuth } from '@/hooks/useAuth'
-import { formatDate, formatNumber } from '@/utils/format'
+import { formatDate, formatNumber, namesTitle } from '@/utils/format'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/State'
@@ -80,7 +80,7 @@ export function DashboardEventsPage() {
                     <div>
                       <div className="flex flex-wrap items-center gap-3">
                         <h3 className="font-display text-xl text-ink">
-                          {first ? `${first.brideName} & ${first.groomName}` : 'Untitled Wedding'}
+                          {first ? namesTitle(first.brideName, first.groomName) : 'Untitled invitation'}
                         </h3>
                         <Badge tone={wedding.status === 'published' ? 'confirmed' : 'draft'}>{wedding.status}</Badge>
                         {wedding.plan && <Badge tone="premium">{wedding.plan === 'gold' ? 'Signature' : 'Essential'}</Badge>}
@@ -138,7 +138,7 @@ export function DashboardEventsPage() {
                 <div key={inv.id} className="flex flex-col gap-4 rounded-md border border-ink/10 bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-display text-xl text-ink">{inv.brideName} &amp; {inv.groomName}</h3>
+                      <h3 className="font-display text-xl text-ink">{namesTitle(inv.brideName, inv.groomName)}</h3>
                       <Badge tone={inv.status === 'published' ? 'confirmed' : 'draft'}>{inv.status}</Badge>
                     </div>
                     <p className="mt-1 text-sm text-ink-soft">

@@ -29,3 +29,10 @@ export function getCountdownParts(targetIso: string) {
 
   return { days, hours, minutes, isPast: target < now }
 }
+
+/** "Ada & Michael" for a wedding, or just the one name for any other event. */
+export function namesTitle(first: string | undefined, second: string | undefined): string {
+  const a = (first ?? '').trim()
+  const b = (second ?? '').trim()
+  return b ? `${a} & ${b}` : a
+}

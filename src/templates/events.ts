@@ -172,3 +172,133 @@ export const eventCopy: Record<EventKind, EventCopy> = {
 export function getEventCopy(kind: string | undefined): EventCopy {
   return eventCopy[(kind as EventKind) ?? 'wedding'] ?? eventCopy.wedding
 }
+
+/** The wording of the creation steps for each kind of event. */
+export interface WizardCopy {
+  /** Short names in the progress bar. */
+  nameStep: string
+  detailsStep: string
+  nameTitle: string
+  firstLabel: string
+  firstPlaceholder: string
+  /** Wedding only: the second name. Left out for every other event. */
+  secondLabel?: string
+  secondPlaceholder?: string
+  taglineLabel: string
+  taglinePlaceholder: string
+  taglineHint: string
+  detailsTitle: string
+  detailsDescription: string
+  storyTitle: string
+  storyDescription: string
+  storyMain: { label: string; placeholder: string }
+  storySecond: { label: string; placeholder: string }
+  storyThird: { label: string; placeholder: string }
+  /** null = this event has no hashtag field. */
+  hashtag: { label: string; placeholder: string } | null
+  gift: { label: string; placeholder: string }
+}
+
+export const wizardCopy: Record<EventKind, WizardCopy> = {
+  wedding: {
+    nameStep: 'Couple',
+    detailsStep: 'Ceremonies',
+    nameTitle: 'Tell us about the couple',
+    firstLabel: "Bride's name",
+    firstPlaceholder: 'e.g. Ada',
+    secondLabel: "Groom's name",
+    secondPlaceholder: 'e.g. Michael',
+    taglineLabel: 'Short phrase',
+    taglinePlaceholder: 'Together with their families',
+    taglineHint: 'Appears just above your names on the invitation.',
+    detailsTitle: 'Ceremonies',
+    detailsDescription: "Add every ceremony that's part of this wedding. They can be on the same day or months apart, each with its own date, venue, and design.",
+    storyTitle: 'Your story',
+    storyDescription: "Entirely optional. Skip this step if you'd rather keep things simple. Not sure what to write? Try AI Assist under each box.",
+    storyMain: { label: 'Our story', placeholder: 'Share the story of your relationship...' },
+    storySecond: { label: 'How we met', placeholder: 'Where and how did you two meet?' },
+    storyThird: { label: 'Vows', placeholder: "Share a line from your vows, if you'd like." },
+    hashtag: { label: 'Wedding hashtag', placeholder: '#AdaAndMichael2027' },
+    gift: { label: 'Gift information', placeholder: 'Registry details or a note about gifts' },
+  },
+  'child-dedication': {
+    nameStep: 'Child',
+    detailsStep: 'Details',
+    nameTitle: 'Tell us about the child',
+    firstLabel: 'Child’s name',
+    firstPlaceholder: 'e.g. Baby Zara',
+    taglineLabel: 'Parents’ names',
+    taglinePlaceholder: 'Daughter of Pastor & Mrs Okoye',
+    taglineHint: 'Appears under the child’s name on the invitation.',
+    detailsTitle: 'Dedication details',
+    detailsDescription: 'When and where the dedication takes place. Everything else is optional.',
+    storyTitle: 'A word about your child',
+    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple.',
+    storyMain: { label: 'Why we are celebrating', placeholder: 'Share what this day means to your family...' },
+    storySecond: { label: 'A little about them', placeholder: 'What their name means, or a sweet detail.' },
+    storyThird: { label: 'Our prayer for them', placeholder: 'A prayer or scripture for your child.' },
+    hashtag: { label: 'Event hashtag', placeholder: '#ZaraDedication' },
+    gift: { label: 'Gift information', placeholder: 'Gift ideas or a note about gifts' },
+  },
+  birthday: {
+    nameStep: 'Celebrant',
+    detailsStep: 'Details',
+    nameTitle: 'Tell us about the celebrant',
+    firstLabel: 'Celebrant’s name',
+    firstPlaceholder: 'e.g. Adaeze',
+    taglineLabel: 'Age or a short line',
+    taglinePlaceholder: 'is turning 30',
+    taglineHint: 'Appears under the name on the invitation.',
+    detailsTitle: 'Party details',
+    detailsDescription: 'When and where the party is. Everything else is optional.',
+    storyTitle: 'About the celebrant',
+    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple.',
+    storyMain: { label: 'The story so far', placeholder: 'A few lines about the celebrant and the occasion...' },
+    storySecond: { label: 'Fun fact', placeholder: 'Something your guests will smile at.' },
+    storyThird: { label: 'A note from me', placeholder: 'A short, personal message to your guests.' },
+    hashtag: { label: 'Party hashtag', placeholder: '#Adaeze30' },
+    gift: { label: 'Gifts & wish list', placeholder: 'A wish list link, or a note about gifts' },
+  },
+  corporate: {
+    nameStep: 'Event',
+    detailsStep: 'Details',
+    nameTitle: 'Tell us about the event',
+    firstLabel: 'Event title',
+    firstPlaceholder: 'e.g. Lagos Innovation Summit',
+    taglineLabel: 'Host or company',
+    taglinePlaceholder: 'Hosted by Northwind Capital',
+    taglineHint: 'Appears under the event title on the invitation.',
+    detailsTitle: 'Event details',
+    detailsDescription: 'When and where the event takes place. Add the programme in the box below.',
+    storyTitle: 'About the event',
+    storyDescription: 'Entirely optional. Skip this step if the basics are enough.',
+    storyMain: { label: 'About the event', placeholder: 'What the event is, and why it matters...' },
+    storySecond: { label: 'Who should attend', placeholder: 'The people this event is for.' },
+    storyThird: { label: 'Keynote or special guest', placeholder: 'Who is speaking or presenting.' },
+    hashtag: { label: 'Event hashtag', placeholder: '#LISummit2027' },
+    gift: { label: 'Good to know', placeholder: 'Parking, registration, what to bring' },
+  },
+  funeral: {
+    nameStep: 'Loved one',
+    detailsStep: 'Service',
+    nameTitle: 'Tell us about your loved one',
+    firstLabel: 'Full name',
+    firstPlaceholder: 'e.g. Chief Emmanuel Adewale',
+    taglineLabel: 'Dates',
+    taglinePlaceholder: '1951 – 2026',
+    taglineHint: 'Appears under the name on the invitation.',
+    detailsTitle: 'Service details',
+    detailsDescription: 'When and where the service takes place. Everything else is optional.',
+    storyTitle: 'A tribute',
+    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple.',
+    storyMain: { label: 'A tribute', placeholder: 'A few words about their life...' },
+    storySecond: { label: 'Remembered for', placeholder: 'What they will be remembered for.' },
+    storyThird: { label: 'A favourite verse', placeholder: 'A scripture or saying they loved.' },
+    hashtag: null,
+    gift: { label: 'Donations & notes', placeholder: 'Where donations may be sent, or a note for guests' },
+  },
+}
+
+export function getWizardCopy(kind: string | undefined): WizardCopy {
+  return wizardCopy[(kind as EventKind) ?? 'wedding'] ?? wizardCopy.wedding
+}

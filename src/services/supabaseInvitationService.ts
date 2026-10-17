@@ -1,6 +1,7 @@
 import type { InvitationDraft, WeddingInvitation, GalleryImageSlot, CeremonyType, MusicSource } from '@/types'
 import type { PricingPlan } from '@/data/pricingPlans'
 import { supabase } from './supabaseClient'
+import { EVENT_KINDS, type EventKind } from '@/templates/events'
 
 export interface InvitationRow {
   id: string
@@ -45,6 +46,7 @@ export interface InvitationRow {
   music_url?: string | null
   music_title?: string | null
   theme_color?: string | null
+  event_type?: string | null
 }
 
 export function rowToInvitation(row: InvitationRow): WeddingInvitation {
@@ -52,7 +54,7 @@ export function rowToInvitation(row: InvitationRow): WeddingInvitation {
     id: row.id,
     slug: row.slug ?? '', // empty for ceremony rows linked to a wedding — they're looked up via wedding_id, not their own slug
     templateId: row.template_id,
-    eventType: 'wedding',
+    eventType: EVENT_KINDS.includes(row.event_type as EventKind) ? (row.event_type as EventKind) : 'wedding',
     brideName: row.bride_name,
     groomName: row.groom_name,
     tagline: row.tagline ?? undefined,

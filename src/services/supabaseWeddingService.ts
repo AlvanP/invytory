@@ -5,6 +5,7 @@ import type { PricingPlan } from '@/data/pricingPlans'
 import { supabase } from './supabaseClient'
 import { rowToInvitation, type InvitationRow } from './supabaseInvitationService'
 import { checkPlanHosting } from '@/utils/hostingDuration'
+import { getEventCopy } from '@/templates/events'
 
 interface WeddingRow {
   id: string
@@ -40,6 +41,10 @@ function rowToWedding(row: WeddingRow): Wedding {
 
 function generateSlug(brideName: string, groomName: string): string {
   const clean = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  if (!groomName.trim()) {
+    // One name (a child, a celebrant, an event): add a short random ending so two people with the same name never clash.
+    return `${clean(brideName) || 'invitation'}-${Math.random().toString(36).slice(2, 6)}`
+  }
   return `${clean(brideName)}-and-${clean(groomName)}`
 }
 
@@ -107,8 +112,9 @@ export const supabaseWeddingService = {
     plan: PricingPlan,
     paymentReference: string
   ): Promise<{ wedding: Wedding; ceremonies: WeddingInvitation[] }> {
-    const brideName = draft.brideName ?? 'Bride'
-    const groomName = draft.groomName ?? 'Groom'
+    const isWedding = draft.eventType === 'wedding'
+    const brideName = draft.brideName ?? (isWedding ? 'Bride' : 'Invitation')
+    const groomName = isWedding ? (draft.groomName ?? 'Groom') : ''
     const slug = generateSlug(brideName, groomName)
 
     const hosting = checkPlanHosting(plan.id, draft.ceremonies)
@@ -157,8 +163,10 @@ export const supabaseWeddingService = {
       additional_message: draft.additionalMessage ?? null,
       custom_rsvp_message: c.customRsvpMessage ?? null,
       status: 'published' as const,
-      ceremony_type: c.ceremonyType,
-      ceremony_label: c.ceremonyLabel ?? null,
+      ceremony_type: isWedding ? c.ceremonyType : 'custom',
+      ceremony_label: isWedding ? (c.ceremonyLabel ?? null) : getEventCopy(draft.eventType).label,
+      // Only sent for events that are not weddings, so weddings publish exactly as before.
+      ...(isWedding ? {} : { event_type: draft.eventType }),
       // Only sent when a track was chosen, so weddings without music
       // publish exactly as before (even before the music SQL has been run).
       // Same idea for the colour: only sent when chosen.

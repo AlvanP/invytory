@@ -6,7 +6,7 @@ import { invitationService } from '@/services/invitationService'
 import { weddingService } from '@/services/weddingService'
 import { getPlanById } from '@/data/pricingPlans'
 import { getQrCodeUrl } from '@/utils/qrCode'
-import { formatDate } from '@/utils/format'
+import { formatDate, namesTitle } from '@/utils/format'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
@@ -73,7 +73,7 @@ export function PublishSuccessPage() {
       <p className="mt-6 text-xs tracking-[0.2em] text-gold">Payment Successful</p>
       <h1 className="mt-2 font-display text-3xl text-ink">Your invitation is published</h1>
       <p className="mt-2 text-sm text-ink-soft">
-        {brideName} &amp; {groomName}'s invitation is live and ready to share
+        {namesTitle(brideName, groomName)}{groomName?.trim() ? "'s" : ':'} invitation is live and ready to share
         {ceremonyCount > 1 ? ` — all ${ceremonyCount} ceremonies included` : ''}.
       </p>
 

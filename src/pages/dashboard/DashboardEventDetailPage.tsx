@@ -4,7 +4,7 @@ import { Eye, Users, Share2, Settings, ExternalLink } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { templateService } from '@/services/templateService'
-import { formatDate, formatNumber } from '@/utils/format'
+import { formatDate, formatNumber, namesTitle } from '@/utils/format'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { ErrorState } from '@/components/ui/State'
@@ -44,7 +44,7 @@ export function DashboardEventDetailPage() {
         <div>
           <p className="text-xs tracking-[0.2em] text-gold">Invitation</p>
           <div className="mt-2 flex items-center gap-3">
-            <h1 className="font-display text-3xl text-ink">{invitation.brideName} &amp; {invitation.groomName}</h1>
+            <h1 className="font-display text-3xl text-ink">{namesTitle(invitation.brideName, invitation.groomName)}</h1>
             <Badge tone={invitation.status === 'published' ? 'confirmed' : 'draft'}>{invitation.status}</Badge>
           </div>
         </div>
