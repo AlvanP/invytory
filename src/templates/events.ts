@@ -233,7 +233,7 @@ export const wizardCopy: Record<EventKind, WizardCopy> = {
     detailsTitle: 'Dedication details',
     detailsDescription: 'When and where the dedication takes place. Everything else is optional.',
     storyTitle: 'A word about your child',
-    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple.',
+    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple. Not sure what to write? Try AI Assist under each box.',
     storyMain: { label: 'Why we are celebrating', placeholder: 'Share what this day means to your family...' },
     storySecond: { label: 'A little about them', placeholder: 'What their name means, or a sweet detail.' },
     storyThird: { label: 'Our prayer for them', placeholder: 'A prayer or scripture for your child.' },
@@ -302,3 +302,47 @@ export const wizardCopy: Record<EventKind, WizardCopy> = {
 export function getWizardCopy(kind: string | undefined): WizardCopy {
   return wizardCopy[(kind as EventKind) ?? 'wedding'] ?? wizardCopy.wedding
 }
+
+/** What guests read when they reply and share. `wallOptIn: null` means the event has no public wall. */
+export interface GuestCopy {
+  messagePlaceholder: string
+  wallOptIn: string | null
+  wallDone: string
+  shareText: (title: string) => string
+}
+
+export const guestCopy: Record<EventKind, GuestCopy> = {
+  wedding: {
+    messagePlaceholder: 'Leave a note for the couple',
+    wallOptIn: 'Leave this message on the couple\u2019s wall',
+    wallDone: 'your message is now on the couple\u2019s wall.',
+    shareText: (t) => `You are invited to ${t}! \u{1F48D}`,
+  },
+  'child-dedication': {
+    messagePlaceholder: 'Leave a blessing or a note for the family',
+    wallOptIn: 'Leave this blessing on the wall',
+    wallDone: 'your blessing is now on the wall.',
+    shareText: (t) => `You are invited to the ${t.charAt(0).toLowerCase()}${t.slice(1)}! \u{1F64F}`,
+  },
+  birthday: {
+    messagePlaceholder: 'Leave a birthday wish',
+    wallOptIn: 'Leave this wish on the wall',
+    wallDone: 'your wish is now on the wall.',
+    shareText: (t) => `You are invited to ${t}! \u{1F389}`,
+  },
+  corporate: {
+    messagePlaceholder: 'Leave a note for the organisers',
+    wallOptIn: null,
+    wallDone: '',
+    shareText: (t) => `You are invited: ${t}`,
+  },
+  funeral: {
+    messagePlaceholder: 'Leave words of comfort for the family',
+    wallOptIn: 'Leave these words on the wall',
+    wallDone: 'your words are now on the wall.',
+    shareText: (t) => `With sadness, we invite you to join us: ${t}`,
+  },
+}
+
+/** Events where AI Assist can write the wording. Others write their own for now. */
+export const AI_ASSIST_EVENTS: EventKind[] = ['wedding', 'child-dedication']

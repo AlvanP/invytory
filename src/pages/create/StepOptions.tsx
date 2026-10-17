@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { AiAssist } from '@/components/wizard/AiAssist'
 import { CeremonyTabs } from '@/components/wizard/CeremonyTabs'
-import { getWizardCopy } from '@/templates/events'
+import { getWizardCopy, AI_ASSIST_EVENTS } from '@/templates/events'
 import { WizardStepShell } from './WizardStepShell'
 
 export function StepOptions() {
@@ -14,7 +14,7 @@ export function StepOptions() {
   const active = draft.ceremonies.find((c) => c.id === activeId) ?? draft.ceremonies[0]
   const multiple = draft.ceremonies.length > 1
   const copy = getWizardCopy(draft.eventType)
-  const ai = draft.eventType === 'wedding'
+  const ai = AI_ASSIST_EVENTS.includes(draft.eventType)
 
   return (
     <WizardStepShell

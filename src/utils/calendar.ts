@@ -1,5 +1,7 @@
 import type { WeddingInvitation } from '@/types'
-import { getEventCopy } from '@/templates/events'
+import { getEventCopy, guestCopy, EVENT_KINDS, type EventKind } from '@/templates/events'
+
+const getEventCopyKind = (t: string | undefined): EventKind => (EVENT_KINDS.includes(t as EventKind) ? (t as EventKind) : 'wedding')
 
 /**
  * Builds "save the date" links from an invitation. Times are written without a
@@ -82,6 +84,6 @@ export function icsFileContent(i: WeddingInvitation, link: string): string {
 }
 
 export function whatsappShareUrl(i: WeddingInvitation, link: string): string {
-  const text = `You are invited to ${eventTitle(i)}! 💍\n${link}`
+  const text = `${guestCopy[getEventCopyKind(i.eventType)].shareText(eventTitle(i))}\n${link}`
   return `https://wa.me/?text=${encodeURIComponent(text)}`
 }

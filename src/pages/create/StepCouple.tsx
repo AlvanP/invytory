@@ -42,6 +42,21 @@ export function StepCouple() {
           placeholder={copy.taglinePlaceholder}
           hint={copy.taglineHint}
         />
+        {draft.eventType === 'child-dedication' && !draft.tagline?.trim() && (
+          <div className="-mt-2 flex flex-wrap items-center gap-2 text-xs text-ink-soft">
+            Start with:
+            {['Son of ', 'Daughter of ', 'Children of '].map((start) => (
+              <button
+                key={start}
+                type="button"
+                onClick={() => updateDraft({ tagline: start })}
+                className="rounded-full border border-wine/25 px-3 py-1 text-wine hover:border-wine"
+              >
+                {start.trim()}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </WizardStepShell>
   )

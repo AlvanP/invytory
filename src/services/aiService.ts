@@ -16,9 +16,15 @@ export interface AiCeremonyInfo {
 
 export interface AiRequest {
   field: AiField
+  /** Weddings by default. Child dedications are written differently. */
+  eventType?: 'wedding' | 'child-dedication'
+  /** Child dedication only: e.g. "Daughter of Pastor and Mrs Okoye". */
+  parents?: string
   /** Anything the couple typed to guide the writing. */
   details: string
+  /** The bride, or the child's name for a dedication. */
   bride: string
+  /** Weddings only. */
   groom: string
   ceremonies: AiCeremonyInfo[]
   /** The version they just saw, so a retry says something different. */

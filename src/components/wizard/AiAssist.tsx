@@ -6,7 +6,17 @@ import { aiService, AiAssistError, type AiField, type AiResult } from '@/service
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
 
-const DETAIL_PROMPTS: Record<AiField, string> = {
+const DEDICATION_DETAIL_PROMPTS: Record<AiField, string> = {
+  loveStory: 'e.g. how long you waited for this child, what the name means to you, who will be there.',
+  howWeMet: 'e.g. what the name means, how the child is growing, what makes them smile.',
+  vows: 'e.g. what you pray for your child: wisdom, health, faith, a life of purpose.',
+  hashtag: 'Any words you want in it, e.g. a nickname or a favourite phrase.',
+  giftInformation: 'e.g. no gifts please, just prayers, or a wish list link.',
+  additionalMessage: 'e.g. dress colours, parking, when to arrive, anything guests should know.',
+  rsvpMessage: 'e.g. the date guests should reply by.',
+}
+
+const WEDDING_DETAIL_PROMPTS: Record<AiField, string> = {
   loveStory: 'A few details to include, e.g. where you met, how long you have been together, a favourite memory, the proposal.',
   howWeMet: 'e.g. the place, the year, who introduced you, what you remember about that day.',
   vows: 'e.g. what you admire about your partner, promises that matter to you.',
@@ -16,7 +26,17 @@ const DETAIL_PROMPTS: Record<AiField, string> = {
   rsvpMessage: 'e.g. the date guests should reply by.',
 }
 
-const LABELS: Record<AiField, string> = {
+const DEDICATION_LABELS: Record<AiField, string> = {
+  loveStory: 'why we are celebrating',
+  howWeMet: 'a little about them',
+  vows: 'our prayer for them',
+  hashtag: 'hashtag',
+  giftInformation: 'gift information',
+  additionalMessage: 'additional message',
+  rsvpMessage: 'RSVP message',
+}
+
+const WEDDING_LABELS: Record<AiField, string> = {
   loveStory: 'our story',
   howWeMet: 'how we met',
   vows: 'vows',
@@ -56,9 +76,12 @@ export function AiAssist({
   const variationRef = useRef(0)
   const editRef = useRef<HTMLTextAreaElement>(null)
 
+  const dedication = draft.eventType === 'child-dedication'
+  const DETAIL_PROMPTS = dedication ? DEDICATION_DETAIL_PROMPTS : WEDDING_DETAIL_PROMPTS
+  const LABELS = dedication ? DEDICATION_LABELS : WEDDING_LABELS
   const bride = (draft.brideName ?? '').trim()
-  const groom = (draft.groomName ?? '').trim()
-  const hasNames = !!bride && !!groom
+  const groom = dedication ? '' : (draft.groomName ?? '').trim()
+  const hasNames = !!bride && (dedication || !!groom)
   const isHashtag = field === 'hashtag'
 
   async function generate(isRetry: boolean) {
@@ -73,7 +96,7 @@ export function AiAssist({
     const ceremonies = draft.ceremonies
       .filter((c) => !onlyCeremonyId || c.id === onlyCeremonyId)
       .map((c) => ({
-        name: ceremonyDisplayName(c),
+        name: dedication ? 'Child dedication' : ceremonyDisplayName(c),
         date: c.weddingDate ?? '',
         city: c.city ?? '',
       }))
@@ -83,6 +106,8 @@ export function AiAssist({
     try {
       const next = await aiService.suggest({
         field,
+        eventType: dedication ? 'child-dedication' : 'wedding',
+        parents: dedication ? (draft.tagline ?? '') : undefined,
         details: details.trim(),
         bride,
         groom,
@@ -147,7 +172,7 @@ export function AiAssist({
       </div>
 
       {!hasNames ? (
-        <p className="text-sm text-ink-soft">Add both names on the &ldquo;couple&rdquo; step first, then AI Assist can write for you.</p>
+        <p className="text-sm text-ink-soft">{dedication ? 'Add your child\u2019s name on the \u201CChild\u201D step first, then AI Assist can write for you.' : 'Add both names on the \u201Ccouple\u201D step first, then AI Assist can write for you.'}</p>
       ) : (
         <>
           {!result && (
