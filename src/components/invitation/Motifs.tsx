@@ -86,6 +86,58 @@ export function MotifDivider({ motif, className }: { motif: Motif; className?: s
           <path d="M172 15 C 156 5, 140 25, 122 15 L 110 15" />
         </svg>
       )
+    case 'dove':
+      return (
+        <svg viewBox="0 0 180 30" width="180" height="30" className={className} aria-hidden {...common}>
+          <path d="M8 15 H68 M112 15 H172" />
+          <path d="M80 20 C77 20 74 17 75 13 C78 14 81 14 83 13 C85 8 91 6 96 8 C93 9 92 11 93 13 C97 12 101 13 104 15 C99 15 98 18 93 20 C90 22 86 22 80 20z" />
+          <path d="M84 13 C83 8 80 5 76 4 C77 8 80 11 84 13z" />
+          <circle cx="94" cy="10" r="0.9" fill="currentColor" stroke="none" />
+        </svg>
+      )
+    case 'star':
+      return (
+        <svg viewBox="0 0 180 30" width="180" height="30" className={className} aria-hidden {...common}>
+          <path d="M8 15 H62 M118 15 H172" />
+          <path d="M90 2 Q91.5 13.5 103 15 Q91.5 16.5 90 28 Q88.5 16.5 77 15 Q88.5 13.5 90 2z" />
+          <path d="M70 15 q1 -4 5 -5 q-4 -1 -5 -5 q-1 4 -5 5 q4 1 5 5z" transform="translate(-2 3) scale(0.8)" />
+          <path d="M70 15 q1 -4 5 -5 q-4 -1 -5 -5 q-1 4 -5 5 q4 1 5 5z" transform="translate(116 3) scale(0.8)" />
+        </svg>
+      )
+    case 'confetti':
+      return (
+        <svg viewBox="0 0 180 30" width="180" height="30" className={className} aria-hidden {...common}>
+          <circle cx="14" cy="10" r="2.4" />
+          <path d="M30 20 l6 -5" />
+          <path d="M48 8 l4 6 l-7 1z" />
+          <circle cx="66" cy="21" r="1.6" fill="currentColor" stroke="none" />
+          <rect x="80" y="8" width="5" height="5" transform="rotate(20 82 10)" />
+          <path d="M92 22 q4 -8 8 0" />
+          <circle cx="110" cy="9" r="1.8" fill="currentColor" stroke="none" />
+          <path d="M122 20 l6 -4" />
+          <path d="M138 9 l5 5 m0 -5 l-5 5" />
+          <circle cx="156" cy="20" r="2.4" />
+          <path d="M166 8 l4 6 l-7 1z" />
+        </svg>
+      )
+    case 'lines':
+      return (
+        <svg viewBox="0 0 180 30" width="180" height="30" className={className} aria-hidden {...common}>
+          <path d="M6 15 H78 M102 15 H174" />
+          <rect x="85" y="10" width="10" height="10" transform="rotate(45 90 15)" />
+          <path d="M6 11 H40 M140 19 H174" opacity="0.6" />
+        </svg>
+      )
+    case 'lily':
+      return (
+        <svg viewBox="0 0 180 30" width="180" height="30" className={className} aria-hidden {...common}>
+          <path d="M8 15 H70 M110 15 H172" />
+          <path d="M90 3 C83 9 83 18 90 24 C97 18 97 9 90 3z" />
+          <path d="M90 24 C80 22 72 16 70 8 C80 9 87 15 90 24z" />
+          <path d="M90 24 C100 22 108 16 110 8 C100 9 93 15 90 24z" />
+          <path d="M90 24 V28" />
+        </svg>
+      )
     case 'minimal':
     default:
       return (

@@ -29,7 +29,7 @@ export function DashboardEventsPage() {
   useEffect(() => {
     if (!user) return
 
-    templateService.list().then((list) => {
+    templateService.listAll().then((list) => {
       setTemplates(Object.fromEntries(list.map((t) => [t.id, t])))
     })
 
@@ -83,7 +83,7 @@ export function DashboardEventsPage() {
                           {first ? `${first.brideName} & ${first.groomName}` : 'Untitled Wedding'}
                         </h3>
                         <Badge tone={wedding.status === 'published' ? 'confirmed' : 'draft'}>{wedding.status}</Badge>
-                        {wedding.plan && <Badge tone="premium">{wedding.plan === 'gold' ? 'Gold' : 'Silver'}</Badge>}
+                        {wedding.plan && <Badge tone="premium">{wedding.plan === 'gold' ? 'Signature' : 'Essential'}</Badge>}
                       </div>
                       <p className="mt-1 text-sm text-ink-soft">
                         {ceremonies.length} {ceremonies.length === 1 ? 'ceremony' : 'ceremonies'}

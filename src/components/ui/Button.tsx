@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, type ReactNode, forwardRef } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger' | 'light'
 type Size = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,9 +13,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-ink text-ivory hover:bg-ink-soft',
+  primary: 'bg-wine text-ivory hover:bg-wine-soft',
+  light: 'bg-ivory text-wine hover:bg-ivory-deep',
   secondary: 'bg-gold text-ivory hover:brightness-95',
-  outline: 'border border-ink text-ink hover:bg-ink hover:text-ivory',
+  outline: 'border border-wine text-wine hover:bg-wine hover:text-ivory',
   ghost: 'text-ink hover:bg-ivory-deep',
   danger: 'bg-danger text-ivory hover:brightness-95',
 }
@@ -33,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          'inline-flex items-center justify-center rounded-xs font-medium tracking-wide transition-colors duration-200',
+          'inline-flex items-center justify-center rounded-full font-medium tracking-wide transition-colors duration-200',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           variantClasses[variant],
           sizeClasses[size],

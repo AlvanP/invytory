@@ -1,3 +1,4 @@
+import { Logo } from '@/components/brand/Logo'
 import { useState, type FormEvent } from 'react'
 import { useLocation, Navigate } from 'react-router-dom'
 import { Mail } from 'lucide-react'
@@ -39,7 +40,7 @@ export function SignInPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center px-6 text-center">
-      <p className="font-display text-2xl text-ink">Evermore</p>
+      <Logo />
 
       {sent ? (
         <SuccessState

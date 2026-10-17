@@ -5,41 +5,49 @@ export interface PricingPlan {
   maxGuests: number
   hostingDays: number
   description: string
+  /** True only on the plan that includes the guests' photo album. */
+  guestAlbum: boolean
 }
 
-/** Both plans include the exact same features — the only differences
- * are guest capacity and how long the invitation stays hosted. */
+/**
+ * The two plans. The ids ('silver' and 'gold') are stored in the database and used by the
+ * payment check, so they stay the same even though the names changed.
+ * The price here is the single source of truth: the payment button and the server check both read it.
+ */
 export const pricingPlans: PricingPlan[] = [
   {
     id: 'silver',
-    name: 'Silver',
-    price: 8000,
-    maxGuests: 200,
-    hostingDays: 30,
-    description: 'Everything you need for a beautifully hosted invitation.',
+    name: 'Essential',
+    price: 25000,
+    maxGuests: 300,
+    hostingDays: 90,
+    description: 'A beautiful invitation with RSVP, for gatherings up to 300 guests.',
+    guestAlbum: false,
   },
   {
     id: 'gold',
-    name: 'Gold',
-    price: 15000,
+    name: 'Signature',
+    price: 45000,
     maxGuests: 1000,
-    hostingDays: 90,
-    description: 'The same full experience, built for larger celebrations and longer hosting.',
+    hostingDays: 365,
+    description: 'Everything in Essential, plus one shared album for every photo your guests take.',
+    guestAlbum: true,
   },
 ]
 
+/** What every plan includes. */
 export const sharedPlanFeatures = [
-  'Cinematic wedding invitation',
-  'Animated invitation entrance',
-  'RSVP system',
-  'Organizer dashboard',
-  'Countdown',
-  'Gallery',
-  'Love Story',
-  'QR code',
-  'Shareable invitation link',
-  'Guest management',
+  'Animated invitation with your own entrance',
+  'Every template, in every event category',
+  'RSVP and live guest list',
+  'Guest messages wall',
+  'Countdown, Add to Calendar and WhatsApp sharing',
+  'Photo gallery and background music',
+  'QR code and shareable link',
 ]
+
+/** Extra on the Signature plan only. */
+export const albumFeature = 'Guests\u2019 photo album: one tap, no app, download in full quality'
 
 export interface WholesaleTier {
   range: string

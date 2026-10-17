@@ -2,9 +2,9 @@ import type { CeremonyDraft } from '@/types'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const GRACE_DAYS = 7 // invitation stays live this long after the last ceremony
-const SILVER_HOSTING_DAYS = 30
-const GOLD_BASE_HOSTING_DAYS = 90
-const GOLD_MAX_HOSTING_DAYS = 150 // 5 months — Gold's hard cap
+const SILVER_HOSTING_DAYS = 90
+const GOLD_BASE_HOSTING_DAYS = 180
+const GOLD_MAX_HOSTING_DAYS = 365 // 12 months, the Signature plan's hard cap
 
 /**
  * How many days of hosting a wedding actually needs, counting from
@@ -36,8 +36,8 @@ export interface PlanHostingCheck {
 
 /**
  * Implements the plan's hosting rule:
- * - Silver: fixed 30 days — only "fits" if that's enough to cover every ceremony.
- * - Gold: 90 days minimum, stretches to cover the last ceremony, capped at 150.
+ * - Essential (silver): fixed 90 days — only "fits" if that's enough to cover every ceremony.
+ * - Signature (gold): 180 days minimum, stretches to cover the last ceremony, capped at 365.
  */
 export function checkPlanHosting(planId: 'silver' | 'gold', ceremonies: CeremonyDraft[]): PlanHostingCheck {
   const needed = requiredHostingDays(ceremonies)
@@ -47,7 +47,7 @@ export function checkPlanHosting(planId: 'silver' | 'gold', ceremonies: Ceremony
       return {
         fits: false,
         hostingDays: SILVER_HOSTING_DAYS,
-        warning: `Silver hosts for ${SILVER_HOSTING_DAYS} days, but your ceremonies need about ${needed} days of coverage. Please choose Gold.`,
+        warning: `Essential hosts for ${SILVER_HOSTING_DAYS} days, but your ceremonies need about ${needed} days of coverage. Please choose Signature.`,
       }
     }
     return { fits: true, hostingDays: SILVER_HOSTING_DAYS }
@@ -59,7 +59,7 @@ export function checkPlanHosting(planId: 'silver' | 'gold', ceremonies: Ceremony
     return {
       fits: true,
       hostingDays: GOLD_MAX_HOSTING_DAYS,
-      warning: `Your ceremonies span more than Gold's 5-month maximum. Hosting will end on ${cutoff.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}, which may be before your last ceremony. Consider spacing ceremonies closer together.`,
+      warning: `Your ceremonies span more than Signature's 12-month maximum. Hosting will end on ${cutoff.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}, which may be before your last ceremony. Consider spacing ceremonies closer together.`,
     }
   }
   return { fits: true, hostingDays }

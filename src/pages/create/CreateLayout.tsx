@@ -1,3 +1,4 @@
+import { Logo } from '@/components/brand/Logo'
 import { Outlet, useLocation, Link } from 'react-router-dom'
 import { CreateWizardProvider } from '@/hooks/useWizard'
 import { ProgressSteps } from '@/components/ui/ProgressSteps'
@@ -24,7 +25,7 @@ export function CreateLayout() {
       <div className="min-h-screen bg-ivory">
         <div className="border-b border-ink/10 bg-white/70 px-6 py-4 backdrop-blur-sm">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-6">
-            <Link to="/" className="shrink-0 font-display text-lg text-ink">Evermore</Link>
+            <Link to="/" className="shrink-0"><Logo /></Link>
             <ProgressSteps steps={steps} currentIndex={currentIndex} />
           </div>
         </div>

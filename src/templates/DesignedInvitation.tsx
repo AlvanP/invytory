@@ -11,14 +11,17 @@ import { WallProvider } from './WallContext'
  * all designs, skipping the ones the couple left empty. What makes each template look
  * different lives in designs.ts (colour, cover, lettering, motif) and in its artwork.
  */
-export function DesignedInvitation({ invitation }: TemplateRendererProps) {
-  const ctx = useMemo(() => makeDesignContext(invitation.templateId), [invitation.templateId])
+export function DesignedInvitation({ invitation, noScratch }: TemplateRendererProps) {
+  const ctx = useMemo(() => {
+    const base = makeDesignContext(invitation.templateId, invitation.eventType)
+    return noScratch ? { ...base, design: { ...base.design, scratchDate: false } } : base
+  }, [invitation.templateId, invitation.eventType, noScratch])
   return (
     <DesignContext.Provider value={ctx}>
       <DateGateProvider enabled={!!ctx.design.scratchDate}>
         <WallProvider invitationId={invitation.id} published={invitation.status === 'published'}>
         <div>
-          {SECTION_IDS.filter((id) => sectionRegistry[id].has(invitation)).map((id) => {
+          {SECTION_IDS.filter((id) => !ctx.event.skip.includes(id) && sectionRegistry[id].has(invitation)).map((id) => {
             const { Component } = sectionRegistry[id]
             return <Component key={id} invitation={invitation} />
           })}

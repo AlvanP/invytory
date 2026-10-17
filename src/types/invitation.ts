@@ -8,6 +8,7 @@
   */
 
 import type { CeremonyType, MusicSource } from './wedding'
+import type { EventKind } from '@/templates/events'
 
 export type InvitationStatus = 'draft' | 'published' | 'archived'
 
@@ -22,7 +23,8 @@ export interface WeddingInvitation {
   id: string
   slug: string
   templateId: string
-  eventType: 'wedding' // the only event type supported in v0.1; see EventType
+  /** What the invitation is for. Weddings are the default; see src/templates/events.ts. */
+  eventType: EventKind
 
   // Couple
   brideName: string

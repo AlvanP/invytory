@@ -13,9 +13,12 @@ import { parseColours, themeStyle } from '@/utils/colorTheme'
 export function InvitationRenderer({
   invitation,
   template,
+  noScratch,
 }: {
   invitation: WeddingInvitation
   template: InvitationTemplate | undefined
+  /** Shows the date straight away instead of hiding it under the scratch-off (used by samples). */
+  noScratch?: boolean
 }) {
   const Renderer = (template && templateRegistry[template.rendererKey]) || DesignedInvitation
   // The couple's colour of the day, or the design's own colour. Every piece of the
@@ -23,7 +26,7 @@ export function InvitationRenderer({
   const colour = parseColours(invitation.themeColor)[0] ?? getDesign(invitation.templateId).colour
   return (
     <div style={themeStyle(colour)} className="bg-[color:var(--iv-paper)] text-[color:var(--iv-ink)]">
-      <Renderer invitation={invitation} />
+      <Renderer invitation={invitation} noScratch={noScratch} />
     </div>
   )
 }

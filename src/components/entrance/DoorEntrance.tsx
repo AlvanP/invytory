@@ -78,7 +78,7 @@ export function DoorEntrance({
     (config.style === 'envelope' && !!config.assets.envelope)
   const hint =
     config.style === 'gatefold' ? 'Tap the bow to open' : config.style === 'waxenvelope' ? 'Tap the seal to open' : config.hint
-  const initials = `${brideName.trim().charAt(0)}&${groomName.trim().charAt(0)}`.toUpperCase()
+  const initials = (groomName.trim() ? `${brideName.trim().charAt(0)}&${groomName.trim().charAt(0)}` : brideName.trim().charAt(0)).toUpperCase()
 
   function handleOpen() {
     if (triggered) return
@@ -141,7 +141,13 @@ export function DoorEntrance({
         <div className="flex flex-col items-center gap-4">
           <p className="text-xs tracking-[0.3em] text-gold">You Are Invited</p>
           <h1 className="font-display text-3xl sm:text-4xl">
-            {brideName} <span className="text-gold">&amp;</span> {groomName}
+            {brideName}
+            {groomName.trim() && (
+              <>
+                {' '}
+                <span className="text-gold">&amp;</span> {groomName}
+              </>
+            )}
           </h1>
         </div>
         <button

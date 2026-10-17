@@ -1,6 +1,7 @@
 import { ExternalLink, MapPin } from 'lucide-react'
 import type { WeddingInvitation } from '@/types'
 import { InvitationSection } from '@/components/invitation/InvitationSection'
+import { useDesign } from '@/templates/DesignContext'
 
 function mapsLink(i: WeddingInvitation): string | null {
   if (i.mapUrl) return i.mapUrl
@@ -10,10 +11,11 @@ function mapsLink(i: WeddingInvitation): string | null {
 
 /** SECTION 4: Venue & map. */
 export function VenueSection({ invitation }: { invitation: WeddingInvitation }) {
+  const { event } = useDesign()
   const place = [invitation.city, invitation.state, invitation.country].filter(Boolean).join(', ')
   const maps = mapsLink(invitation)
   return (
-    <InvitationSection id="venue" eyebrow="Getting There" title="Venue & Map">
+    <InvitationSection id="venue" eyebrow={event.venue.eyebrow} title={event.venue.title}>
       <div className="rounded-md bg-[color:var(--iv-paper)] p-6 text-[color:var(--iv-ink)] shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]">
         <MapPin className="mx-auto size-7 text-[color:var(--iv-accent)]" />
         {invitation.venueName && <p className="mt-3 font-display text-2xl">{invitation.venueName}</p>}

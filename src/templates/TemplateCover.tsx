@@ -75,7 +75,8 @@ function AnimatedName({ text, revealed, startIndex, style }: { text: string; rev
 
 export function TemplateCover({ invitation }: { invitation: WeddingInvitation }) {
   const revealed = useRevealed()
-  const { design, art } = useDesign()
+  const { design, art, event } = useDesign()
+  const hasSecondName = !!invitation.groomName.trim()
   const gate = useDateGate()
   const coverBackground = art.coverBackground
   const hasPhoto = !!invitation.heroImage
@@ -95,7 +96,7 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     revealed ? 'scale-100' : 'scale-[1.14]'
   )
 
-  const eyebrow = 'Together With Their Families'
+  const eyebrow = event.coverEyebrow
   const place = [invitation.venueName, invitation.city].filter(Boolean).join(' · ')
   const when = gate.hidden
     ? 'The date is waiting below'
@@ -108,16 +109,20 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     <>
       <h1 className={nameClass}>
         <AnimatedName text={invitation.brideName} revealed={revealed} startIndex={0} style={design.names} />
-        <span
-          className={cn(
-            'block text-[2.6rem] leading-[1.1] opacity-90 transition-all duration-1000',
-            revealed ? 'translate-y-0 opacity-90' : 'translate-y-3 !opacity-0'
-          )}
-          style={{ fontFamily: AND_FONT, transitionDelay: revealed ? '1100ms' : '0ms' }}
-        >
-          and
-        </span>
-        <AnimatedName text={invitation.groomName} revealed={revealed} startIndex={invitation.brideName.length} style={design.names} />
+        {hasSecondName && (
+          <>
+            <span
+              className={cn(
+                'block text-[2.6rem] leading-[1.1] opacity-90 transition-all duration-1000',
+                revealed ? 'translate-y-0 opacity-90' : 'translate-y-3 !opacity-0'
+              )}
+              style={{ fontFamily: AND_FONT, transitionDelay: revealed ? '1100ms' : '0ms' }}
+            >
+              and
+            </span>
+            <AnimatedName text={invitation.groomName} revealed={revealed} startIndex={invitation.brideName.length} style={design.names} />
+          </>
+        )}
       </h1>
       {invitation.tagline && (
         <p
@@ -136,7 +141,7 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
         {when}
       </span>
       {place && <span className="max-w-xs text-xs uppercase tracking-[0.22em] opacity-90">{place}</span>}
-      <span className="text-[11px] uppercase tracking-[0.3em] opacity-75">{ceremonyDisplayName(invitation)}</span>
+      <span className="text-[11px] uppercase tracking-[0.3em] opacity-75">{event.coverTag ?? ceremonyDisplayName(invitation)}</span>
     </div>
   )
 

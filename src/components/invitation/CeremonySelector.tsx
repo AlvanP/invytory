@@ -19,7 +19,13 @@ export function CeremonySelector({
       <div>
         <p className="text-xs tracking-[0.2em] text-gold">Celebrate With Us</p>
         <h1 className="mt-2 font-display text-3xl text-ink">
-          {brideName} <span className="text-gold">&amp;</span> {groomName}
+          {brideName}
+          {groomName.trim() && (
+            <>
+              {' '}
+              <span className="text-gold">&amp;</span> {groomName}
+            </>
+          )}
         </h1>
         <p className="mt-2 text-sm text-ink-soft">Choose a ceremony to view details and RSVP.</p>
       </div>

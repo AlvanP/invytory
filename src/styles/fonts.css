@@ -1,6 +1,6 @@
 /* Two display families so templates can read as genuinely different
    typographic personalities, not just palette swaps. */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Manrope:wght@400;500;600;700&family=Great+Vibes&family=Pinyon+Script&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Manrope:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Great+Vibes&family=Pinyon+Script&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
 
 /* Restonasi: the script font for the "and" between names. Not free for commercial use, so it is not
    bundled. Put your licensed copy in public/fonts/ (see public/fonts/README.md). Without it, the

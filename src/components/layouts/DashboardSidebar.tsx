@@ -1,3 +1,4 @@
+import { Logo } from '@/components/brand/Logo'
 import { NavLink, useParams, useNavigate } from 'react-router-dom'
 import { LayoutGrid, ScrollText, Users, Settings, PlusCircle, LogOut } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -29,7 +30,7 @@ export function DashboardSidebar() {
     <aside className="flex w-full shrink-0 flex-col justify-between border-b border-ink/10 bg-ivory-deep md:h-full md:w-60 md:border-b-0 md:border-r">
       <div>
         <div className="p-6">
-          <p className="font-display text-lg text-ink">Evermore</p>
+          <Logo className="text-lg" />
           <p className="text-xs text-ink-soft">Organizer dashboard</p>
         </div>
 

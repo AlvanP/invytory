@@ -1,6 +1,6 @@
 import { Check, AlertTriangle } from 'lucide-react'
 import type { PricingPlan } from '@/data/pricingPlans'
-import { sharedPlanFeatures } from '@/data/pricingPlans'
+import { sharedPlanFeatures, albumFeature } from '@/data/pricingPlans'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/utils/cn'
@@ -33,7 +33,7 @@ export function PlanCard({
       <div>
         <div className="flex items-center gap-2">
           <h3 className="font-display text-2xl text-ink">{plan.name}</h3>
-          {highlight && <Badge tone="premium">Most Popular</Badge>}
+          {highlight && <Badge tone="premium">Includes guest album</Badge>}
         </div>
         <p className="mt-1 text-sm text-ink-soft">{plan.description}</p>
       </div>
@@ -56,6 +56,12 @@ export function PlanCard({
       )}
 
       <ul className="flex flex-col gap-2.5 text-sm text-ink-soft">
+        {plan.guestAlbum && (
+          <li className="flex items-start gap-2 font-medium text-ink">
+            <Check className="mt-0.5 size-4 shrink-0 text-gold" />
+            {albumFeature}
+          </li>
+        )}
         {sharedPlanFeatures.map((feature) => (
           <li key={feature} className="flex items-start gap-2">
             <Check className="mt-0.5 size-4 shrink-0 text-gold" />

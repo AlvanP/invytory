@@ -1,69 +1,57 @@
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { Logo } from '@/components/brand/Logo'
 
 const links = [
   { to: '/templates', label: 'Templates' },
+  { to: '/#how', label: 'How it works' },
   { to: '/pricing', label: 'Pricing' },
-  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/sign-in', label: 'Sign in' },
 ]
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink/10 bg-ivory/90 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 bg-ivory/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link to="/" className="font-display text-xl tracking-wide text-ink">
-          Evermore
+        <Link to="/" aria-label="Invytory home" onClick={() => setOpen(false)}>
+          <Logo />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
           {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `text-sm transition-colors ${isActive ? 'text-ink' : 'text-ink-soft hover:text-ink'}`
-              }
-            >
+            <Link key={link.to} to={link.to} className="text-sm text-ink-soft transition-colors hover:text-wine">
               {link.label}
-            </NavLink>
+            </Link>
           ))}
+          <Link to="/create">
+            <Button size="sm">Create your invitation</Button>
+          </Link>
         </nav>
 
-        <div className="hidden md:block">
-          <Link to="/create">
-            <Button size="sm">Create Your Invitation</Button>
-          </Link>
-        </div>
-
         <button
-          className="p-2 md:hidden"
+          className="-mr-2 p-2 text-wine md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
         >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          {open ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-ink/10 px-6 py-4 md:hidden">
-          <nav className="flex flex-col gap-4" aria-label="Primary mobile">
+        <div className="border-t border-wine/10 bg-ivory px-6 pb-6 pt-4 md:hidden">
+          <nav className="flex flex-col gap-1" aria-label="Primary mobile">
             {links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                onClick={() => setOpen(false)}
-                className="text-sm text-ink-soft hover:text-ink"
-              >
+              <Link key={link.to} to={link.to} onClick={() => setOpen(false)} className="py-2.5 font-brand text-2xl text-wine">
                 {link.label}
-              </NavLink>
+              </Link>
             ))}
-            <Link to="/create" onClick={() => setOpen(false)}>
-              <Button size="sm" className="w-full">Create Your Invitation</Button>
+            <Link to="/create" onClick={() => setOpen(false)} className="mt-3">
+              <Button className="w-full">Create your invitation</Button>
             </Link>
           </nav>
         </div>

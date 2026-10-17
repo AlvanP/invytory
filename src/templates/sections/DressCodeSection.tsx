@@ -1,6 +1,7 @@
 import type { WeddingInvitation } from '@/types'
 import { InvitationSection } from '@/components/invitation/InvitationSection'
 import { parseColours, swatchName } from '@/utils/colorTheme'
+import { useDesign } from '@/templates/DesignContext'
 
 export const hasDressCodeContent = (i: WeddingInvitation) => !!i.dressCode?.trim() || parseColours(i.themeColor).length > 0
 
@@ -11,12 +12,13 @@ const SIZES = ['size-20', 'size-16', 'size-12']
  * Dress Code heading with whatever the couple wrote. Whatever was left empty is not shown.
  */
 export function DressCodeSection({ invitation }: { invitation: WeddingInvitation }) {
+  const { event } = useDesign()
   const colours = parseColours(invitation.themeColor)
   const dressCode = invitation.dressCode?.trim()
-  const title = colours.length === 0 ? 'Dress Code' : colours.length === 1 ? 'Our Colour Of The Day' : 'Our Colours Of The Day'
+  const title = colours.length === 0 ? event.dresscode.title : colours.length === 1 ? 'Our Colour Of The Day' : 'Our Colours Of The Day'
 
   return (
-    <InvitationSection id="dresscode" eyebrow="What To Wear" title={title}>
+    <InvitationSection id="dresscode" eyebrow={event.dresscode.eyebrow} title={title}>
       <div className="flex flex-col items-center gap-8">
         {colours.length > 0 && (
           <div className="flex flex-col items-center gap-3">

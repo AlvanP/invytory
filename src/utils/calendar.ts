@@ -1,4 +1,5 @@
 import type { WeddingInvitation } from '@/types'
+import { getEventCopy } from '@/templates/events'
 
 /**
  * Builds "save the date" links from an invitation. Times are written without a
@@ -31,7 +32,7 @@ function timedRange(date: string, time: string, hours = 4): { start: string; end
 }
 
 export function eventTitle(i: WeddingInvitation): string {
-  return `${i.brideName} & ${i.groomName}'s Wedding`
+  return getEventCopy(i.eventType).calendarTitle(i.brideName, i.groomName)
 }
 
 function eventPlace(i: WeddingInvitation): string {
@@ -66,7 +67,7 @@ export function icsFileContent(i: WeddingInvitation, link: string): string {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Evermore//Invitation//EN',
+    'PRODID:-//Invytory//Invitation//EN',
     'BEGIN:VEVENT',
     `UID:${i.id}@evermore`,
     `DTSTAMP:${stamp}`,

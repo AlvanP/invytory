@@ -1,48 +1,50 @@
 import { Link } from 'react-router-dom'
+import { Logo } from '@/components/brand/Logo'
+import { eventCopy, EVENT_KINDS } from '@/templates/events'
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-ink/10 bg-ivory-deep">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
+    <footer className="bg-ivory-deep">
+      <div className="mx-auto max-w-6xl px-6 py-14">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
-            <p className="font-display text-lg text-ink">Evermore</p>
-            <p className="mt-2 max-w-[22ch] text-sm text-ink-soft">
-              Digital invitations for the moments worth remembering.
-            </p>
+            <Logo />
+            <p className="mt-3 max-w-[24ch] text-sm text-ink-soft">Tell a story, with your invites.</p>
           </div>
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-ink-soft/70">Product</p>
+            <p className="text-sm font-medium text-wine">Events</p>
             <ul className="mt-3 flex flex-col gap-2 text-sm text-ink-soft">
-              <li><Link to="/templates" className="hover:text-ink">Templates</Link></li>
-              <li><Link to="/create" className="hover:text-ink">Create an Invitation</Link></li>
-              <li><Link to="/dashboard" className="hover:text-ink">Dashboard</Link></li>
+              {EVENT_KINDS.map((k) => (
+                <li key={k}>
+                  <Link to={`/templates?category=${k}`} className="hover:text-wine">{eventCopy[k].plural}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-ink-soft/70">Company</p>
+            <p className="text-sm font-medium text-wine">Invytory</p>
             <ul className="mt-3 flex flex-col gap-2 text-sm text-ink-soft">
-              <li><span className="cursor-default">About</span></li>
-              <li><span className="cursor-default">Contact</span></li>
-              <li><span className="cursor-default">Privacy</span></li>
+              <li><Link to="/templates" className="hover:text-wine">Templates</Link></li>
+              <li><Link to="/#how" className="hover:text-wine">How it works</Link></li>
+              <li><Link to="/pricing" className="hover:text-wine">Pricing</Link></li>
+              <li><Link to="/create" className="hover:text-wine">Create an invitation</Link></li>
             </ul>
           </div>
 
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-ink-soft/70">Coming later</p>
-            <ul className="mt-3 flex flex-col gap-2 text-sm text-ink-soft/70">
-              <li>Birthdays</li>
-              <li>Child dedications</li>
-              <li>Corporate events</li>
+            <p className="text-sm font-medium text-wine">Account</p>
+            <ul className="mt-3 flex flex-col gap-2 text-sm text-ink-soft">
+              <li><Link to="/sign-in" className="hover:text-wine">Sign in</Link></li>
+              <li><Link to="/dashboard" className="hover:text-wine">Dashboard</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-ink/10 pt-6 text-xs text-ink-soft/70 sm:flex-row">
-          <p>&copy; {new Date().getFullYear()} Evermore. All rights reserved.</p>
-          <p>Made for weddings, first.</p>
+        <div className="mt-12 flex flex-col justify-between gap-2 border-t border-wine/10 pt-6 text-xs text-ink-soft sm:flex-row">
+          <p>&copy; {new Date().getFullYear()} Invytory. All rights reserved.</p>
+          <p>www.invytory.com</p>
         </div>
       </div>
     </footer>

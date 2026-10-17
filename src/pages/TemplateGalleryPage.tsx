@@ -1,49 +1,67 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { InvitationTemplate } from '@/types'
 import { templateService } from '@/services/templateService'
 import { TemplateCard } from '@/components/templates/TemplateCard'
 import { CollectionTabs, type CollectionFilter } from '@/components/templates/CollectionTabs'
 import { TemplateCardSkeleton } from '@/components/ui/Skeleton'
-import { groupTemplates } from '@/utils/templateCollections'
+import { eventCopy, EVENT_KINDS, type EventKind } from '@/templates/events'
+import { cn } from '@/utils/cn'
 
 export function TemplateGalleryPage() {
   const [templates, setTemplates] = useState<InvitationTemplate[] | null>(null)
-  const [filter, setFilter] = useState<CollectionFilter>(null)
+  const [params, setParams] = useSearchParams()
+  const [collection, setCollection] = useState<CollectionFilter>(null)
+
+  const asked = params.get('category')
+  const kind: EventKind = EVENT_KINDS.includes(asked as EventKind) ? (asked as EventKind) : 'wedding'
 
   useEffect(() => {
-    templateService.list().then(setTemplates)
+    templateService.listAll().then(setTemplates)
   }, [])
 
-  // A collection tab shows that collection's designs, then the designs
-  // that suit any ceremony. "All" shows everything.
-  const visible = templates
-    ? (() => {
-        const g = groupTemplates(templates, filter)
-        return [...g.primary, ...g.universal]
-      })()
-    : null
+  const ofKind = templates?.filter((t) => t.category === kind) ?? null
+  const visible = ofKind && kind === 'wedding' && collection ? ofKind.filter((t) => t.collection === collection) : ofKind
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-16">
-      <p className="text-xs tracking-[0.2em] text-gold">Templates</p>
-      <h1 className="mt-2 font-display text-4xl text-ink">Wedding Invitation Templates</h1>
-      <p className="mt-3 max-w-xl text-sm text-ink-soft">
-        Starting points for every kind of ceremony, each with its own character. More arrive as our library grows.
-      </p>
+    <div className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
+      <h1 className="max-w-xl font-brand text-5xl leading-tight text-wine sm:text-6xl">Templates</h1>
+      <p className="mt-3 max-w-md text-base text-ink-soft">Every design is made for its event, with the right sections and the right words. Open one to scroll through it.</p>
 
-      <div className="mt-8">
-        <CollectionTabs value={filter} onChange={setFilter} />
+      <div role="tablist" aria-label="Event types" className="mt-8 flex flex-wrap gap-2">
+        {EVENT_KINDS.map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={k === kind}
+            onClick={() => {
+              setParams(k === 'wedding' ? {} : { category: k })
+              setCollection(null)
+            }}
+            className={cn(
+              'rounded-full border px-5 py-2 text-sm transition-colors',
+              k === kind ? 'border-wine bg-wine text-ivory' : 'border-wine/25 text-wine hover:border-wine'
+            )}
+          >
+            {eventCopy[k].plural}
+          </button>
+        ))}
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+      {kind === 'wedding' && (
+        <div className="mt-4">
+          <CollectionTabs value={collection} onChange={setCollection} />
+        </div>
+      )}
+
+      <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
         {!visible
           ? Array.from({ length: 6 }).map((_, i) => <TemplateCardSkeleton key={i} />)
           : visible.map((t) => <TemplateCard key={t.id} template={t} />)}
       </div>
 
-      {visible && visible.length === 0 && (
-        <p className="mt-10 text-sm text-ink-soft">No designs in this collection yet.</p>
-      )}
+      {visible && visible.length === 0 && <p className="mt-10 text-sm text-ink-soft">No designs here yet.</p>}
     </div>
   )
 }

@@ -10,15 +10,15 @@
 ------------------------------------------------------------------- */
 @theme {
   /* Color palette */
-  --color-ivory: #FBF8F2;
-  --color-ivory-deep: #F3EDE1;
-  --color-ink: #221E1A;
-  --color-ink-soft: #4A443C;
-  --color-linen: #E7DFCF;
-  --color-gold: #B08D57;
-  --color-gold-soft: #D9C79E;
-  --color-wine: #5C2435;
-  --color-wine-soft: #7A3348;
+  --color-ivory: #FAF6F3;
+  --color-ivory-deep: #F1E6E2;
+  --color-ink: #2A1B1E;
+  --color-ink-soft: #6B5559;
+  --color-linen: #E6D5D0;
+  --color-gold: #8F5E69;
+  --color-gold-soft: #E3C9C9;
+  --color-wine: #59262F;
+  --color-wine-soft: #7A3A45;
   --color-sage: #6B7561;
   --color-success: #4C7A5A;
   --color-danger: #A3423A;
@@ -26,6 +26,7 @@
   /* Typography */
   --font-display: "Cormorant Garamond", "Georgia", serif;
   --font-display-alt: "Playfair Display", "Georgia", serif;
+  --font-brand: "Instrument Serif", "Cormorant Garamond", Georgia, serif;
   --font-body: "Manrope", "Helvetica Neue", sans-serif;
 
   /* Radius — kept small and consistent; this is a luxury brand, not a bubble-card SaaS */

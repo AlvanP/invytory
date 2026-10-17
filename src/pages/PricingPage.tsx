@@ -1,68 +1,40 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { pricingPlans, wholesaleTiers } from '@/data/pricingPlans'
+import { useNavigate } from 'react-router-dom'
+import { pricingPlans } from '@/data/pricingPlans'
 import { PlanCard } from '@/components/pricing/PlanCard'
 
 export function PricingPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16">
+    <div className="mx-auto max-w-4xl px-6 py-16 sm:py-24">
       <div className="text-center">
-        <p className="text-xs tracking-[0.2em] text-gold">Pricing</p>
-        <h1 className="mt-2 font-display text-4xl text-ink">Simple, one-time pricing</h1>
-        <p className="mx-auto mt-3 max-w-lg text-sm text-ink-soft">
-          Every plan includes the full Evermore experience. Choose based on how many guests
-          you're inviting and how long you'd like your invitation hosted.
+        <h1 className="font-brand text-5xl text-wine sm:text-6xl">Pay once, per invitation</h1>
+        <p className="mx-auto mt-4 max-w-md text-base text-ink-soft">
+          Every plan includes every template, in every event category. The difference is how many guests you invite, how long
+          your invitation stays online, and whether your guests share their photos in one album.
         </p>
       </div>
 
-      <div className="mt-12 grid gap-8 sm:grid-cols-2">
+      <div className="mt-14 grid gap-8 sm:grid-cols-2">
         {pricingPlans.map((plan) => (
           <PlanCard
             key={plan.id}
             plan={plan}
             highlight={plan.id === 'gold'}
-            ctaLabel="Start Your Invitation"
+            ctaLabel="Create your invitation"
             onSelect={() => navigate('/create')}
           />
         ))}
       </div>
-      <p className="mt-4 text-center text-xs text-ink-soft/60">
-        You'll choose your plan and pay at the end of the invitation-creation process.
+      <p className="mt-5 text-center text-sm text-ink-soft">
+        You choose your plan and pay at the end, once your invitation is ready.
       </p>
 
-      <div className="mt-20 rounded-md border border-ink/10 bg-ivory-deep p-8 sm:p-10">
-        <p className="text-xs tracking-[0.2em] text-gold">For Wedding Planners</p>
-        <h2 className="mt-2 font-display text-2xl text-ink">Wholesale Pricing</h2>
-        <p className="mt-2 max-w-lg text-sm text-ink-soft">
-          Wedding planners can create invitations for multiple clients at discounted wholesale rates.
-        </p>
-
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[420px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-ink/10 text-xs uppercase tracking-wide text-ink-soft/70">
-                <th className="py-3 font-medium">Monthly Weddings</th>
-                <th className="py-3 font-medium">Price Per Event</th>
-              </tr>
-            </thead>
-            <tbody>
-              {wholesaleTiers.map((tier) => (
-                <tr key={tier.range} className="border-b border-ink/8 last:border-0">
-                  <td className="py-4 text-ink">{tier.range}</td>
-                  <td className="py-4 text-ink-soft">&#8358;{tier.pricePerEvent.toLocaleString()} per event</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <p className="mt-6 text-sm text-ink-soft">
-          Interested in wholesale pricing?{' '}
-          <Link to="/create" className="text-gold hover:underline">
-            Start creating your first invitation
-          </Link>{' '}
-          and reach out to us to set up your planner account.
+      <div className="mt-20 rounded-md bg-ivory-deep p-8 text-center sm:p-10">
+        <h2 className="font-brand text-3xl text-wine">Planning events for clients?</h2>
+        <p className="mx-auto mt-2 max-w-md text-sm text-ink-soft">
+          If you make invitations for many clients, we can set up special rates and a planner account for you. Create your first
+          invitation, then get in touch.
         </p>
       </div>
     </div>

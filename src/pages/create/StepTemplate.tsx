@@ -51,6 +51,8 @@ export function StepTemplate() {
     // templates they just picked from.
     if (preselected && !draft.templateId) {
       const template = getTemplateById(preselected)
+      // Only wedding designs can be created for now; other events open up in the next update.
+      if (template && template.category !== 'wedding') return
       if (template) {
         applyTemplate(template)
       } else {

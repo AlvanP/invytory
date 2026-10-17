@@ -11,7 +11,7 @@ import type { CSSProperties } from 'react'
 
 /** SECTION 2: Date & countdown. The date in large type (or scratched off), the countdown, Save the Date. */
 export function CountdownSection({ invitation }: { invitation: WeddingInvitation }) {
-  const { design } = useDesign()
+  const { design, event } = useDesign()
   const gate = useDateGate()
   const onBand = variantFor(design, 'countdown') === 'band'
   const time = formatTime(invitation.weddingTime)
@@ -29,8 +29,8 @@ export function CountdownSection({ invitation }: { invitation: WeddingInvitation
   return (
     <InvitationSection
       id="countdown"
-      eyebrow="Save The Date"
-      title={design.scratchDate && gate.hidden ? 'Scratch To Reveal' : 'Until We Say I Do'}
+      eyebrow={event.countdown.eyebrow}
+      title={design.scratchDate && gate.hidden ? 'Scratch To Reveal' : event.countdown.title}
     >
       <div className="flex flex-col gap-8">
         {design.scratchDate ? (

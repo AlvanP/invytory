@@ -1,5 +1,6 @@
 import type { WeddingInvitation } from '@/types'
 import { InvitationSection } from '@/components/invitation/InvitationSection'
+import { useDesign } from '@/templates/DesignContext'
 import { useWall } from '@/templates/WallContext'
 
 function ago(iso: string): string {
@@ -25,9 +26,10 @@ function ago(iso: string): string {
  */
 export function WallSection(_props: { invitation: WeddingInvitation }) {
   const { messages } = useWall()
+  const { event } = useDesign()
   if (messages.length === 0) return null
   return (
-    <InvitationSection id="wall" eyebrow="From Our Guests" title="Messages For The Couple">
+    <InvitationSection id="wall" eyebrow={event.wall.eyebrow} title={event.wall.title}>
       <div className="relative">
         <ul
           tabIndex={0}

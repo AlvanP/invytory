@@ -4,4 +4,5 @@ import type { WeddingInvitation } from '@/types'
  * or unrelated app state. This is what keeps templates swappable. */
 export interface TemplateRendererProps {
   invitation: WeddingInvitation
+  noScratch?: boolean
 }
