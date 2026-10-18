@@ -22,6 +22,7 @@ export function SceneEntrance({
   onOpen,
   onTap,
   autoOpenMs,
+  inviteeName,
 }: {
   design: EntranceDesign
   templateId?: string
@@ -30,6 +31,7 @@ export function SceneEntrance({
   onOpen: () => void
   onTap?: () => void
   autoOpenMs?: number
+  inviteeName?: string
 }) {
   const [open, setOpen] = useState(false)
   const Scene = SCENES[design.scene]
@@ -77,7 +79,14 @@ export function SceneEntrance({
         style={{ textShadow: shadow }}
       >
         <div className="flex flex-col items-center gap-3">
-          <p className="text-xs uppercase tracking-[0.32em] opacity-90">{KICKERS[category] ?? KICKERS.wedding}</p>
+          {inviteeName ? (
+            <p className="max-w-[18rem] text-sm leading-relaxed opacity-95">
+              <span className="block font-display text-2xl leading-tight">{inviteeName}</span>
+              is specially invited to
+            </p>
+          ) : (
+            <p className="text-xs uppercase tracking-[0.32em] opacity-90">{KICKERS[category] ?? KICKERS.wedding}</p>
+          )}
           {design.layout !== 'hintonly' && (
             <h1 className="font-display text-4xl leading-tight sm:text-5xl">{names}</h1>
           )}

@@ -10,6 +10,7 @@ import { wallService } from '@/services/wallService'
 import { useWall } from '@/templates/WallContext'
 import { useDesign } from '@/templates/DesignContext'
 import { guestCopy } from '@/templates/events'
+import { useInvitee } from '@/templates/InviteeContext'
 
 /**
  * What this device last submitted for an invitation. Remembering it lets
@@ -53,7 +54,8 @@ function clearStoredRsvp(invitationId: string) {
 
 export function RsvpForm({ invitationId, customMessage }: { invitationId: string; customMessage?: string }) {
   const [attending, setAttending] = useState<boolean | null>(null)
-  const [fullName, setFullName] = useState('')
+  const invitee = useInvitee()
+  const [fullName, setFullName] = useState(invitee?.name ?? '')
   const [numberOfGuests, setNumberOfGuests] = useState(1)
   const [phone, setPhone] = useState('')
   const [message, setMessage] = useState('')
@@ -85,6 +87,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
         numberOfGuests,
         phone: phone.trim() || undefined,
         message: message.trim() || undefined,
+        inviteCode: invitee?.code,
       })
       // The RSVP is saved. If the guest ticked the box, also leave the message on the couple's wall.
       // A problem here must not undo or hide the RSVP, so it is only logged.
@@ -123,7 +126,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
     clearStoredRsvp(invitationId)
     setPrevious(null)
     setAttending(null)
-    setFullName('')
+    setFullName(invitee?.name ?? '')
     setNumberOfGuests(1)
     setPhone('')
     setMessage('')

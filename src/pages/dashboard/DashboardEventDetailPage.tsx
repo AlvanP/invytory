@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Eye, Users, Share2, Settings, ExternalLink, Camera } from 'lucide-react'
+import { Eye, Users, Share2, Settings, ExternalLink, Camera, UserCheck } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { templateService } from '@/services/templateService'
@@ -53,6 +53,9 @@ export function DashboardEventDetailPage() {
             <Button variant="outline" size="sm" icon={<Eye className="size-4" />}>View</Button>
           </Link>
           <Button variant="outline" size="sm" icon={<Share2 className="size-4" />} onClick={() => setShareOpen(true)}>Share</Button>
+          <Link to={`/dashboard/events/${invitation.id}/invitees`}>
+            <Button variant="outline" size="sm" icon={<UserCheck className="size-4" />}>Special guests</Button>
+          </Link>
           <Link to={`/dashboard/events/${invitation.id}/album`}>
             <Button variant="outline" size="sm" icon={<Camera className="size-4" />}>Photo album</Button>
           </Link>

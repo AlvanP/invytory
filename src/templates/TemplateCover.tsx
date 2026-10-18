@@ -6,6 +6,7 @@ import { formatDate, formatTime } from '@/utils/format'
 import { cn } from '@/utils/cn'
 import { useRevealed } from '@/hooks/useRevealed'
 import { useDesign } from '@/templates/DesignContext'
+import { useInvitee, specialLead } from '@/templates/InviteeContext'
 import { useDateGate } from '@/templates/DateGate'
 import type { NameStyle } from '@/templates/designs'
 import { NAME_FONT, AND_FONT } from '@/templates/fonts'
@@ -86,7 +87,8 @@ function AnimatedName({ text, revealed, startIndex, style }: { text: string; rev
 
 export function TemplateCover({ invitation }: { invitation: WeddingInvitation }) {
   const revealed = useRevealed()
-  const { design, art, event } = useDesign()
+  const { design, art, event, kind } = useDesign()
+  const invitee = useInvitee()
   const hasSecondName = !!invitation.groomName.trim()
   const gate = useDateGate()
   const coverBackground = art.coverBackground
@@ -164,7 +166,14 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
     </div>
   )
 
-  const eyebrowEl = (
+  const lead = invitee ? specialLead[kind] : ''
+  const eyebrowEl = invitee ? (
+    <div {...rise(0)} className={cn('flex max-w-sm flex-col items-center gap-2', rise(0).className)}>
+      <p className="font-display text-[1.7rem] italic leading-tight sm:text-3xl">{invitee.name}</p>
+      <p className="text-[11px] font-medium uppercase tracking-[0.32em]">is specially invited{lead ? '' : ' to'}</p>
+      {lead && <p className="text-[11px] font-medium uppercase tracking-[0.32em] opacity-80">to {lead}</p>}
+    </div>
+  ) : (
     <p {...rise(0)} className={cn('text-[11px] font-medium uppercase tracking-[0.32em]', rise(0).className)}>
       {eyebrow}
     </p>

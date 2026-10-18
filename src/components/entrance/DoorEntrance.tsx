@@ -49,6 +49,7 @@ function LegacyEntrance({
   onOpen,
   onTap,
   autoOpenMs,
+  inviteeName,
 }: {
   tone: CoverTone
   /** When this design has its own artwork files, they replace the placeholders. */
@@ -63,6 +64,7 @@ function LegacyEntrance({
   onTap?: () => void
   /** Opens by itself after this many ms (used by the moving samples). */
   autoOpenMs?: number
+  inviteeName?: string
 }) {
   const [triggered, setTriggered] = useState(false)
   const baseConfig = entranceConfig[tone]
@@ -151,7 +153,14 @@ function LegacyEntrance({
         )}
       >
         <div className="flex flex-col items-center gap-4">
-          <p className="text-xs tracking-[0.3em] text-gold">You Are Invited</p>
+          {inviteeName ? (
+            <p className="max-w-xs text-sm leading-relaxed text-gold">
+              <span className="block font-display text-xl text-inherit">{inviteeName}</span>
+              is specially invited to
+            </p>
+          ) : (
+            <p className="text-xs tracking-[0.3em] text-gold">You Are Invited</p>
+          )}
           <h1 className="font-display text-3xl sm:text-4xl">
             {brideName}
             {groomName.trim() && (
@@ -182,7 +191,7 @@ export function DoorEntrance(props: Parameters<typeof LegacyEntrance>[0]) {
   const design = props.templateId ? entranceDesigns[props.templateId] : undefined
   const hasArt = Object.values(getTemplateArt(props.templateId).entrance).some(Boolean)
   if (design && !hasArt && !props.forceStyle) {
-    return <SceneEntrance design={design} templateId={props.templateId} brideName={props.brideName} groomName={props.groomName} onOpen={props.onOpen} onTap={props.onTap} autoOpenMs={props.autoOpenMs} />
+    return <SceneEntrance design={design} templateId={props.templateId} brideName={props.brideName} groomName={props.groomName} onOpen={props.onOpen} onTap={props.onTap} autoOpenMs={props.autoOpenMs} inviteeName={props.inviteeName} />
   }
   return <LegacyEntrance {...props} />
 }

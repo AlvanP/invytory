@@ -19,4 +19,6 @@ export interface RsvpSubmission {
   numberOfGuests: number
   phone?: string
   message?: string
+  /** Set when the guest came through a personal link. */
+  inviteCode?: string
 }

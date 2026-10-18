@@ -66,7 +66,12 @@ export const supabaseGuestService = {
       response_date: new Date().toISOString(),
     }
 
-    const { error } = await supabase.from('guests').insert(payload)
+    const row: Record<string, unknown> = submission.inviteCode ? { ...payload, invite_code: submission.inviteCode } : payload
+    let { error } = await supabase.from('guests').insert(row)
+    // If the invite_code column has not been added yet (docs/sql/invitees.sql), still save the RSVP.
+    if (error && submission.inviteCode && /invite_code/i.test(error.message ?? '')) {
+      ;({ error } = await supabase.from('guests').insert(payload))
+    }
     if (error) {
       // Supabase errors are plain objects, not Error instances, so the RSVP
       // form would never show their message. Re-throw as a real Error and

@@ -19,6 +19,7 @@ export function ArrivalScene({
   onTap,
   autoOpenMs,
   onRevealed,
+  inviteeName,
   children,
 }: {
   tone: CoverTone
@@ -31,6 +32,8 @@ export function ArrivalScene({
   autoOpenMs?: number
   /** Called once the invitation is showing. */
   onRevealed?: () => void
+  /** For a personal link: "Chief Emeka Okonkwo is specially invited to" replaces the usual line. */
+  inviteeName?: string
   children: React.ReactNode
 }) {
   const [exiting, setExiting] = useState(false)
@@ -66,7 +69,7 @@ export function ArrivalScene({
             exiting && 'pointer-events-none opacity-0'
           )}
         >
-          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} autoOpenMs={autoOpenMs} />
+          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} autoOpenMs={autoOpenMs} inviteeName={inviteeName} />
         </div>
       )}
 

@@ -2,6 +2,7 @@ import { Calendar, MapPin } from 'lucide-react'
 import type { WeddingInvitation } from '@/types'
 import { ceremonyDisplayName } from '@/types'
 import { formatDate, formatTime } from '@/utils/format'
+import { useInvitee } from '@/templates/InviteeContext'
 
 export function CeremonySelector({
   brideName,
@@ -14,10 +15,18 @@ export function CeremonySelector({
   ceremonies: WeddingInvitation[]
   onSelect: (ceremony: WeddingInvitation) => void
 }) {
+  const invitee = useInvitee()
   return (
     <div className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-8 px-6 py-16 text-center">
       <div>
-        <p className="text-xs tracking-[0.2em] text-gold">Celebrate With Us</p>
+        {invitee ? (
+          <p className="text-sm text-ink-soft">
+            <span className="block font-display text-2xl italic text-ink">{invitee.name}</span>
+            is specially invited to celebrate with
+          </p>
+        ) : (
+          <p className="text-xs tracking-[0.2em] text-gold">Celebrate With Us</p>
+        )}
         <h1 className="mt-2 font-display text-3xl text-ink">
           {brideName}
           {groomName.trim() && (

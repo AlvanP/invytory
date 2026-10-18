@@ -17,6 +17,7 @@ const SamplePage = lazy(() => import('@/pages/SamplePage').then((m) => ({ defaul
 const AlbumPage = lazy(() => import('@/pages/AlbumPage').then((m) => ({ default: m.AlbumPage })))
 const DashboardAlbumPage = lazy(() => import('@/pages/dashboard/DashboardAlbumPage').then((m) => ({ default: m.DashboardAlbumPage })))
 const AdminPage = lazy(() => import('@/pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
+const DashboardInviteesPage = lazy(() => import('@/pages/dashboard/DashboardInviteesPage').then((m) => ({ default: m.DashboardInviteesPage })))
 const SignInPage = lazy(() => import('@/pages/SignInPage').then((m) => ({ default: m.SignInPage })))
 const PublishSuccessPage = lazy(() => import('@/pages/PublishSuccessPage').then((m) => ({ default: m.PublishSuccessPage })))
 const CreateLayout = lazy(() => import('@/pages/create/CreateLayout').then((m) => ({ default: m.CreateLayout })))
@@ -71,6 +72,7 @@ function App() {
           <Route path="events/:eventId/guests" element={<DashboardGuestsPage />} />
           <Route path="ceremonies/:ceremonyId/edit" element={<DashboardEditCeremonyPage />} />
           <Route path="weddings/:weddingId/guests" element={<DashboardGuestsPage />} />
+          <Route path="events/:eventId/invitees" element={<DashboardInviteesPage />} />
           <Route path="events/:eventId/album" element={<DashboardAlbumPage />} />
           <Route path="events/:eventId/settings" element={<DashboardSettingsPage />} />
         </Route>

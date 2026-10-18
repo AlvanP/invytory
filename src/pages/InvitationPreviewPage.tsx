@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { invitationService } from '@/services/invitationService'
@@ -10,6 +10,8 @@ import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
 import { CeremonySelector } from '@/components/invitation/CeremonySelector'
 import { MusicToggle } from '@/components/invitation/MusicToggle'
 import { useInvitationMusic } from '@/hooks/useInvitationMusic'
+import { inviteeService, INVITE_PARAM } from '@/services/inviteeService'
+import { InviteeContext, type Invitee } from '@/templates/InviteeContext'
 import { ArrivalScene } from '@/components/entrance/ArrivalScene'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
 import { ErrorState } from '@/components/ui/State'
@@ -27,6 +29,12 @@ export function InvitationPreviewPage() {
   const navigate = useNavigate()
   const [lookup, setLookup] = useState<LookupState>({ status: 'loading' })
   const [template, setTemplate] = useState<InvitationTemplate | undefined>()
+  // A personal link looks like /invitation/<slug>?to=<code>. The code is read once, so the name
+  // stays even after the guest opens a ceremony (which changes the address).
+  const [searchParams] = useSearchParams()
+  const [code] = useState(() => (searchParams.get(INVITE_PARAM) ?? '').trim().slice(0, 20))
+  const [invitee, setInvitee] = useState<Invitee | null>(null)
+  const [inviteeChecked, setInviteeChecked] = useState(!code)
 
   useEffect(() => {
     if (!slug) return
@@ -51,6 +59,36 @@ export function InvitationPreviewPage() {
       cancelled = true
     }
   }, [slug])
+
+  // Look up whose link this is, as soon as we know which wedding the page is for.
+  const weddingId = lookup.status === 'wedding' ? lookup.wedding.id : undefined
+  useEffect(() => {
+    if (!code || lookup.status === 'loading') return
+    if (!weddingId) {
+      setInviteeChecked(true)
+      return
+    }
+    let cancelled = false
+    inviteeService.lookup(code).then((found) => {
+      if (cancelled) return
+      // A link only counts for the event it was made for.
+      if (found && found.weddingId === weddingId) {
+        setInvitee({ name: found.name, code })
+        try {
+          if (!sessionStorage.getItem(`invytory:opened:${code}`)) {
+            sessionStorage.setItem(`invytory:opened:${code}`, '1')
+            void inviteeService.trackOpen(code)
+          }
+        } catch {
+          void inviteeService.trackOpen(code)
+        }
+      }
+      setInviteeChecked(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [code, lookup.status, weddingId])
 
   // Which ceremony is open is kept in the URL hash (#<ceremony id>), not in
   // component state. That makes the phone's Back button return a guest to
@@ -93,7 +131,7 @@ export function InvitationPreviewPage() {
         : null
   const music = useInvitationMusic(wantedMusicUrl)
 
-  if (lookup.status === 'loading') return <InvitationPreviewSkeleton />
+  if (lookup.status === 'loading' || !inviteeChecked) return <InvitationPreviewSkeleton />
 
   if (lookup.status === 'notFound') {
     return (
@@ -143,13 +181,14 @@ export function InvitationPreviewPage() {
   const hasCeremonyList = lookup.status === 'wedding' && lookup.ceremonies.length > 1
 
   return (
-    <>
+    <InviteeContext.Provider value={invitee}>
     <ArrivalScene
       tone={entranceTemplate?.previewTone ?? 'classic'}
       templateId={entranceTemplate?.id}
       brideName={brideName ?? ''}
       groomName={groomName ?? ''}
       onTap={music.start}
+      inviteeName={invitee?.name}
     >
       {hasCeremonyList && !selectedCeremony ? (
         <CeremonySelector
@@ -179,6 +218,6 @@ export function InvitationPreviewPage() {
       )}
     </ArrivalScene>
     {music.visible && <MusicToggle muted={music.muted} needsTap={music.needsTap} onToggle={music.toggle} />}
-    </>
+    </InviteeContext.Provider>
   )
 }
