@@ -13,6 +13,8 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 // page (usually a guest's invitation) downloads less code.
 const EntranceLabPage = lazy(() => import('@/pages/EntranceLabPage').then((m) => ({ default: m.EntranceLabPage })))
 const SamplePage = lazy(() => import('@/pages/SamplePage').then((m) => ({ default: m.SamplePage })))
+const AlbumPage = lazy(() => import('@/pages/AlbumPage').then((m) => ({ default: m.AlbumPage })))
+const DashboardAlbumPage = lazy(() => import('@/pages/dashboard/DashboardAlbumPage').then((m) => ({ default: m.DashboardAlbumPage })))
 const SignInPage = lazy(() => import('@/pages/SignInPage').then((m) => ({ default: m.SignInPage })))
 const PublishSuccessPage = lazy(() => import('@/pages/PublishSuccessPage').then((m) => ({ default: m.PublishSuccessPage })))
 const CreateLayout = lazy(() => import('@/pages/create/CreateLayout').then((m) => ({ default: m.CreateLayout })))
@@ -44,6 +46,7 @@ function App() {
         <Route path="/success/:slug" element={<PublishSuccessPage />} />
       </Route>
 
+      <Route path="/album/:slug" element={<AlbumPage />} />
       <Route path="/sample/:templateId" element={<SamplePage />} />
       <Route path="/sign-in" element={<SignInPage />} />
       <Route path="/entrance-lab" element={<EntranceLabPage />} />
@@ -66,6 +69,7 @@ function App() {
           <Route path="events/:eventId/guests" element={<DashboardGuestsPage />} />
           <Route path="ceremonies/:ceremonyId/edit" element={<DashboardEditCeremonyPage />} />
           <Route path="weddings/:weddingId/guests" element={<DashboardGuestsPage />} />
+          <Route path="events/:eventId/album" element={<DashboardAlbumPage />} />
           <Route path="events/:eventId/settings" element={<DashboardSettingsPage />} />
         </Route>
       </Route>
