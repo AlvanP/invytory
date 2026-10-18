@@ -6,6 +6,8 @@ import { entranceConfig } from '@/templates/entranceConfig'
 import { getTemplateArt, pickEntranceStyle } from '@/utils/templateArt'
 import { SplitPanelsVariant, BookVariant, EnvelopeVariant } from './EntranceVariants'
 import { GatefoldVariant, WaxEnvelopeVariant } from './LayeredEntrance'
+import { SceneEntrance } from './scenes/SceneEntrance'
+import { entranceDesigns } from './scenes/entranceDesigns'
 
 const doorPalette = {
   from: 'linear-gradient(135deg, #5C2435 0%, #3B1522 100%)',
@@ -38,7 +40,7 @@ function definedOnly<T extends object>(obj: T): Partial<T> {
  * entranceConfig.ts), handles the tap-to-open interaction, and calls
  * `onOpen` once the opening animation finishes.
  */
-export function DoorEntrance({
+function LegacyEntrance({
   tone,
   templateId,
   forceStyle,
@@ -160,4 +162,17 @@ export function DoorEntrance({
       </div>
     </div>
   )
+}
+
+/**
+ * The entrance for a design. Designs with their own opening (see scenes/entranceDesigns.ts) get it,
+ * unless the designer has supplied real artwork files, which always win.
+ */
+export function DoorEntrance(props: Parameters<typeof LegacyEntrance>[0]) {
+  const design = props.templateId ? entranceDesigns[props.templateId] : undefined
+  const hasArt = Object.values(getTemplateArt(props.templateId).entrance).some(Boolean)
+  if (design && !hasArt && !props.forceStyle) {
+    return <SceneEntrance design={design} templateId={props.templateId} brideName={props.brideName} groomName={props.groomName} onOpen={props.onOpen} onTap={props.onTap} />
+  }
+  return <LegacyEntrance {...props} />
 }

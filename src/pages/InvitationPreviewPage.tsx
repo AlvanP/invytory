@@ -5,6 +5,7 @@ import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { weddingService } from '@/services/weddingService'
 import { templateService } from '@/services/templateService'
+import { getTemplateById } from '@/data/templates'
 import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
 import { CeremonySelector } from '@/components/invitation/CeremonySelector'
 import { MusicToggle } from '@/components/invitation/MusicToggle'
@@ -134,14 +135,18 @@ export function InvitationPreviewPage() {
 
   const brideName = lookup.status === 'wedding' ? lookup.ceremonies[0]?.brideName : lookup.invitation.brideName
   const groomName = lookup.status === 'wedding' ? lookup.ceremonies[0]?.groomName : lookup.invitation.groomName
+  // Worked out straight from the invitation (no waiting), so the right entrance shows from the very first frame.
+  const entranceTemplateId =
+    lookup.status === 'legacy' ? lookup.invitation.templateId : (selectedCeremony?.templateId ?? lookup.ceremonies[0]?.templateId)
+  const entranceTemplate = getTemplateById(entranceTemplateId)
   const activeInvitation = selectedCeremony ?? (lookup.status === 'legacy' ? lookup.invitation : null)
   const hasCeremonyList = lookup.status === 'wedding' && lookup.ceremonies.length > 1
 
   return (
     <>
     <ArrivalScene
-      tone={template?.previewTone ?? 'classic'}
-      templateId={template?.id}
+      tone={entranceTemplate?.previewTone ?? 'classic'}
+      templateId={entranceTemplate?.id}
       brideName={brideName ?? ''}
       groomName={groomName ?? ''}
       onTap={music.start}
