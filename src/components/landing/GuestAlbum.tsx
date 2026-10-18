@@ -59,11 +59,11 @@ export function GuestAlbum() {
           </p>
           <ul className="mt-8 flex max-w-md flex-col gap-4 text-base">
             <li className="flex gap-3">
-              <Camera className="mt-1 size-5 shrink-0 text-ivory/60" strokeWidth={1.5} />
+              <Camera className="mt-1 size-5 shrink-0 text-amber" strokeWidth={1.5} />
               <span>One tap to upload, from any phone.</span>
             </li>
             <li className="flex gap-3">
-              <Download className="mt-1 size-5 shrink-0 text-ivory/60" strokeWidth={1.5} />
+              <Download className="mt-1 size-5 shrink-0 text-amber" strokeWidth={1.5} />
               <span>You find them all in one album, and download a single photo or the whole album in full quality.</span>
             </li>
           </ul>

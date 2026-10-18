@@ -8,8 +8,8 @@
 // JavaScript. Kept in ONE file with no local imports so it deploys without any extra setup.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import sharp from 'sharp'
-import satori from 'satori'
+// sharp and satori are loaded only when a picture is asked for, so the page itself never depends on them.
+type Sharp = typeof import('sharp')
 
 const W = 1200
 const H = 630
@@ -130,7 +130,7 @@ async function loadFont(origin: string): Promise<Buffer | null> {
 async function loadPhoto(url: string): Promise<Buffer | null> {
   try {
     const ctrl = new AbortController()
-    const timer = setTimeout(() => ctrl.abort(), 6000)
+    const timer = setTimeout(() => ctrl.abort(), 4000)
     const res = await fetch(url, { signal: ctrl.signal })
     clearTimeout(timer)
     if (!res.ok) return null
@@ -145,9 +145,11 @@ type Node = { type: string; props: { style?: Record<string, unknown>; children?:
 const h = (style: Record<string, unknown>, children?: unknown, type = 'div'): Node => ({ type, props: { style, children } })
 
 async function renderImage(invite: Invite, guest: string, origin: string): Promise<Buffer> {
+  const sharp = ((await import('sharp')) as unknown as { default: Sharp }).default
+  const satori = (await import('satori')).default
   // 1. The background: the first photo, or a deep wine colour when there is none.
   const photo = invite.heroImage ? await loadPhoto(invite.heroImage) : null
-  let base: sharp.Sharp
+  let base: ReturnType<Sharp>
   try {
     base = photo
       ? sharp(photo).rotate().resize(W, H, { fit: 'cover', position: 'attention' })
@@ -203,7 +205,7 @@ function injectHead(html: string, tags: string, title: string): string {
   return stripped.replace('</head>', `<title>${esc(title)}</title>\n${tags}\n</head>`)
 }
 
-export default async function handler(req: any, res: any) {
+async function handle(req: any, res: any) {
   const slug = cleanSlug(req.query?.slug)
   const code = String(req.query?.to ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20)
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'www.invytory.com')
@@ -265,4 +267,42 @@ export default async function handler(req: any, res: any) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600')
   res.status(200).send(html)
+}
+
+/** Open /api/invite-share?debug=1 to see whether everything this needs is in place. */
+async function debug(req: any, res: any) {
+  const out: Record<string, unknown> = { supabaseConfigured: !!supabaseConfig() }
+  const slug = cleanSlug(req.query?.slug)
+  if (slug) {
+    try { out.lookup = (await loadInvite(slug)) ?? 'not found (check the slug, and that the invitation is published)' } catch (e) { out.lookup = String(e).slice(0, 200) }
+  }
+  try { await import('sharp'); out.sharp = 'ok' } catch (e) { out.sharp = String(e).slice(0, 200) }
+  try { await import('satori'); out.satori = 'ok' } catch (e) { out.satori = String(e).slice(0, 200) }
+  out.font = (await loadFont('https://www.invytory.com')) ? 'ok' : 'missing'
+  res.setHeader('Content-Type', 'application/json')
+  res.status(200).send(JSON.stringify(out, null, 2))
+}
+
+export default async function handler(req: any, res: any) {
+  if (req.query?.debug) return debug(req, res)
+  try {
+    await handle(req, res)
+  } catch (err) {
+    console.error('[invite-share] failed:', err)
+    if (res.headersSent) return
+    if (req.query?.image) {
+      res.status(500).send('Could not make the picture.')
+      return
+    }
+    // Whatever goes wrong, the invitation itself must still open.
+    try {
+      const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'www.invytory.com')
+      const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0]
+      const page = await fetch(`${proto}://${host}/index.html`)
+      res.setHeader('Content-Type', 'text/html; charset=utf-8')
+      res.status(200).send(await page.text())
+    } catch {
+      res.status(500).send('Could not load the page.')
+    }
+  }
 }

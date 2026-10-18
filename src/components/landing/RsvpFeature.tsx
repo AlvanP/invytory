@@ -38,7 +38,8 @@ export function RsvpFeature() {
   const pct = (n: number) => `${(n / TOTAL) * 100}%`
 
   return (
-    <section id="rsvp" className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+    <section id="rsvp" className="bg-gradient-to-b from-ivory via-mint/10 to-ivory">
+     <div className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
       <div className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
           <h2 className="max-w-md font-brand text-4xl leading-tight text-wine sm:text-5xl">Know how many are coming before you plan the seats</h2>
@@ -47,19 +48,19 @@ export function RsvpFeature() {
           </p>
           <ul className="mt-8 flex max-w-md flex-col gap-4 text-base text-ink">
             <li className="flex gap-3">
-              <ListChecks className="mt-1 size-5 shrink-0 text-gold" strokeWidth={1.5} />
+              <ListChecks className="mt-1 size-5 shrink-0 text-mint" strokeWidth={1.5} />
               <span>Yes, no and waiting, at a glance.</span>
             </li>
             <li className="flex gap-3">
-              <Check className="mt-1 size-5 shrink-0 text-gold" strokeWidth={1.5} />
+              <Check className="mt-1 size-5 shrink-0 text-teal" strokeWidth={1.5} />
               <span>Guests say how many people they are bringing, so your number is realistic.</span>
             </li>
             <li className="flex gap-3">
-              <FileSpreadsheet className="mt-1 size-5 shrink-0 text-gold" strokeWidth={1.5} />
+              <FileSpreadsheet className="mt-1 size-5 shrink-0 text-amber" strokeWidth={1.5} />
               <span>Download the guest list as a spreadsheet for the caterer and the venue.</span>
             </li>
             <li className="flex gap-3">
-              <MessageCircle className="mt-1 size-5 shrink-0 text-gold" strokeWidth={1.5} />
+              <MessageCircle className="mt-1 size-5 shrink-0 text-rose" strokeWidth={1.5} />
               <span>Guests can leave a message on your wall when they reply.</span>
             </li>
           </ul>
@@ -73,12 +74,12 @@ export function RsvpFeature() {
           </p>
 
           <div className="mt-6 flex h-3 overflow-hidden rounded-full bg-ivory-deep" role="img" aria-label={`${YES} yes, ${NO} no, ${TOTAL - YES - NO} waiting`}>
-            <div className="h-full bg-wine transition-all duration-[1400ms] ease-out" style={{ width: inView ? pct(YES) : '0%' }} />
-            <div className="h-full bg-gold/50 transition-all delay-300 duration-[1400ms] ease-out" style={{ width: inView ? pct(NO) : '0%' }} />
+            <div className="h-full bg-mint transition-all duration-[1400ms] ease-out" style={{ width: inView ? pct(YES) : '0%' }} />
+            <div className="h-full bg-coral/70 transition-all delay-300 duration-[1400ms] ease-out" style={{ width: inView ? pct(NO) : '0%' }} />
           </div>
           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-soft">
-            <span className="flex items-center gap-2"><i className="size-2.5 rounded-full bg-wine" /> {YES} yes</span>
-            <span className="flex items-center gap-2"><i className="size-2.5 rounded-full bg-gold/50" /> {NO} no</span>
+            <span className="flex items-center gap-2"><i className="size-2.5 rounded-full bg-mint" /> {YES} yes</span>
+            <span className="flex items-center gap-2"><i className="size-2.5 rounded-full bg-coral/70" /> {NO} no</span>
             <span className="flex items-center gap-2"><i className="size-2.5 rounded-full bg-ivory-deep ring-1 ring-wine/20" /> {TOTAL - YES - NO} waiting</span>
           </div>
 
@@ -87,7 +88,7 @@ export function RsvpFeature() {
               <li key={r.name} className="flex items-center justify-between py-3 text-sm">
                 <span className="text-ink">{r.name}</span>
                 <span className="text-ink-soft">
-                  <span className={r.answer === 'Yes' ? 'font-medium text-wine' : ''}>{r.answer}</span>
+                  <span className={r.answer === 'Yes' ? 'font-medium text-mint' : 'text-coral'}>{r.answer}</span>
                   {r.guests && <span> &middot; {r.guests}</span>}
                 </span>
               </li>
@@ -95,6 +96,7 @@ export function RsvpFeature() {
           </ul>
         </div>
       </div>
+     </div>
     </section>
   )
 }

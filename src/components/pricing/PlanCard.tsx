@@ -25,11 +25,12 @@ export function PlanCard({
   return (
     <div
       className={cn(
-        'flex flex-col gap-6 rounded-md border bg-white p-8',
-        highlight ? 'border-gold shadow-lift' : 'border-ink/10',
+        'relative flex flex-col gap-6 overflow-hidden rounded-md border bg-white p-8 transition-transform duration-300 hover:-translate-y-1',
+        highlight ? 'border-amber shadow-lift' : 'border-ink/10',
         disabled && 'opacity-60'
       )}
     >
+      <div aria-hidden className={cn('absolute inset-x-0 top-0 h-1', highlight ? 'bg-gradient-to-r from-rose via-amber to-teal' : 'bg-gradient-to-r from-sky/70 to-teal/70')} />
       <div>
         <div className="flex items-center gap-2">
           <h3 className="font-display text-2xl text-ink">{plan.name}</h3>

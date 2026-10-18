@@ -11,6 +11,8 @@ const reviews = [
   { quote: 'Dignified and quiet, which is exactly what our family needed. Everyone knew where to be and when.', who: 'The Adeyemi family', role: 'Memorial service, Ibadan' },
 ]
 
+const BORDER = ['#4A90C2', '#F2A93B', '#1F8A8A', '#7D4FA3']
+
 export function Reviews() {
   const [first, ...rest] = reviews
   return (
@@ -19,7 +21,8 @@ export function Reviews() {
       <div className="mt-12 grid gap-x-12 gap-y-12 lg:grid-cols-12">
         <RevealOnScroll className="lg:col-span-7">
           <figure>
-            <blockquote className="font-brand text-3xl leading-snug text-wine sm:text-4xl">“{first.quote}”</blockquote>
+            <span aria-hidden className="block font-brand text-8xl leading-none text-coral/70">&ldquo;</span>
+            <blockquote className="-mt-6 font-brand text-3xl leading-snug text-wine sm:text-4xl">{first.quote}</blockquote>
             <figcaption className="mt-5 text-sm text-ink-soft">
               <span className="font-medium text-ink">{first.who}</span>, {first.role}
             </figcaption>
@@ -28,7 +31,7 @@ export function Reviews() {
         <div className="grid gap-10 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1">
           {rest.slice(0, 3).map((r, i) => (
             <RevealOnScroll key={r.who} delayMs={i * 100}>
-              <figure className="border-l-2 border-wine/20 pl-5">
+              <figure className="border-l-4 pl-5" style={{ borderColor: BORDER[i % BORDER.length] }}>
                 <blockquote className="text-base leading-relaxed text-ink">“{r.quote}”</blockquote>
                 <figcaption className="mt-3 text-sm text-ink-soft">
                   <span className="font-medium text-ink">{r.who}</span>, {r.role}

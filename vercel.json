@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/invite-share.ts": { "includeFiles": "api/_assets/**", "maxDuration": 20 }
+    "api/invite-share.ts": { "includeFiles": "api/_assets/**" }
   },
   "rewrites": [
     { "source": "/invitation/:slug", "destination": "/api/invite-share?slug=:slug" },

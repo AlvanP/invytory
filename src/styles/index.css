@@ -21,6 +21,15 @@
   --color-wine-soft: #7A3A45;
   --color-sage: #6B7561;
   --color-success: #4C7A5A;
+
+  /* Accent colours: used sparingly to bring warmth and life to the marketing pages */
+  --color-rose: #D9577A;
+  --color-coral: #E5694F;
+  --color-amber: #F2A93B;
+  --color-mint: #3F9C7C;
+  --color-teal: #1F8A8A;
+  --color-sky: #4A90C2;
+  --color-plum: #7D4FA3;
   --color-danger: #A3423A;
 
   /* Typography */
@@ -94,6 +103,21 @@ body {
   border-radius: 999px;
 }
 
+
+/* Marketing-page motion: slow, soft and easy to ignore */
+@keyframes drift-a { 0%, 100% { transform: translate(0, 0) scale(1) } 50% { transform: translate(7%, 9%) scale(1.12) } }
+@keyframes drift-b { 0%, 100% { transform: translate(0, 0) scale(1) } 50% { transform: translate(-9%, 6%) scale(1.08) } }
+@keyframes bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-9px) } }
+@keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+@keyframes sheen { from { transform: translateX(-120%) skewX(-18deg) } to { transform: translateX(260%) skewX(-18deg) } }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.6) } to { opacity: 1; transform: scale(1) } }
+.drift-a { animation: drift-a 16s ease-in-out infinite }
+.drift-b { animation: drift-b 20s ease-in-out infinite }
+.bob { animation: bob 5.5s ease-in-out infinite }
+.marquee-track { animation: marquee 38s linear infinite }
+.btn-sheen { position: relative; overflow: hidden }
+.btn-sheen::after { content: ''; position: absolute; inset: 0 auto 0 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); transform: translateX(-120%) skewX(-18deg); pointer-events: none }
+.btn-sheen:hover::after { animation: sheen 0.9s ease }
 
 /* The brand font: soft, wide-set and gentle. SOFT rounds Fraunces' corners; WONK off keeps the letters calm. */
 .font-brand {

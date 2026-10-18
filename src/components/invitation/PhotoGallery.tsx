@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import type { GalleryStyle } from '@/templates/galleryStyles'
 import { cn } from '@/utils/cn'
+import { PhotoSlider } from './PhotoSlider'
 
 export interface GalleryPhoto {
   id: string
@@ -391,6 +392,83 @@ function Mosaic({ photos }: { photos: GalleryPhoto[] }) {
   )
 }
 
+/* ───────── 5. Frames ─────────
+ * A column of framed photos. Each one rises into place as you scroll, and the next stacks below it,
+ * leaning the other way and tucked slightly under the one before. */
+function Frames({ photos }: { photos: GalleryPhoto[] }) {
+  return (
+    <div className="mx-auto flex max-w-sm flex-col">
+      {photos.map((p, i) => (
+        <FrameItem key={p.id} photo={p} index={i} />
+      ))}
+    </div>
+  )
+}
+
+function FrameItem({ photo, index }: { photo: GalleryPhoto; index: number }) {
+  const [ref, seen] = useOnScreen<HTMLDivElement>()
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    if (seen) setShown(true)
+  }, [seen])
+  const right = index % 2 === 1
+  return (
+    <div
+      ref={ref}
+      className={cn('relative w-[88%]', right ? 'self-end' : 'self-start', index > 0 && '-mt-6')}
+      style={{
+        zIndex: index + 1,
+        opacity: shown ? 1 : 0,
+        transform: shown ? `rotate(${right ? 1.6 : -1.6}deg)` : `translateY(60px) rotate(${right ? 5 : -5}deg)`,
+        transition: `opacity 900ms ease, transform 1100ms ${EASE}`,
+      }}
+    >
+      <div className="bg-white p-3 shadow-[0_22px_40px_-22px_rgba(0,0,0,0.55)]">
+        <div className="border border-[color:var(--iv-main)] p-1.5">
+          <img src={photo.url} alt={photo.caption ?? ''} loading="lazy" draggable={false} className="aspect-[4/5] w-full object-cover" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ───────── 6. Cascade ─────────
+ * Prints dropped one on top of another down the page. Each lands with a little bounce as it comes into view. */
+function Cascade({ photos }: { photos: GalleryPhoto[] }) {
+  return (
+    <div className="mx-auto flex max-w-xs flex-col items-center pb-6">
+      {photos.map((p, i) => (
+        <CascadeItem key={p.id} photo={p} index={i} />
+      ))}
+    </div>
+  )
+}
+
+function CascadeItem({ photo, index }: { photo: GalleryPhoto; index: number }) {
+  const [ref, seen] = useOnScreen<HTMLDivElement>()
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    if (seen) setShown(true)
+  }, [seen])
+  const tilt = [-3, 2.5, -2, 3][index % 4]
+  return (
+    <div
+      ref={ref}
+      className={cn('relative w-[84%]', index > 0 && '-mt-16')}
+      style={{
+        zIndex: index + 1,
+        opacity: shown ? 1 : 0,
+        transform: shown ? `rotate(${tilt}deg) scale(1)` : `rotate(${tilt * 3}deg) scale(1.18) translateY(-30px)`,
+        transition: `opacity 500ms ease, transform 900ms cubic-bezier(0.34, 1.4, 0.5, 1)`,
+      }}
+    >
+      <figure className="bg-white p-2.5 pb-10 shadow-[0_22px_40px_-20px_rgba(0,0,0,0.55)]">
+        <img src={photo.url} alt={photo.caption ?? ''} loading="lazy" draggable={false} className="aspect-[4/5] w-full object-cover" />
+      </figure>
+    </div>
+  )
+}
+
 /** The photo gallery of an invitation, in the style its template uses. */
 export function PhotoGallery({ photos, style }: { photos: GalleryPhoto[]; style: GalleryStyle }) {
   if (photos.length === 0) return null
@@ -404,5 +482,8 @@ export function PhotoGallery({ photos, style }: { photos: GalleryPhoto[]; style:
   if (style === 'spotlight') return <Spotlight photos={photos} />
   if (style === 'deck') return <Deck photos={photos} />
   if (style === 'mosaic') return <Mosaic photos={photos} />
+  if (style === 'frames') return <Frames photos={photos} />
+  if (style === 'cascade') return <Cascade photos={photos} />
+  if (style === 'slider') return <PhotoSlider photos={photos} />
   return <ZoomSlider photos={photos} />
 }

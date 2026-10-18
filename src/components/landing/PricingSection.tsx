@@ -5,7 +5,7 @@ import { PlanCard } from '@/components/pricing/PlanCard'
 export function PricingSection() {
   const navigate = useNavigate()
   return (
-    <section id="pricing" className="bg-ivory-deep">
+    <section id="pricing" className="bg-gradient-to-b from-ivory-deep via-amber/10 to-ivory-deep">
       <div className="mx-auto max-w-4xl px-6 py-20 lg:py-28">
         <div className="text-center">
           <h2 className="font-brand text-4xl text-wine sm:text-5xl">Pay once, per invitation</h2>

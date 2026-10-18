@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Users, Share2, Settings, ScrollText, Pencil } from 'lucide-react'
+import { Eye, Users, Share2, Settings, ScrollText, Pencil, UserCheck, Camera } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { ceremonyDisplayName } from '@/types'
 import { invitationService } from '@/services/invitationService'
@@ -105,6 +105,16 @@ export function DashboardEventsPage() {
                       <Button variant="outline" size="sm" icon={<Share2 className="size-4" />} onClick={() => setShareSlug(wedding.slug)}>
                         Share
                       </Button>
+                      {first && (
+                        <Link to={`/dashboard/events/${first.id}/invitees`}>
+                          <Button variant="outline" size="sm" icon={<UserCheck className="size-4" />}>Special guests</Button>
+                        </Link>
+                      )}
+                      {first && wedding.plan === 'gold' && (
+                        <Link to={`/dashboard/events/${first.id}/album`}>
+                          <Button variant="outline" size="sm" icon={<Camera className="size-4" />}>Photo album</Button>
+                        </Link>
+                      )}
                     </div>
                   </div>
 
@@ -167,6 +177,9 @@ export function DashboardEventsPage() {
                     <Button variant="outline" size="sm" icon={<Share2 className="size-4" />} onClick={() => setShareSlug(inv.slug)}>
                       Share
                     </Button>
+                    <Link to={`/dashboard/events/${inv.id}/invitees`}>
+                      <Button variant="outline" size="sm" icon={<UserCheck className="size-4" />}>Special guests</Button>
+                    </Link>
                     <Link to={`/dashboard/events/${inv.id}/settings`}>
                       <Button variant="ghost" size="sm" icon={<Settings className="size-4" />}>Settings</Button>
                     </Link>

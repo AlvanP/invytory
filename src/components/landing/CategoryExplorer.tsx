@@ -4,6 +4,8 @@ import { PhoneMockup } from '@/components/brand/PhoneMockup'
 import { templates, templatesForCategory } from '@/data/templates'
 import { eventCopy, EVENT_KINDS, type EventKind } from '@/templates/events'
 import { cn } from '@/utils/cn'
+import { ACCENTS, tint } from '@/utils/accents'
+import { RevealOnScroll } from '@/components/animation/RevealOnScroll'
 
 /** Which designs to show first for each event. */
 const FEATURED: Record<EventKind, string[]> = {
@@ -36,10 +38,12 @@ export function CategoryExplorer() {
   }
 
   return (
-    <section id="events" className="bg-ivory-deep">
+    <section id="events" className="transition-colors duration-700" style={{ backgroundColor: tint(ACCENTS[kind], 16) }}>
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:py-28">
         <div>
-          <h2 className="max-w-lg font-brand text-4xl leading-tight text-wine sm:text-5xl">One place for every occasion worth inviting people to</h2>
+          <RevealOnScroll>
+            <h2 className="max-w-lg font-brand text-4xl leading-tight text-wine sm:text-5xl">One place for every occasion worth inviting people to</h2>
+          </RevealOnScroll>
 
           <ul className="mt-10 border-t border-wine/15">
             {EVENT_KINDS.map((k) => {
@@ -54,10 +58,14 @@ export function CategoryExplorer() {
                   >
                     <span
                       className={cn(
-                        'font-brand text-3xl transition-all duration-300 sm:text-4xl',
+                        'flex items-center gap-3 font-brand text-3xl transition-all duration-300 sm:text-4xl',
                         active ? 'translate-x-2 text-wine' : 'text-wine/45 group-hover:text-wine/80'
                       )}
                     >
+                      <i
+                        className={cn('inline-block rounded-full transition-all duration-500', active ? 'size-3.5' : 'size-2.5 opacity-60')}
+                        style={{ backgroundColor: ACCENTS[k] }}
+                      />
                       {eventCopy[k].plural}
                     </span>
                     <span className={cn('hidden max-w-[17rem] text-sm leading-snug text-ink-soft transition-opacity duration-300 sm:block', active ? 'opacity-100' : 'opacity-0')}>
@@ -81,8 +89,9 @@ export function CategoryExplorer() {
                   onClick={() => setTemplateId(t.id)}
                   className={cn(
                     'rounded-full border px-4 py-1.5 text-sm transition-colors',
-                    t.id === templateId ? 'border-wine bg-wine text-ivory' : 'border-wine/25 text-wine hover:border-wine'
+                    t.id === templateId ? 'border-transparent text-white' : 'border-wine/25 text-wine hover:border-wine'
                   )}
+                  style={t.id === templateId ? { backgroundColor: ACCENTS[kind] } : undefined}
                 >
                   {t.name}
                 </button>
@@ -94,8 +103,11 @@ export function CategoryExplorer() {
           </div>
         </div>
 
-        <div className="mx-auto w-[15.5rem] sm:w-[17rem]">
-          <PhoneMockup key={templateId} templateId={templateId} />
+        <div className="relative mx-auto w-[15.5rem] sm:w-[17rem]">
+          <div aria-hidden className="drift-a absolute -inset-10 rounded-full opacity-40 blur-3xl transition-colors duration-700" style={{ backgroundColor: ACCENTS[kind] }} />
+          <div className="relative">
+            <PhoneMockup key={templateId} templateId={templateId} />
+          </div>
         </div>
       </div>
     </section>

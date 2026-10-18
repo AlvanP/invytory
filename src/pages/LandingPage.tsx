@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Hero } from '@/components/landing/Hero'
+import { Marquee } from '@/components/landing/Marquee'
 import { CategoryExplorer } from '@/components/landing/CategoryExplorer'
 import { HowItWorks } from '@/components/landing/HowItWorks'
 import { GuestAlbum } from '@/components/landing/GuestAlbum'
@@ -21,6 +22,7 @@ export function LandingPage() {
   return (
     <div>
       <Hero />
+      <Marquee />
       <CategoryExplorer />
       <HowItWorks />
       <GuestAlbum />
