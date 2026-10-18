@@ -4,7 +4,7 @@ import type { InvitationTemplate } from '@/types'
 import { templateService } from '@/services/templateService'
 import { getTemplateById } from '@/data/templates'
 import { useWizard } from '@/hooks/useWizard'
-import { TemplatePreviewPlaceholder } from '@/components/ui/Placeholder'
+import { PhoneMockup } from '@/components/brand/PhoneMockup'
 import { Badge } from '@/components/ui/Badge'
 import { TemplateCardSkeleton } from '@/components/ui/Skeleton'
 import { CollectionTabs, type CollectionFilter } from '@/components/templates/CollectionTabs'
@@ -94,7 +94,9 @@ export function StepTemplate() {
           selected ? 'ring-2 ring-gold' : 'ring-1 ring-ink/10 hover:ring-ink/30'
         )}
       >
-        <TemplatePreviewPlaceholder tone={t.previewTone} templateId={t.id} />
+        <div className="rounded-[1.6rem] bg-ivory-deep px-4 pb-4 pt-5">
+          <PhoneMockup templateId={t.id} auto={false} className="mx-auto w-full max-w-[9.5rem]" />
+        </div>
         <div className="flex items-center justify-between px-1 pb-1">
           <span className="text-sm font-medium text-ink">{t.name}</span>
           {t.isPremium && <Badge tone="premium">Premium</Badge>}

@@ -69,8 +69,8 @@ export const SECTION_INFO: Record<SectionId, SectionInfo> = {
     from: 'Floating photo',
   },
   gallery: {
-    label: 'Photo slider',
-    shows: 'Up to four photos that guests swipe through to the left',
+    label: 'Photo gallery',
+    shows: 'Up to four photos, shown in a moving or layered style that changes with the design',
     from: 'Slider photos',
   },
   rsvp: {

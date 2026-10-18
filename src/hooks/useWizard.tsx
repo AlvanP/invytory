@@ -151,9 +151,10 @@ export function useWizard() {
 
 /** Tells the wizard an upload is running while `busy` is true. */
 export function useReportUploading(id: string, busy: boolean) {
-  const { reportUploading } = useWizard()
+  // Optional: outside the create wizard (for example the Edit page) there is nothing to tell.
+  const report = useContext(WizardContext)?.reportUploading
   useEffect(() => {
-    reportUploading(id, busy)
-    return () => reportUploading(id, false)
-  }, [id, busy, reportUploading])
+    report?.(id, busy)
+    return () => report?.(id, false)
+  }, [id, busy, report])
 }

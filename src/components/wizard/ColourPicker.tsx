@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { Check } from 'lucide-react'
 import { COLOUR_SWATCHES, MAX_COLOURS, buildTheme } from '@/utils/colorTheme'
 import { cn } from '@/utils/cn'
@@ -21,6 +22,25 @@ export function ColourPicker({
   const current = values.map((v) => v.toUpperCase())
   const full = current.length >= MAX_COLOURS
   const theme = current[0] ? buildTheme(current[0]) : null
+
+  // The browser's colour picker reports every movement while you drag. Only the final choice
+  // (when you let go and close the picker) is added, so sliding around never adds colours.
+  const custom = useRef<HTMLInputElement | null>(null)
+  const [pickerKey, setPickerKey] = useState(0)
+  const latest = useRef(toggle)
+  useEffect(() => {
+    latest.current = toggle
+  })
+  useEffect(() => {
+    const node = custom.current
+    if (!node) return
+    const done = () => {
+      latest.current(node.value)
+      setPickerKey((k) => k + 1)
+    }
+    node.addEventListener('change', done)
+    return () => node.removeEventListener('change', done)
+  }, [pickerKey])
 
   function toggle(hex: string) {
     const upper = hex.toUpperCase()
@@ -69,11 +89,12 @@ export function ColourPicker({
         >
           <span aria-hidden>+</span>
           <input
+            key={pickerKey}
+            ref={custom}
             type="color"
             aria-label="Add any colour"
             disabled={full}
-            value="#B08D57"
-            onChange={(e) => toggle(e.target.value)}
+            defaultValue="#B08D57"
             className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-default"
           />
         </label>
