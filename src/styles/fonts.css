@@ -1,3 +1,8 @@
+/* Fraunces: the free stand-in for Sherborne (see public/fonts/README.md). Self-hosted from npm, so no
+   outside request is needed. */
+@import '@fontsource-variable/fraunces/full.css';
+@import '@fontsource-variable/fraunces/full-italic.css';
+
 /* Two display families so templates can read as genuinely different
    typographic personalities, not just palette swaps. */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Manrope:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Great+Vibes&family=Pinyon+Script&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
@@ -11,5 +16,16 @@
        url('/fonts/Restonasi.woff2') format('woff2'),
        url('/fonts/Restonasi.otf') format('opentype'),
        url('/fonts/Restonasi.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* Sherborne: the brand font. It is a paid font, so it is not bundled. Put your licensed copy in
+   public/fonts/ (see public/fonts/README.md). Without it, Fraunces is used automatically. */
+@font-face {
+  font-family: 'Sherborne';
+  src: local('Sherborne'),
+       url('/fonts/Sherborne.woff2') format('woff2'),
+       url('/fonts/Sherborne.otf') format('opentype'),
+       url('/fonts/Sherborne.ttf') format('truetype');
   font-display: swap;
 }

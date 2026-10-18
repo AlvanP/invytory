@@ -17,6 +17,8 @@ export function ArrivalScene({
   brideName,
   groomName,
   onTap,
+  autoOpenMs,
+  onRevealed,
   children,
 }: {
   tone: CoverTone
@@ -25,10 +27,18 @@ export function ArrivalScene({
   groomName: string
   /** Passed to the entrance; runs inside the guest's tap (used to start music). */
   onTap?: () => void
+  /** Opens the entrance by itself after this many ms (used by the moving samples). */
+  autoOpenMs?: number
+  /** Called once the invitation is showing. */
+  onRevealed?: () => void
   children: React.ReactNode
 }) {
   const [exiting, setExiting] = useState(false)
   const [revealed, setRevealed] = useState(false)
+
+  useEffect(() => {
+    if (revealed) onRevealed?.()
+  }, [revealed, onRevealed])
 
   useEffect(() => {
     document.body.style.overflow = revealed ? '' : 'hidden'
@@ -56,7 +66,7 @@ export function ArrivalScene({
             exiting && 'pointer-events-none opacity-0'
           )}
         >
-          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} />
+          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} autoOpenMs={autoOpenMs} />
         </div>
       )}
 

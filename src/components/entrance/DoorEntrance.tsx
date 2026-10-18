@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/utils/cn'
 import type { CoverTone } from '@/templates/TemplateCover'
 import type { EntranceStyle } from '@/templates/entranceConfig'
@@ -48,6 +48,7 @@ function LegacyEntrance({
   groomName,
   onOpen,
   onTap,
+  autoOpenMs,
 }: {
   tone: CoverTone
   /** When this design has its own artwork files, they replace the placeholders. */
@@ -60,6 +61,8 @@ function LegacyEntrance({
   /** Runs immediately inside the guest's tap, before the opening animation.
    * Browsers only allow sound to start from inside a tap, so music starts here. */
   onTap?: () => void
+  /** Opens by itself after this many ms (used by the moving samples). */
+  autoOpenMs?: number
 }) {
   const [triggered, setTriggered] = useState(false)
   const baseConfig = entranceConfig[tone]
@@ -96,6 +99,13 @@ function LegacyEntrance({
     // layered styles take longer because they swing and fold in 3D.
     setTimeout(onOpen, layered ? 2500 : 950)
   }
+
+  useEffect(() => {
+    if (!autoOpenMs) return
+    const t = window.setTimeout(handleOpen, autoOpenMs)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenMs])
 
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-ink">
@@ -172,7 +182,7 @@ export function DoorEntrance(props: Parameters<typeof LegacyEntrance>[0]) {
   const design = props.templateId ? entranceDesigns[props.templateId] : undefined
   const hasArt = Object.values(getTemplateArt(props.templateId).entrance).some(Boolean)
   if (design && !hasArt && !props.forceStyle) {
-    return <SceneEntrance design={design} templateId={props.templateId} brideName={props.brideName} groomName={props.groomName} onOpen={props.onOpen} onTap={props.onTap} />
+    return <SceneEntrance design={design} templateId={props.templateId} brideName={props.brideName} groomName={props.groomName} onOpen={props.onOpen} onTap={props.onTap} autoOpenMs={props.autoOpenMs} />
   }
   return <LegacyEntrance {...props} />
 }

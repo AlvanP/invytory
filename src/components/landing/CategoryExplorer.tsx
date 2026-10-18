@@ -50,7 +50,6 @@ export function CategoryExplorer() {
                     type="button"
                     aria-pressed={active}
                     onClick={() => choose(k)}
-                    onMouseEnter={() => !active && window.matchMedia('(hover: hover)').matches && choose(k)}
                     className="group flex w-full items-baseline justify-between gap-4 py-4 text-left"
                   >
                     <span

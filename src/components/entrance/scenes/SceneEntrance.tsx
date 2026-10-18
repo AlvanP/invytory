@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/utils/cn'
 import { getTemplateById } from '@/data/templates'
 import type { EntranceDesign } from './types'
@@ -21,6 +21,7 @@ export function SceneEntrance({
   groomName,
   onOpen,
   onTap,
+  autoOpenMs,
 }: {
   design: EntranceDesign
   templateId?: string
@@ -28,6 +29,7 @@ export function SceneEntrance({
   groomName: string
   onOpen: () => void
   onTap?: () => void
+  autoOpenMs?: number
 }) {
   const [open, setOpen] = useState(false)
   const Scene = SCENES[design.scene]
@@ -47,6 +49,13 @@ export function SceneEntrance({
     }
     window.setTimeout(onOpen, design.ms)
   }
+
+  useEffect(() => {
+    if (!autoOpenMs) return
+    const t = window.setTimeout(go, autoOpenMs)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenMs])
 
   const shadow = light ? '0 2px 14px rgba(0,0,0,.55)' : '0 1px 10px rgba(255,255,255,.7)'
   return (

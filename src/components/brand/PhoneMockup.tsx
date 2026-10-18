@@ -53,7 +53,7 @@ export function PhoneMockup({
     }
   }, [])
 
-  const query = [auto && !interactive ? 'auto=1' : '', scratch ? 'scratch=1' : ''].filter(Boolean).join('&')
+  const query = [auto && !interactive ? 'auto=1' : '', auto || interactive ? 'entrance=1' : '', scratch ? 'scratch=1' : ''].filter(Boolean).join('&')
   const src = `/sample/${templateId}${query ? `?${query}` : ''}`
   const ready = loadedSrc === src
 

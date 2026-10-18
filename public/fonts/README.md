@@ -13,3 +13,11 @@ commercial licence before using it on a business website.
 3. Push to GitHub as usual. The invitations pick it up on their own, no code change.
 
 Until the file is here, a free lookalike script (Pinyon Script) is shown instead.
+
+
+## Sherborne (the brand font on the homepage and logo)
+
+Sherborne is a paid font (G-Type, sold on MyFonts). Buy a web licence, then put the file in THIS folder
+named exactly one of `Sherborne.woff2` (best), `Sherborne.otf` or `Sherborne.ttf`. Push to GitHub as usual.
+The site uses it automatically, no code change. Until then the free font Fraunces is shown, which is
+similarly soft and wide-set.

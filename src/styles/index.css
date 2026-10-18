@@ -26,7 +26,7 @@
   /* Typography */
   --font-display: "Cormorant Garamond", "Georgia", serif;
   --font-display-alt: "Playfair Display", "Georgia", serif;
-  --font-brand: "Instrument Serif", "Cormorant Garamond", Georgia, serif;
+  --font-brand: "Sherborne", "Fraunces Variable", Georgia, serif;
   --font-body: "Manrope", "Helvetica Neue", sans-serif;
 
   /* Radius — kept small and consistent; this is a luxury brand, not a bubble-card SaaS */
@@ -92,4 +92,11 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--color-linen);
   border-radius: 999px;
+}
+
+
+/* The brand font: soft, wide-set and gentle. SOFT rounds Fraunces' corners; WONK off keeps the letters calm. */
+.font-brand {
+  font-variation-settings: 'SOFT' 70, 'WONK' 0;
+  letter-spacing: -0.012em;
 }
