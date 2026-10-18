@@ -108,6 +108,18 @@ export function InvitationPreviewPage() {
 
   const expiresAt = lookup.status === 'wedding' ? lookup.wedding.expiresAt : lookup.invitation.expiresAt
   const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
+  const isSuspended = (lookup.status === 'wedding' ? lookup.wedding.status : lookup.invitation.status) === 'archived'
+
+  if (isSuspended) {
+    return (
+      <div className="mx-auto max-w-md px-6 py-24">
+        <ErrorState
+          title="This invitation is not available right now."
+          description="Please reach out to the host directly for details."
+        />
+      </div>
+    )
+  }
 
   if (isExpired) {
     return (

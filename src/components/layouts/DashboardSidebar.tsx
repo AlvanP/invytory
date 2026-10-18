@@ -1,18 +1,25 @@
 import { Logo } from '@/components/brand/Logo'
 import { NavLink, useParams, useNavigate } from 'react-router-dom'
-import { LayoutGrid, ScrollText, Users, Settings, PlusCircle, LogOut } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ShieldCheck, LayoutGrid, ScrollText, Users, Settings, PlusCircle, LogOut } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuth } from '@/hooks/useAuth'
+import { adminService } from '@/services/adminService'
 import { authService } from '@/services/authService'
 
 export function DashboardSidebar() {
   const { eventId } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    adminService.isAdmin().then(setIsAdmin)
+  }, [])
 
   const links = [
     { to: '/dashboard', label: 'Overview', icon: LayoutGrid, end: true },
     { to: '/dashboard/events', label: 'My Invitations', icon: ScrollText },
+    ...(isAdmin ? [{ to: '/admin', label: 'Platform admin', icon: ShieldCheck }] : []),
     ...(eventId
       ? [
           { to: `/dashboard/events/${eventId}/guests`, label: 'Guests', icon: Users },

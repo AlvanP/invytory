@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { PublicLayout } from '@/components/layouts/PublicLayout'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { AdminRoute } from '@/components/auth/AdminRoute'
 import { LandingPage } from '@/pages/LandingPage'
 import { TemplateGalleryPage } from '@/pages/TemplateGalleryPage'
 import { TemplatePreviewPage } from '@/pages/TemplatePreviewPage'
@@ -15,6 +16,7 @@ const EntranceLabPage = lazy(() => import('@/pages/EntranceLabPage').then((m) =>
 const SamplePage = lazy(() => import('@/pages/SamplePage').then((m) => ({ default: m.SamplePage })))
 const AlbumPage = lazy(() => import('@/pages/AlbumPage').then((m) => ({ default: m.AlbumPage })))
 const DashboardAlbumPage = lazy(() => import('@/pages/dashboard/DashboardAlbumPage').then((m) => ({ default: m.DashboardAlbumPage })))
+const AdminPage = lazy(() => import('@/pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
 const SignInPage = lazy(() => import('@/pages/SignInPage').then((m) => ({ default: m.SignInPage })))
 const PublishSuccessPage = lazy(() => import('@/pages/PublishSuccessPage').then((m) => ({ default: m.PublishSuccessPage })))
 const CreateLayout = lazy(() => import('@/pages/create/CreateLayout').then((m) => ({ default: m.CreateLayout })))
@@ -72,6 +74,10 @@ function App() {
           <Route path="events/:eventId/album" element={<DashboardAlbumPage />} />
           <Route path="events/:eventId/settings" element={<DashboardSettingsPage />} />
         </Route>
+      </Route>
+
+      <Route path="/admin" element={<AdminRoute />}>
+        <Route index element={<AdminPage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
