@@ -55,8 +55,8 @@ function describeUploadError(err: unknown): string {
       : String(err)
   const lower = raw.toLowerCase()
 
-  if (lower.includes('failed to fetch') || lower.includes('network')) {
-    return 'The connection dropped during upload. Check your internet and try again.'
+  if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('load failed') || lower.includes('timed out') || lower.includes('aborted') || lower.includes('connection')) {
+    return 'The connection dropped during upload. Stay on this page, check your internet and try again.'
   }
   if (lower.includes('row-level security') || lower.includes('unauthorized') || lower.includes('not authorized')) {
     return `Storage refused the upload (permissions). Details: ${raw}`
@@ -89,11 +89,20 @@ export const storageService = {
       : (file.name.split('.').pop() || 'jpg').toLowerCase()
     const fileName = `${folder}/${crypto.randomUUID()}.${ext}`
 
-    const { error } = await supabase.storage.from(BUCKET).upload(fileName, body, {
-      cacheControl: '3600',
-      upsert: false,
-      contentType,
-    })
+    let error: { message?: string } | null = null
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const result = await supabase.storage.from(BUCKET).upload(fileName, body, {
+        cacheControl: '3600',
+        upsert: attempt > 0,
+        contentType,
+      })
+      error = result.error
+      if (!error) break
+      const lower = String(error.message ?? '').toLowerCase()
+      const looksLikeNetwork = lower.includes('load failed') || lower.includes('failed to fetch') || lower.includes('network')
+      if (!looksLikeNetwork) break
+      await new Promise((r) => window.setTimeout(r, 1000 * (attempt + 1)))
+    }
     if (error) {
       // Kept in the browser console so it can be copied when reporting a bug.
       console.error('[storage] upload failed:', error)

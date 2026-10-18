@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useWizard } from '@/hooks/useWizard'
+import { useWizard, useReportUploading } from '@/hooks/useWizard'
 import { storageService } from '@/services/storageService'
 import type { CeremonyDraft } from '@/types'
 import { ceremonyDisplayName, emptyGallery, setGallerySlot, FEATURE_SLOT_ID } from '@/types'
@@ -27,6 +27,7 @@ export function StepPhotos() {
   const gallery = active.galleryImages ?? emptyGallery()
   const copySources = draft.ceremonies.filter((c) => c.id !== active.id && hasPhotos(c))
   const busy = uploadingKey !== null
+  useReportUploading('photos', busy)
   const skipped = !!noPhotos[active.id]
 
   function setSkipped(on: boolean) {

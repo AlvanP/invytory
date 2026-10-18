@@ -9,6 +9,7 @@ import {
   formatDuration,
   formatMusicMegabytes,
 } from '@/utils/musicLimits'
+import { useReportUploading } from '@/hooks/useWizard'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/utils/cn'
@@ -34,6 +35,7 @@ export function MusicPicker({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [longNotice, setLongNotice] = useState<string | null>(null)
   const [rightsConfirmed, setRightsConfirmed] = useState(false)
+  useReportUploading('music', uploading)
   const previewRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {

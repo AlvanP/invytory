@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { CeremonyDraft } from '@/types'
 import type { EventKind } from '@/templates/events'
 
@@ -31,6 +31,10 @@ interface WizardContextValue {
   updateCeremony: (id: string, patch: Partial<CeremonyDraft>) => void
   removeCeremony: (id: string) => void
   reset: () => void
+  /** True while any photo or music upload is still running. */
+  uploading: boolean
+  /** Call with true when an upload starts and false when it ends. */
+  reportUploading: (id: string, busy: boolean) => void
 }
 
 function makeCeremonyId(): string {
@@ -45,10 +49,65 @@ function emptyDraft(): WeddingDraft {
   }
 }
 
+const STORAGE_KEY = 'invytory:wizard-draft:v1'
+
+/** Reads the saved draft, if any. Never throws: storage can be blocked. */
+function loadDraft(): WeddingDraft {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return emptyDraft()
+    const parsed = JSON.parse(raw) as Partial<WeddingDraft> | null
+    if (!parsed || !Array.isArray(parsed.ceremonies) || parsed.ceremonies.length === 0) return emptyDraft()
+    return { ...emptyDraft(), ...parsed, ceremonies: parsed.ceremonies } as WeddingDraft
+  } catch {
+    return emptyDraft()
+  }
+}
+
+function saveDraft(draft: WeddingDraft) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
+  } catch {
+    // Storage full or blocked: the wizard still works, it just won't be remembered.
+  }
+}
+
+function clearSavedDraft() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // ignore
+  }
+}
+
 const WizardContext = createContext<WizardContextValue | null>(null)
 
 export function CreateWizardProvider({ children }: { children: ReactNode }) {
-  const [draft, setDraft] = useState<WeddingDraft>(emptyDraft)
+  const [draft, setDraft] = useState<WeddingDraft>(loadDraft)
+  const [busyIds, setBusyIds] = useState<string[]>([])
+
+  // Save on every change, and again the moment the tab is hidden (phones
+  // may close a background tab without warning).
+  useEffect(() => {
+    saveDraft(draft)
+  }, [draft])
+  useEffect(() => {
+    function onHide() {
+      if (document.visibilityState === 'hidden') saveDraft(draftRef.current)
+    }
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', onHide)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', onHide)
+    }
+  }, [])
+  const draftRef = useRef(draft)
+  draftRef.current = draft
+
+  const reportUploading = useCallback((id: string, busy: boolean) => {
+    setBusyIds((cur) => (busy ? (cur.includes(id) ? cur : [...cur, id]) : cur.filter((x) => x !== id)))
+  }, [])
 
   function updateDraft(patch: Partial<WeddingDraft>) {
     setDraft((prev) => ({ ...prev, ...patch }))
@@ -73,11 +132,12 @@ export function CreateWizardProvider({ children }: { children: ReactNode }) {
   }
 
   function reset() {
+    clearSavedDraft()
     setDraft(emptyDraft())
   }
 
   return (
-    <WizardContext.Provider value={{ draft, updateDraft, addCeremony, updateCeremony, removeCeremony, reset }}>
+    <WizardContext.Provider value={{ draft, updateDraft, addCeremony, updateCeremony, removeCeremony, reset, uploading: busyIds.length > 0, reportUploading }}>
       {children}
     </WizardContext.Provider>
   )
@@ -87,4 +147,13 @@ export function useWizard() {
   const ctx = useContext(WizardContext)
   if (!ctx) throw new Error('useWizard must be used within CreateWizardProvider')
   return ctx
+}
+
+/** Tells the wizard an upload is running while `busy` is true. */
+export function useReportUploading(id: string, busy: boolean) {
+  const { reportUploading } = useWizard()
+  useEffect(() => {
+    reportUploading(id, busy)
+    return () => reportUploading(id, false)
+  }, [id, busy, reportUploading])
 }

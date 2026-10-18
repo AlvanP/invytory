@@ -56,8 +56,8 @@ function describeMusicUploadError(err: unknown): string {
       : String(err)
   const lower = raw.toLowerCase()
 
-  if (lower.includes('failed to fetch') || lower.includes('network')) {
-    return 'The connection dropped during upload. Check your internet and try again.'
+  if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('load failed') || lower.includes('timed out') || lower.includes('aborted') || lower.includes('connection')) {
+    return 'The connection dropped during upload. Stay on this page, check your internet and try again.'
   }
   if (lower.includes('exceeded') || lower.includes('too large') || lower.includes('payload')) {
     return `That file is too large. The limit is ${formatMusicMegabytes(MUSIC_MAX_BYTES)}.`
@@ -152,11 +152,30 @@ export const musicService = {
 
     const durationSeconds = await musicService.readDuration(file)
 
-    const { error } = await supabase.storage.from(UPLOAD_BUCKET).upload(path, file, {
-      cacheControl: '31536000',
-      upsert: false,
-      contentType,
-    })
+    // Read the song into memory first. On iPhones a file picked from Files or
+    // iCloud can fail mid-upload with "Load failed" if it is streamed straight
+    // from the picker; an in-memory copy avoids that.
+    let body: Blob = file
+    try {
+      body = new Blob([await file.arrayBuffer()], { type: contentType })
+    } catch {
+      body = file
+    }
+
+    let error: { message?: string } | null = null
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const result = await supabase.storage.from(UPLOAD_BUCKET).upload(path, body, {
+        cacheControl: '31536000',
+        upsert: attempt > 0,
+        contentType,
+      })
+      error = result.error
+      if (!error) break
+      const lower = String(error.message ?? '').toLowerCase()
+      const looksLikeNetwork = lower.includes('load failed') || lower.includes('failed to fetch') || lower.includes('network')
+      if (!looksLikeNetwork) break
+      await new Promise((r) => window.setTimeout(r, 1000 * (attempt + 1)))
+    }
     if (error) {
       console.error('[music] upload failed:', error)
       throw new Error(describeMusicUploadError(error))
