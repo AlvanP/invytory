@@ -4,13 +4,14 @@ import { CalendarClock, Eye, ImageIcon, LogOut, MessageSquare, Search, ShieldChe
 import { adminService, type AdminEvent, type AdminOverview, type AdminUser } from '@/services/adminService'
 import { authService } from '@/services/authService'
 import { pricingPlans } from '@/data/pricingPlans'
+import { AdminMusicTab } from './AdminMusicTab'
 import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { formatDate, formatNumber } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
-type Tab = 'overview' | 'events' | 'users'
+type Tab = 'overview' | 'events' | 'users' | 'music'
 
 const TYPE_LABELS: Record<string, string> = {
   wedding: 'Wedding',
@@ -303,6 +304,7 @@ export function AdminPage() {
     { id: 'overview', label: 'Overview' },
     { id: 'events', label: 'Events' },
     { id: 'users', label: 'People' },
+    { id: 'music', label: 'Music' },
   ]
 
   return (
@@ -335,6 +337,7 @@ export function AdminPage() {
         {tab === 'overview' && <Overview events={events} />}
         {tab === 'events' && <Events events={events} reload={loadEvents} />}
         {tab === 'users' && <UsersTab />}
+        {tab === 'music' && <AdminMusicTab />}
       </main>
     </div>
   )

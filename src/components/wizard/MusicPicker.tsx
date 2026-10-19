@@ -10,6 +10,7 @@ import {
   formatMusicMegabytes,
 } from '@/utils/musicLimits'
 import { useReportUploading } from '@/hooks/useWizard'
+import type { EventKind } from '@/templates/events'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/utils/cn'
@@ -21,9 +22,11 @@ import { cn } from '@/utils/cn'
  */
 export function MusicPicker({
   ceremony,
+  eventKind = 'wedding',
   onChange,
 }: {
   ceremony: CeremonyDraft
+  eventKind?: EventKind
   onChange: (patch: Partial<CeremonyDraft>) => void
 }) {
   const [tracks, setTracks] = useState<MusicTrack[] | null>(null)
@@ -131,8 +134,9 @@ export function MusicPicker({
 
   // Same idea as the template picker: this ceremony's own collection first,
   // then tracks that suit any ceremony, with the rest behind a toggle.
-  const collection = collectionForCeremonyType(ceremony.ceremonyType)
-  const all = tracks ?? []
+  const collection = eventKind === 'wedding' ? collectionForCeremonyType(ceremony.ceremonyType) : null
+  // Only tracks an admin filed under this kind of event.
+  const all = (tracks ?? []).filter((t) => t.category === eventKind)
   const primary = collection ? all.filter((t) => t.collection === collection) : all
   const universal = collection ? all.filter((t) => t.collection === 'universal') : []
   const others =
@@ -235,7 +239,7 @@ export function MusicPicker({
         )}
         {loadError && <p className="text-xs text-danger">{loadError}</p>}
         {previewError && <p className="text-xs text-danger">{previewError}</p>}
-        {tracks && tracks.length === 0 && !loadError && (
+        {tracks && all.length === 0 && !loadError && (
           <p className="text-xs text-ink-soft">
             Our music library is being prepared. You can upload your own song below.
           </p>

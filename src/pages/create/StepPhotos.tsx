@@ -182,7 +182,7 @@ export function StepPhotos() {
         )}
 
         <div className={skipped ? undefined : 'border-t border-ink/10 pt-8'}>
-          <MusicPicker ceremony={active} onChange={(patch) => updateCeremony(active.id, patch)} />
+          <MusicPicker ceremony={active} eventKind={draft.eventType} onChange={(patch) => updateCeremony(active.id, patch)} />
         </div>
       </div>
     </WizardStepShell>

@@ -413,6 +413,7 @@ export function DashboardEditCeremonyPage() {
         <div className="max-w-2xl border-t border-ink/10 pt-8">
           <MusicPicker
             ceremony={pickerCeremony}
+            eventKind={invitation.eventType ?? 'wedding'}
             onChange={(p) =>
               patch({
                 ...(p.musicSource !== undefined ? { musicSource: p.musicSource } : {}),

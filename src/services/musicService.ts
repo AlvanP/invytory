@@ -1,4 +1,5 @@
 import type { TemplateCollection } from '@/types'
+import type { EventKind } from '@/templates/events'
 import { supabase } from './supabaseClient'
 import {
   MUSIC_MAX_BYTES,
@@ -7,26 +8,61 @@ import {
 } from '@/utils/musicLimits'
 
 const UPLOAD_BUCKET = 'invitation-music'
+const LIBRARY_BUCKET = 'music-library'
 
 /** A track in the library you (the owner) provide. */
 export interface MusicTrack {
   id: string
   title: string
   artistCredit?: string
+  /** The kind of event this track suits. */
+  category: EventKind
+  /** Sub-category: the wedding ceremony family, or 'universal'. */
   collection: TemplateCollection
   mood?: string
   url: string
   durationSeconds?: number
+  sortOrder: number
+  isActive: boolean
 }
 
 interface MusicTrackRow {
   id: string
   title: string
   artist_credit: string | null
+  category: EventKind
   collection: TemplateCollection
   mood: string | null
   url: string
   duration_seconds: number | null
+  sort_order: number
+  is_active: boolean
+}
+
+const ROW_COLUMNS = 'id, title, artist_credit, category, collection, mood, url, duration_seconds, sort_order, is_active'
+
+function fromRow(row: MusicTrackRow): MusicTrack {
+  return {
+    id: row.id,
+    title: row.title,
+    artistCredit: row.artist_credit ?? undefined,
+    category: row.category ?? 'wedding',
+    collection: row.collection,
+    mood: row.mood ?? undefined,
+    url: row.url,
+    durationSeconds: row.duration_seconds ?? undefined,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+  }
+}
+
+/** What an admin fills in to add a track. */
+export interface NewLibraryTrack {
+  title: string
+  artistCredit?: string
+  category: EventKind
+  collection: TemplateCollection
+  mood?: string
 }
 
 /** What a successful upload gives back. */
@@ -79,7 +115,7 @@ export const musicService = {
   async listLibrary(): Promise<MusicTrack[]> {
     const { data, error } = await supabase
       .from('music_tracks')
-      .select('id, title, artist_credit, collection, mood, url, duration_seconds')
+      .select(ROW_COLUMNS)
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
       .order('title', { ascending: true })
@@ -87,15 +123,92 @@ export const musicService = {
       console.error('[music] could not load library:', error)
       throw new Error(error.message || 'Could not load the music library.')
     }
-    return (data as MusicTrackRow[]).map((row) => ({
-      id: row.id,
-      title: row.title,
-      artistCredit: row.artist_credit ?? undefined,
-      collection: row.collection,
-      mood: row.mood ?? undefined,
-      url: row.url,
-      durationSeconds: row.duration_seconds ?? undefined,
-    }))
+    return (data as MusicTrackRow[]).map(fromRow)
+  },
+
+  /** Admin: every track, including hidden ones. */
+  async adminList(): Promise<MusicTrack[]> {
+    const { data, error } = await supabase
+      .from('music_tracks')
+      .select(ROW_COLUMNS)
+      .order('category', { ascending: true })
+      .order('collection', { ascending: true })
+      .order('sort_order', { ascending: true })
+      .order('title', { ascending: true })
+    if (error) throw new Error(error.message || 'Could not load the music library.')
+    return (data as MusicTrackRow[]).map(fromRow)
+  },
+
+  /** Admin: upload a file into the library bucket and add it as a track. */
+  async adminAdd(file: File, info: NewLibraryTrack): Promise<MusicTrack> {
+    const problem = musicService.validateFile(file)
+    if (problem) throw new Error(problem)
+    const title = info.title.trim()
+    if (!title) throw new Error('Please give the track a title.')
+
+    const extension = extensionOf(file)
+    const contentType = MUSIC_TYPES_BY_EXTENSION[extension]
+    const path = `${info.category}/${crypto.randomUUID()}.${extension}`
+    const durationSeconds = await musicService.readDuration(file)
+
+    const up = await supabase.storage.from(LIBRARY_BUCKET).upload(path, file, {
+      cacheControl: '31536000',
+      contentType,
+    })
+    if (up.error) throw new Error(describeMusicUploadError(up.error))
+    const url = supabase.storage.from(LIBRARY_BUCKET).getPublicUrl(path).data.publicUrl
+
+    const { data, error } = await supabase
+      .from('music_tracks')
+      .insert({
+        title,
+        artist_credit: info.artistCredit?.trim() || null,
+        category: info.category,
+        collection: info.category === 'wedding' ? info.collection : 'universal',
+        mood: info.mood?.trim() || null,
+        url,
+        duration_seconds: durationSeconds ? Math.round(durationSeconds) : null,
+      })
+      .select(ROW_COLUMNS)
+      .single()
+    if (error) {
+      await supabase.storage.from(LIBRARY_BUCKET).remove([path])
+      throw new Error(error.message || 'Could not save the track.')
+    }
+    return fromRow(data as MusicTrackRow)
+  },
+
+  /** Admin: show or hide a track in the create wizard. */
+  async adminSetActive(id: string, isActive: boolean): Promise<void> {
+    const { error } = await supabase.from('music_tracks').update({ is_active: isActive }).eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+
+  /** Admin: change a track's details. */
+  async adminUpdate(
+    id: string,
+    patch: { title: string; artistCredit: string; mood: string; category: EventKind; collection: TemplateCollection }
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('music_tracks')
+      .update({
+        title: patch.title.trim(),
+        artist_credit: patch.artistCredit.trim() || null,
+        mood: patch.mood.trim() || null,
+        category: patch.category,
+        collection: patch.category === 'wedding' ? patch.collection : 'universal',
+      })
+      .eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+
+  /** Admin: remove a track and its file. */
+  async adminDelete(track: MusicTrack): Promise<void> {
+    const { error } = await supabase.from('music_tracks').delete().eq('id', track.id)
+    if (error) throw new Error(error.message)
+    const marker = `/object/public/${LIBRARY_BUCKET}/`
+    const i = track.url.indexOf(marker)
+    if (i >= 0) await supabase.storage.from(LIBRARY_BUCKET).remove([decodeURIComponent(track.url.slice(i + marker.length))])
   },
 
   /** Returns a message if the file can't be used, or null if it is fine. */
