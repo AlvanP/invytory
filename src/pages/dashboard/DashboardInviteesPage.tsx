@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { ArrowLeft, Check, Copy, Download, MessageCircle, Plus, Trash2 } from 'lucide-react'
 import type { WeddingInvitation } from '@/types'
 import { invitationService } from '@/services/invitationService'
+import { weddingService } from '@/services/weddingService'
 import { inviteeService, inviteUrl, type InviteLink } from '@/services/inviteeService'
 import { namesTitle } from '@/utils/format'
 import { Button } from '@/components/ui/Button'
@@ -36,6 +37,18 @@ export function DashboardInviteesPage() {
   }, [eventId])
 
   const weddingId = invitation?.weddingId
+  // Guests open the wedding's own page, so links use the wedding's address, not a ceremony's.
+  const hinted = (useLocation().state as { slug?: string } | null)?.slug ?? null
+  const [fetchedSlug, setPageSlug] = useState<string | null>(null)
+  const pageSlug = hinted ?? fetchedSlug
+  useEffect(() => {
+    if (!invitation || hinted) return
+    if (!invitation.weddingId) {
+      setPageSlug(invitation.slug)
+      return
+    }
+    weddingService.getSlugById(invitation.weddingId).then(setPageSlug)
+  }, [invitation, hinted])
 
   const load = useCallback(async () => {
     if (!weddingId) return
@@ -101,11 +114,11 @@ export function DashboardInviteesPage() {
   }
 
   function downloadCsv() {
-    const rows = [['Name', 'Link', 'Opened', 'RSVP'], ...list.map((l) => [l.guestName, inviteUrl(invitation!.slug, l.code), String(l.openedCount), answers[l.code] ?? ''])]
+    const rows = [['Name', 'Link', 'Opened', 'RSVP'], ...list.map((l) => [l.guestName, inviteUrl(pageSlug ?? '', l.code), String(l.openedCount), answers[l.code] ?? ''])]
     const blob = new Blob([rows.map((r) => r.map(csvCell).join(',')).join('\n')], { type: 'text/csv' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `special-guests-${invitation!.slug}.csv`
+    a.download = `special-guests-${pageSlug ?? 'event'}.csv`
     a.click()
     window.setTimeout(() => URL.revokeObjectURL(a.href), 5000)
   }
@@ -150,7 +163,7 @@ export function DashboardInviteesPage() {
                   size="sm"
                   variant="outline"
                   icon={copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  onClick={() => copy(list.map((l) => `${l.guestName}: ${inviteUrl(invitation.slug, l.code)}`).join('\n'), 'all')}
+                  onClick={() => copy(list.map((l) => `${l.guestName}: ${inviteUrl(pageSlug ?? '', l.code)}`).join('\n'), 'all')}
                 >
                   Copy all links
                 </Button>
@@ -163,9 +176,14 @@ export function DashboardInviteesPage() {
             <EmptyState title="No special guests yet" description="Add a name above and its link appears here, ready to send." />
           )}
 
+          {!pageSlug && list.length > 0 && (
+            <p role="alert" className="mt-4 rounded-md border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
+              Working out this invitation&rsquo;s web address. If your links do not appear in a few seconds, go back to My Invitations and open Special guests again.
+            </p>
+          )}
           <ul className="mt-4 flex flex-col gap-3">
-            {list.map((l) => {
-              const url = inviteUrl(invitation.slug, l.code)
+            {pageSlug && list.map((l) => {
+              const url = inviteUrl(pageSlug!, l.code)
               const answer = answers[l.code]
               return (
                 <li key={l.id} className="rounded-md border border-ink/10 bg-white p-4">

@@ -106,12 +106,12 @@ export function DashboardEventsPage() {
                         Share
                       </Button>
                       {first && (
-                        <Link to={`/dashboard/events/${first.id}/invitees`}>
+                        <Link to={`/dashboard/events/${first.id}/invitees`} state={{ slug: wedding.slug }}>
                           <Button variant="outline" size="sm" icon={<UserCheck className="size-4" />}>Special guests</Button>
                         </Link>
                       )}
                       {first && wedding.plan === 'gold' && (
-                        <Link to={`/dashboard/events/${first.id}/album`}>
+                        <Link to={`/dashboard/events/${first.id}/album`} state={{ slug: wedding.slug }}>
                           <Button variant="outline" size="sm" icon={<Camera className="size-4" />}>Photo album</Button>
                         </Link>
                       )}

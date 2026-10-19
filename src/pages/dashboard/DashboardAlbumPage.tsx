@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { zipSync } from 'fflate'
 import { ArrowLeft, Check, Copy, Download, Loader2, Printer, Trash2 } from 'lucide-react'
 import type { WeddingInvitation } from '@/types'
 import { invitationService } from '@/services/invitationService'
+import { weddingService } from '@/services/weddingService'
 import { albumService, type AlbumPhoto } from '@/services/albumService'
 import { namesTitle } from '@/utils/format'
 import { getQrCodeUrl } from '@/utils/qrCode'
@@ -53,6 +54,13 @@ export function DashboardAlbumPage() {
   }, [eventId])
 
   const weddingId = invitation?.weddingId
+  const hinted = (useLocation().state as { slug?: string } | null)?.slug ?? null
+  const [fetchedSlug, setPageSlug] = useState<string | null>(null)
+  const pageSlug = hinted ?? fetchedSlug
+  useEffect(() => {
+    if (!weddingId || hinted) return
+    weddingService.getSlugById(weddingId).then(setPageSlug)
+  }, [weddingId, hinted])
   const hasAlbum = invitation?.plan === 'gold' && !!weddingId
 
   const load = useCallback(async () => {
@@ -75,7 +83,7 @@ export function DashboardAlbumPage() {
   }
 
   const title = namesTitle(invitation.brideName, invitation.groomName)
-  const albumUrl = `${window.location.origin}/album/${invitation.slug}`
+  const albumUrl = `${window.location.origin}/album/${pageSlug ?? invitation.slug ?? ''}`
   const qrUrl = getQrCodeUrl(albumUrl, 320)
   const list = photos ?? []
   const toDownload = selected.size > 0 ? list.filter((p) => selected.has(p.id)) : list
@@ -182,7 +190,7 @@ export function DashboardAlbumPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" icon={<Printer className="size-4" />} onClick={() => window.print()}>Print table card</Button>
-                <a href={qrUrl} download={`album-qr-${invitation.slug}.png`}>
+                <a href={qrUrl} download={`album-qr-${pageSlug ?? invitation.slug}.png`}>
                   <Button size="sm" variant="outline" icon={<Download className="size-4" />}>Download QR</Button>
                 </a>
               </div>

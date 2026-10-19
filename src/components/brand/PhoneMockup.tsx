@@ -60,11 +60,11 @@ export function PhoneMockup({
   return (
     <div
       className={cn(
-        'relative aspect-[390/844] rounded-[2.4rem] bg-[#1d1214] p-[5px] shadow-[0_40px_80px_-30px_rgba(89,38,47,0.55),0_0_0_1px_rgba(255,255,255,0.08)_inset]',
+        'relative aspect-[390/844] rounded-[13%/6%] bg-[#1d1214] p-[2.6%] shadow-[0_40px_80px_-30px_rgba(89,38,47,0.55),0_0_0_1px_rgba(255,255,255,0.08)_inset]',
         className
       )}
     >
-      <div ref={screen} className="relative size-full overflow-hidden rounded-[2.05rem] bg-ivory">
+      <div ref={screen} className="relative size-full overflow-hidden rounded-[10.5%/4.9%] bg-ivory">
         {near && (
           <iframe
             ref={frame}
@@ -82,7 +82,7 @@ export function PhoneMockup({
             style={{ width: SCREEN_W, height, transform: `scale(${scale})`, willChange: 'transform' }}
           />
         )}
-        <div aria-hidden className="pointer-events-none absolute left-1/2 top-[7px] h-[11px] w-[58px] -translate-x-1/2 rounded-full bg-[#1d1214]" />
+        <div aria-hidden className="pointer-events-none absolute left-1/2 top-[1.3%] h-[2.7%] w-[26%] -translate-x-1/2 rounded-full bg-[#1d1214]" />
       </div>
     </div>
   )
