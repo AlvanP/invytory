@@ -71,6 +71,13 @@ export const supabaseWeddingService = {
     }
   },
 
+  /** The address name of a wedding's page (the part after /invitation/). null if it can't be found. */
+  async getSlugById(weddingId: string): Promise<string | null> {
+    const { data, error } = await supabase.from('weddings').select('slug').eq('id', weddingId).maybeSingle()
+    if (error || !data) return null
+    return (data as { slug: string | null }).slug ?? null
+  },
+
   async getCeremoniesById(weddingId: string): Promise<WeddingInvitation[]> {
     const { data, error } = await supabase
       .from('invitations')
