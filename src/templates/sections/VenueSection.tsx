@@ -11,13 +11,22 @@ function mapsLink(i: WeddingInvitation): string | null {
 
 /** SECTION 4: Venue & map. */
 export function VenueSection({ invitation }: { invitation: WeddingInvitation }) {
-  const { event } = useDesign()
+  const { event, design } = useDesign()
+  const flat = design.body === 'editorial' || design.body === 'ledger'
   const place = [invitation.city, invitation.state, invitation.country].filter(Boolean).join(', ')
   const maps = mapsLink(invitation)
   return (
     <InvitationSection id="venue" eyebrow={event.venue.eyebrow} title={event.venue.title}>
-      <div className="rounded-md bg-[color:var(--iv-paper)] p-6 text-[color:var(--iv-ink)] shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]">
-        <MapPin className="mx-auto size-7 text-[color:var(--iv-accent)]" />
+      <div
+        className={
+          flat
+            ? 'text-left text-[color:var(--iv-ink)]'
+            : design.body === 'framed'
+              ? 'rounded-sm border border-[color:var(--iv-main)]/30 bg-[color:var(--iv-paper)] p-6 text-[color:var(--iv-ink)]'
+              : 'rounded-md bg-[color:var(--iv-paper)] p-6 text-[color:var(--iv-ink)] shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]'
+        }
+      >
+        <MapPin className={flat ? 'size-6 text-[color:var(--iv-accent)]' : 'mx-auto size-7 text-[color:var(--iv-accent)]'} />
         {invitation.venueName && <p className="mt-3 font-display text-2xl">{invitation.venueName}</p>}
         {invitation.venueAddress && <p className="mt-1 text-sm opacity-80">{invitation.venueAddress}</p>}
         {place && <p className="text-sm opacity-80">{place}</p>}
