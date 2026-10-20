@@ -182,10 +182,117 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
   // Without a hero photo the cover is just writing, so it gets a small drawing to feel finished.
   const ornament = !hasPhoto ? <MotifDivider motif={design.motif} className="opacity-80" /> : null
 
+  const coverArt = art.cover
+  const artImg = (url: string | undefined, cls: string) =>
+    url ? <img src={url} alt="" aria-hidden className={cn('pointer-events-none select-none', cls)} /> : null
+  const emblemEl = artImg(coverArt.emblem, 'h-16 w-auto')
+  const topEl = artImg(coverArt.ornamentTop, 'h-10 w-auto max-w-[70%]')
+  const bottomEl = artImg(coverArt.ornamentBottom, 'h-10 w-auto max-w-[70%]')
+  const frameOver = artImg(coverArt.photoFrame, 'absolute inset-0 size-full object-fill')
+
   const chevron = <ChevronDown aria-hidden className="absolute bottom-6 left-1/2 size-6 -translate-x-1/2 animate-bounce opacity-80" />
 
+  // The four photo layouts need a photo; without one they use the stacked colour block.
+  const layout = !hasPhoto && ['print', 'medallion', 'split', 'poster'].includes(design.cover) ? 'stacked' : design.cover
+
+  // ── A framed print: photo on a white mat, slightly turned, names beneath ──
+  if (layout === 'print') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[color:var(--iv-main)] bg-cover bg-center px-6 py-20 text-center text-[color:var(--iv-on-main)]"
+        style={coverBackground ? { backgroundImage: `url(${coverBackground})` } : undefined}>
+        {!coverBackground && <CoverPattern />}
+        <div className="relative z-10 flex flex-col items-center gap-7">
+          {emblemEl}{topEl}
+          {eyebrowEl}
+          <div {...rise(1)} className={cn('relative -rotate-2 bg-white p-3 pb-10 shadow-2xl', rise(1).className)} style={rise(1).style}>
+            <div className="relative aspect-[4/5] w-60 overflow-hidden sm:w-72">
+              <img src={invitation.heroImage ?? ''} alt="" className={cn('size-full object-cover', photoIntro)} />
+              {frameOver}
+            </div>
+          </div>
+          <div>{names}</div>
+          {summary}
+          {bottomEl}
+        </div>
+        {chevron}
+      </div>
+    )
+  }
+
+  // ── A medallion: round photo inside a double ring ──
+  if (layout === 'medallion') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[color:var(--iv-main)] bg-cover bg-center px-6 py-20 text-center text-[color:var(--iv-on-main)]"
+        style={coverBackground ? { backgroundImage: `url(${coverBackground})` } : undefined}>
+        {!coverBackground && <CoverPattern />}
+        <div aria-hidden className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(255,255,255,0.16), transparent 62%)' }} />
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          {emblemEl}{topEl}
+          {eyebrowEl}
+          <div {...rise(1)} className={cn('relative rounded-full border p-2.5', rise(1).className)} style={{ ...rise(1).style, borderColor: line }}>
+            <div className="rounded-full border p-1.5" style={{ borderColor: line }}>
+              <div className="relative size-52 overflow-hidden rounded-full sm:size-64">
+                <img src={invitation.heroImage ?? ''} alt="" className={cn('size-full object-cover', photoIntro)} />
+                {frameOver}
+              </div>
+            </div>
+          </div>
+          <div>{names}</div>
+          {summary}
+          {bottomEl}
+        </div>
+        {chevron}
+      </div>
+    )
+  }
+
+  // ── Split: photo beside the names; on a phone the photo sits on top ──
+  if (layout === 'split') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col bg-[color:var(--iv-main)] text-center text-[color:var(--iv-on-main)] md:flex-row">
+        <div className="relative h-[46svh] shrink-0 overflow-hidden md:h-auto md:w-1/2" style={{ clipPath: undefined }}>
+          <img src={invitation.heroImage ?? ''} alt="" className={cn('absolute inset-0 size-full object-cover', photoIntro)} />
+          {frameOver}
+          <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-[color:var(--iv-main)] to-transparent md:hidden" />
+          <div aria-hidden className="absolute inset-y-0 right-0 hidden w-1/5 bg-gradient-to-l from-[color:var(--iv-main)] to-transparent md:block" />
+        </div>
+        <div className="relative flex flex-1 flex-col items-center justify-center gap-6 px-6 pb-16 pt-4 md:py-24">
+          {coverBackground && <div aria-hidden className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: `url(${coverBackground})` }} />}
+          <div className="relative flex flex-col items-center gap-6">
+            {emblemEl}{topEl}
+            {eyebrowEl}
+            <div {...rise(1)} className={rise(1).className}>{names}</div>
+            {summary}
+            {bottomEl}
+          </div>
+        </div>
+        {chevron}
+      </div>
+    )
+  }
+
+  // ── Poster: full-bleed photo, names set low and to the left ──
+  if (layout === 'poster') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden bg-[color:var(--iv-main)] px-7 pb-20 pt-24 text-left text-[color:var(--iv-on-main)]"
+        style={{ '--iv-on-main': '#FFFFFF' } as CSSProperties}>
+        <img src={invitation.heroImage ?? ''} alt="" className={cn('absolute inset-0 size-full object-cover', photoIntro)} />
+        {frameOver}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/30" />
+        <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-start gap-5">
+          {emblemEl}{topEl}
+          <div className="[&>*]:!items-start">{eyebrowEl}</div>
+          <div {...rise(1)} className={rise(1).className}>{names}</div>
+          <div className="[&>*]:!items-start [&_span]:!text-left">{summary}</div>
+          {bottomEl}
+        </div>
+        {chevron}
+      </div>
+    )
+  }
+
   // ── Full-width photo with a dark overlay and the names over it ─────────────
-  if (design.cover === 'full') {
+  if (layout === 'full') {
     const overPhoto = hasPhoto ? ({ '--iv-on-main': '#FFFFFF' } as CSSProperties) : undefined
     return (
       <div
@@ -215,7 +322,7 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
   }
 
   // ── Photo on top, names on a block of colour below (no photo: just the colour block) ──
-  if (design.cover === 'stacked') {
+  if (layout === 'stacked') {
     return (
       <div className="relative flex min-h-[100svh] flex-col bg-[color:var(--iv-main)] text-center text-[color:var(--iv-on-main)]">
         {hasPhoto && (

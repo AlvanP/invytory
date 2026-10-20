@@ -20,6 +20,8 @@ export interface TemplateArt {
   coverBackground?: string
   /** Pieces for the opening animation (doors, gate, book, envelope). */
   entrance: EntranceAssets
+  /** Extra cover pieces: a frame laid over the cover photo, ornaments above and below the writing, an emblem. */
+  cover: { photoFrame?: string; ornamentTop?: string; ornamentBottom?: string; emblem?: string }
   /** Section-by-section artwork: `<section>-bg`, `<section>-divider`, `<section>-corner`. */
   sections: Partial<Record<SectionId, Partial<Record<SectionArtPiece, string>>>>
 }
@@ -27,6 +29,10 @@ export interface TemplateArt {
 const SLOT_NAMES = [
   'preview',
   'cover-background',
+  'cover-photo-frame',
+  'cover-ornament-top',
+  'cover-ornament-bottom',
+  'cover-emblem',
   'entrance-left',
   'entrance-right',
   'entrance-cover',
@@ -52,7 +58,7 @@ for (const [path, url] of Object.entries(files)) {
   byTemplate[id][slot] = url
 }
 
-const EMPTY: TemplateArt = { entrance: {}, sections: {} }
+const EMPTY: TemplateArt = { entrance: {}, cover: {}, sections: {} }
 
 export function getTemplateArt(templateId: string | undefined): TemplateArt {
   const slots = templateId ? byTemplate[templateId.toLowerCase()] : undefined
@@ -68,6 +74,12 @@ export function getTemplateArt(templateId: string | undefined): TemplateArt {
     sections,
     preview: slots['preview'],
     coverBackground: slots['cover-background'],
+    cover: {
+      photoFrame: slots['cover-photo-frame'],
+      ornamentTop: slots['cover-ornament-top'],
+      ornamentBottom: slots['cover-ornament-bottom'],
+      emblem: slots['cover-emblem'],
+    },
     entrance: {
       leftPanel: slots['entrance-left'],
       rightPanel: slots['entrance-right'],

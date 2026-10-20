@@ -39,6 +39,10 @@ A new design gets its folder name from its `id` in `src/data/templates.ts`.
 | `entrance-seal` | Wax seal or emblem in the middle of the envelope | 200 x 200 px, transparent PNG |
 | `entrance-background` | Full-screen backdrop behind the entrance | 1080 x 2340 px |
 | `cover-background` | Backdrop behind the opening section of the invitation (names and photo sit on top) | 1080 x 1600 px; keep the middle calm so the text stays readable |
+| `cover-photo-frame` | A frame (transparent PNG) laid over the cover photo in the print, medallion, split and poster layouts | Match the photo shape: print 4:5, medallion 1:1, others 3:4; centre must be transparent |
+| `cover-ornament-top` | Ornament centred above the cover writing | About 600 x 160 px, transparent PNG |
+| `cover-ornament-bottom` | Ornament centred below the cover writing | About 600 x 160 px, transparent PNG |
+| `cover-emblem` | Monogram or crest at the very top of the cover | About 300 x 300 px, transparent PNG |
 
 Allowed formats: PNG, JPG, WEBP or SVG. Use PNG when parts must be see-through.
 
