@@ -1,6 +1,6 @@
 import { Logo } from '@/components/brand/Logo'
 import { useState, type FormEvent } from 'react'
-import { useLocation, Navigate } from 'react-router-dom'
+import { Link, useLocation, Navigate } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { authService } from '@/services/authService'
@@ -64,6 +64,10 @@ export function SignInPage() {
           <Button type="submit" isLoading={submitting} icon={<Mail className="size-4" />}>
             Send Sign-In Link
           </Button>
+          <p className="text-center text-xs text-ink-soft">
+            By continuing you agree to our <Link to="/terms" className="text-wine underline">Terms</Link> and{' '}
+            <Link to="/privacy" className="text-wine underline">Privacy Policy</Link>.
+          </p>
         </form>
       )}
     </div>

@@ -44,7 +44,11 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col justify-between gap-2 border-t border-wine/10 pt-6 text-xs text-ink-soft sm:flex-row">
           <p>&copy; {new Date().getFullYear()} Invytory. All rights reserved.</p>
-          <p>www.invytory.com</p>
+          <p className="flex gap-4">
+            <Link to="/privacy" className="hover:text-wine">Privacy</Link>
+            <Link to="/terms" className="hover:text-wine">Terms</Link>
+            <span>www.invytory.com</span>
+          </p>
         </div>
       </div>
     </footer>

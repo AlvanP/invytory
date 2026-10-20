@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CreditCard, Smartphone, Monitor, Mail, AlertCircle } from 'lucide-react'
 import { useWizard } from '@/hooks/useWizard'
 import { useAuth } from '@/hooks/useAuth'
@@ -194,6 +194,10 @@ export function StepPreview() {
                 />
               )
             })}
+            <p className="text-xs text-ink-soft">
+              By paying you agree to our <Link to="/terms" target="_blank" className="text-wine underline">Terms</Link> and{' '}
+              <Link to="/privacy" target="_blank" className="text-wine underline">Privacy Policy</Link>.
+            </p>
           </div>
         )}
 

@@ -8,6 +8,8 @@ import { TemplateGalleryPage } from '@/pages/TemplateGalleryPage'
 import { TemplatePreviewPage } from '@/pages/TemplatePreviewPage'
 import { InvitationPreviewPage } from '@/pages/InvitationPreviewPage'
 import { PricingPage } from '@/pages/PricingPage'
+import { PrivacyPage } from '@/pages/legal/PrivacyPage'
+import { TermsPage } from '@/pages/legal/TermsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 // Pages most visitors never open are loaded only when needed, so the first
@@ -45,6 +47,8 @@ function App() {
         <Route path="/templates" element={<TemplateGalleryPage />} />
         <Route path="/templates/:templateId" element={<TemplatePreviewPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/invitation/:slug" element={<InvitationPreviewPage />} />
         <Route path="/success/:slug" element={<PublishSuccessPage />} />
       </Route>
