@@ -247,34 +247,76 @@ function Deck({ photos }: { photos: GalleryPhoto[] }) {
   const [top, setTop] = useState(0)
   const [leaving, setLeaving] = useState<{ i: number; dir: 1 | -1 } | null>(null)
   const timer = useRef<number | null>(null)
+  // The top print follows the finger while it is down; letting go either flings it away or springs it back.
+  const [drag, setDrag] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const start = useRef<{ x: number; y: number } | null>(null)
 
-  const next = useCallback(
-    (dir: 1 | -1 = 1) => {
+  const fling = useCallback(
+    (dir: 1 | -1) => {
       if (leaving) return
-      if (reduced) return setTop((t) => (t + 1) % n)
+      if (reduced) {
+        setDrag(0)
+        return setTop((t) => (t + 1) % n)
+      }
       setLeaving({ i: top, dir })
       timer.current = window.setTimeout(() => {
         setTop((t) => (t + 1) % n)
         setLeaving(null)
-      }, 520)
+        setDrag(0)
+      }, 420)
     },
     [leaving, reduced, top, n]
   )
   useEffect(() => () => void (timer.current && window.clearTimeout(timer.current)), [])
-  const swipe = useSwipe((d) => next(d), () => next(1))
+
+  const handlers = {
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (leaving) return
+      start.current = { x: e.clientX, y: e.clientY }
+      setDragging(true)
+      e.currentTarget.setPointerCapture(e.pointerId)
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => {
+      const s = start.current
+      if (!s) return
+      const dx = e.clientX - s.x
+      if (Math.abs(dx) > Math.abs(e.clientY - s.y)) setDrag(dx)
+    },
+    onPointerUp: (e: React.PointerEvent<HTMLDivElement>) => {
+      const s = start.current
+      start.current = null
+      setDragging(false)
+      if (!s) return
+      const dx = e.clientX - s.x
+      const dy = e.clientY - s.y
+      // The print flies the way the finger went: swipe left and it goes left.
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) fling(dx < 0 ? -1 : 1)
+      else if (Math.abs(dx) < 8 && Math.abs(dy) < 8) fling(1)
+      else setDrag(0)
+    },
+    onPointerCancel: () => {
+      start.current = null
+      setDragging(false)
+      setDrag(0)
+    },
+  }
 
   return (
     <div className="flex flex-col items-center gap-5">
-      <div {...swipe} className="relative aspect-[4/5] w-[78%] max-w-[340px] cursor-pointer touch-pan-y select-none">
+      <div {...handlers} className="relative aspect-[4/5] w-[78%] max-w-[340px] cursor-grab touch-pan-y select-none active:cursor-grabbing">
         {photos.map((p, i) => {
           const rel = (i - top + n) % n
           const isLeaving = leaving?.i === i
           const depth = Math.min(rel, 3)
           const tilt = rel === 0 ? 0 : (rel % 2 === 0 ? -1 : 1) * (2 + rel)
-          const rising = leaving && rel === 1
+          const rising = !!leaving || (Math.abs(drag) > 30 && rel === 1)
+          const followFinger = rel === 0 && !isLeaving && drag !== 0
           const transform = isLeaving
             ? `translateX(${leaving.dir * 125}%) rotate(${leaving.dir * 16}deg)`
-            : `translateY(${(rising ? 0 : depth) * 10}px) rotate(${rising ? 0 : tilt}deg) scale(${rising ? 1 : 1 - depth * 0.05})`
+            : followFinger
+              ? `translateX(${drag}px) rotate(${drag / 22}deg)`
+              : `translateY(${(rising && rel === 1 ? 0 : depth) * 10}px) rotate(${rising && rel === 1 ? 0 : tilt}deg) scale(${rising && rel === 1 ? 1 : 1 - depth * 0.05})`
           return (
             <figure
               key={p.id}
@@ -283,7 +325,7 @@ function Deck({ photos }: { photos: GalleryPhoto[] }) {
                 transform,
                 zIndex: isLeaving ? n + 1 : n - rel,
                 opacity: rel > 3 && !isLeaving ? 0 : 1,
-                transition: reduced ? 'none' : `transform 520ms ${EASE}, opacity 300ms ease`,
+                transition: reduced || (dragging && rel === 0) ? 'none' : `transform 420ms ${EASE}, opacity 300ms ease`,
               }}
             >
               <img src={p.url} alt={p.caption ?? ''} loading="lazy" draggable={false} className="size-full object-cover" />
