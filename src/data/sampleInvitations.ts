@@ -2,6 +2,7 @@ import type { WeddingInvitation } from '@/types'
 import { getTemplateById } from '@/data/templates'
 import { getDesign } from '@/templates/designs'
 import type { EventKind } from '@/templates/events'
+import { samplePhoto } from '@/utils/samplePhotos'
 
 /**
  * Sample invitations for the template previews and the phone mockups on the website.
@@ -147,6 +148,7 @@ export function getSampleInvitation(templateId: string): WeddingInvitation | nul
   const c = kind === 'wedding' ? wedding[template.collection] ?? wedding.white : others[kind as Exclude<EventKind, 'wedding'>]
   if (!c) return null
   const colour = getDesign(templateId).colour
+  const photo = (n: 'hero' | 'gallery-1' | 'gallery-2' | 'gallery-3' | 'gallery-4') => samplePhoto(n, templateId, template.collection, kind)
   return {
     id: `sample-${templateId}`,
     slug: `sample-${templateId}`,
@@ -167,12 +169,12 @@ export function getSampleInvitation(templateId: string): WeddingInvitation | nul
     loveStory: c.story,
     howWeMet: c.second,
     vows: c.third,
-    heroImage: sampleArt(colour, 0),
+    heroImage: photo('hero') ?? sampleArt(colour, 0),
     galleryImages: [
-      { id: 'feature', url: sampleArt(colour, 1) },
-      { id: 'g1', url: sampleArt(colour, 2) },
-      { id: 'g2', url: sampleArt(colour, 3) },
-      { id: 'g3', url: sampleArt(colour, 4) },
+      { id: 'feature', url: photo('gallery-1') ?? sampleArt(colour, 1) },
+      { id: 'g1', url: photo('gallery-2') ?? sampleArt(colour, 2) },
+      { id: 'g2', url: photo('gallery-3') ?? sampleArt(colour, 3) },
+      { id: 'g3', url: photo('gallery-4') ?? sampleArt(colour, 4) },
       { id: 'g4', url: null },
     ],
     giftInformation: c.gifts,

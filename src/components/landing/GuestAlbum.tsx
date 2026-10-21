@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Download, Camera } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { sampleArt } from '@/data/sampleInvitations'
+import { albumPhoto } from '@/utils/samplePhotos'
 import { RevealOnScroll } from '@/components/animation/RevealOnScroll'
 
 /** A stand-in QR code (not scannable), drawn the same way every time. */
@@ -92,7 +93,7 @@ export function GuestAlbum() {
                 <p className="text-xs text-ink-soft">128 photos from your guests</p>
                 <div className="mt-3 grid grid-cols-2 items-start gap-2">
                   {tiles.map((t, i) => (
-                    <img key={i} src={sampleArt(t.c, t.s)} alt="" className={`w-full rounded-md object-cover ${t.h}`} />
+                    <img key={i} src={albumPhoto(i + 1) ?? sampleArt(t.c, t.s)} alt="" className={`w-full rounded-md object-cover ${t.h}`} />
                   ))}
                 </div>
                 <div className="mt-3 flex items-center justify-center gap-1.5 rounded-full bg-wine py-2 text-xs font-medium text-ivory">
