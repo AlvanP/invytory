@@ -13,9 +13,9 @@ import { WallProvider } from './WallContext'
  */
 export function DesignedInvitation({ invitation, noScratch }: TemplateRendererProps) {
   const ctx = useMemo(() => {
-    const base = makeDesignContext(invitation.templateId, invitation.eventType)
+    const base = makeDesignContext(invitation.templateId, invitation.eventType, invitation.brideName)
     return noScratch ? { ...base, design: { ...base.design, scratchDate: false } } : base
-  }, [invitation.templateId, invitation.eventType, noScratch])
+  }, [invitation.templateId, invitation.eventType, invitation.brideName, noScratch])
   return (
     <DesignContext.Provider value={ctx}>
       <DateGateProvider enabled={!!ctx.design.scratchDate}>

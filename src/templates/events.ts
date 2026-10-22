@@ -346,3 +346,26 @@ export const guestCopy: Record<EventKind, GuestCopy> = {
 
 /** Events where AI Assist can write the wording. */
 export const AI_ASSIST_EVENTS: EventKind[] = ['wedding', 'child-dedication', 'birthday', 'corporate', 'funeral']
+
+
+/** Twins, triplets and so on are written in one name field: "Fiona & Fidel" or "Ada, Ben & Chi". */
+export function childNames(joined: string | undefined): string[] {
+  return (joined ?? '').split(/\s*(?:,|&|\band\b)\s*/i).map((n) => n.trim()).filter(Boolean)
+}
+
+export function joinChildNames(names: string[]): string {
+  const clean = names.map((n) => n.trim()).filter(Boolean)
+  return clean.length <= 1 ? (clean[0] ?? '') : `${clean.slice(0, -1).join(', ')} & ${clean[clean.length - 1]}`
+}
+
+/** The child dedication wording, switched to the plural when more than one child is named. */
+export function withChildCount(copy: EventCopy, kind: string | undefined, names: string | undefined): EventCopy {
+  if (kind !== 'child-dedication' || childNames(names).length < 2) return copy
+  return {
+    ...copy,
+    story: { ...copy.story, title: 'Our Little Ones' },
+    storyThird: 'Our Prayer For Them',
+    wall: { ...copy.wall, title: 'Blessings For The Little Ones' },
+    calendarTitle: (a) => `Dedication of ${a}`,
+  }
+}
