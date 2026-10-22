@@ -3,17 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CreditCard, Smartphone, Monitor, Mail, AlertCircle } from 'lucide-react'
 import { useWizard } from '@/hooks/useWizard'
 import { useAuth } from '@/hooks/useAuth'
-import { templateService } from '@/services/templateService'
 import { weddingService } from '@/services/weddingService'
 import { adminService } from '@/services/adminService'
 import { authService } from '@/services/authService'
 import { paymentService } from '@/services/paymentService'
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans'
 import { checkPlanHosting } from '@/utils/hostingDuration'
-import type { InvitationTemplate, CeremonyDraft } from '@/types'
+import type { CeremonyDraft } from '@/types'
 import { ceremonyDisplayName } from '@/types'
-import { draftToPreviewInvitation } from '@/utils/draftToPreviewInvitation'
-import { InvitationRenderer } from '@/components/invitation/InvitationRenderer'
 import { PlanCard } from '@/components/pricing/PlanCard'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -26,11 +23,11 @@ export function StepPreview() {
   const { draft, reset } = useWizard()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [template, setTemplate] = useState<InvitationTemplate | undefined>()
   const [device, setDevice] = useState<'desktop' | 'mobile'>('mobile')
   const [previewCeremony, setPreviewCeremony] = useState<CeremonyDraft>(draft.ceremonies[0])
   const [stage, setStage] = useState<CheckoutStage>('idle')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [replay, setReplay] = useState(0)
   useEffect(() => {
     if (!user) return setIsAdmin(false)
     adminService.isAdmin().then(setIsAdmin)
@@ -39,13 +36,6 @@ export function StepPreview() {
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null)
   const [wantsToCheckout, setWantsToCheckout] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    const activeTemplateId = previewCeremony.templateId || draft.templateId
-    if (activeTemplateId) templateService.getById(activeTemplateId).then(setTemplate)
-  }, [previewCeremony, draft.templateId])
-
-  const previewInvitation = draftToPreviewInvitation(draft, previewCeremony)
 
   useEffect(() => {
     if (user && wantsToCheckout && stage === 'linkSent' && selectedPlan) {
@@ -169,17 +159,27 @@ export function StepPreview() {
         </div>
       )}
 
-      <div className="flex justify-center rounded-md bg-ivory-deep p-4 sm:p-10">
+      <div className="flex flex-col items-center gap-3 rounded-md bg-ivory-deep p-4 sm:p-10">
+        <p className="text-center text-xs text-ink-soft">
+          This is how your guests will see it. Tap the entrance to open it, and scroll. Your music plays after the tap.
+        </p>
         <div
           className={cn(
-            'overflow-hidden rounded-md bg-ivory shadow-lift transition-all duration-300',
-            device === 'mobile' ? 'w-full max-w-sm' : 'w-full'
+            'overflow-hidden bg-ivory shadow-lift transition-all duration-300',
+            device === 'mobile' ? 'w-full max-w-[22rem] rounded-[2rem] border-[6px] border-ink' : 'w-full rounded-md'
           )}
         >
-          <div className="max-h-[70vh] overflow-y-auto">
-            <InvitationRenderer invitation={previewInvitation} template={template} />
-          </div>
+          <iframe
+            key={`${previewCeremony.id}-${replay}-${device}`}
+            title="Invitation preview"
+            src={`/preview-draft?c=${encodeURIComponent(previewCeremony.id)}`}
+            allow="autoplay"
+            className={cn('block w-full border-0', device === 'mobile' ? 'h-[70vh] max-h-[44rem] min-h-[28rem]' : 'h-[70vh] min-h-[30rem]')}
+          />
         </div>
+        <button type="button" onClick={() => setReplay((n) => n + 1)} className="text-xs text-wine underline-offset-2 hover:underline">
+          Replay from the entrance
+        </button>
       </div>
 
       <div className="flex items-center justify-between border-t border-ink/10 pt-6">

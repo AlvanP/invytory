@@ -113,6 +113,11 @@ function activeKind(): EventKind {
   return 'wedding'
 }
 
+/** The invitation being worked on right now (the last kind of event the person touched). */
+export function peekActiveDraft(): WeddingDraft {
+  return loadDraftFor(activeKind())
+}
+
 function saveDraft(draft: WeddingDraft) {
   try {
     window.localStorage.setItem(draftKey(draft.eventType), JSON.stringify(draft))

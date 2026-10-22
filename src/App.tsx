@@ -16,6 +16,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 // Pages most visitors never open are loaded only when needed, so the first
 // page (usually a guest's invitation) downloads less code.
 const EntranceLabPage = lazy(() => import('@/pages/EntranceLabPage').then((m) => ({ default: m.EntranceLabPage })))
+const DraftPreviewPage = lazy(() => import('@/pages/DraftPreviewPage').then((m) => ({ default: m.DraftPreviewPage })))
 const SamplePage = lazy(() => import('@/pages/SamplePage').then((m) => ({ default: m.SamplePage })))
 const AlbumPage = lazy(() => import('@/pages/AlbumPage').then((m) => ({ default: m.AlbumPage })))
 const DashboardAlbumPage = lazy(() => import('@/pages/dashboard/DashboardAlbumPage').then((m) => ({ default: m.DashboardAlbumPage })))
@@ -60,6 +61,7 @@ function App() {
       </Route>
 
       <Route path="/album/:slug" element={<AlbumPage />} />
+      <Route path="/preview-draft" element={<DraftPreviewPage />} />
       <Route path="/sample/:templateId" element={<SamplePage />} />
       <Route path="/sign-in" element={<SignInPage />} />
       <Route path="/entrance-lab" element={<EntranceLabPage />} />
