@@ -276,6 +276,19 @@ async function debug(req: any, res: any) {
   if (slug) {
     try { out.lookup = (await loadInvite(slug)) ?? 'not found (check the slug, and that the invitation is published)' } catch (e) { out.lookup = String(e).slice(0, 200) }
   }
+  if (slug) {
+    // Say exactly why a lookup fails: what the database answered for this slug.
+    const cfg = supabaseConfig()
+    if (cfg) {
+      try {
+        const r = await fetch(`${cfg.url}/rest/v1/weddings?slug=eq.${slug}&select=id,status,plan&limit=1`, { headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}` } })
+        const body = await r.text()
+        out.weddingsQuery = { httpStatus: r.status, answer: body.slice(0, 300) }
+        const r2 = await fetch(`${cfg.url}/rest/v1/invitations?slug=eq.${slug}&select=id,status&limit=1`, { headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}` } })
+        out.invitationsQuery = { httpStatus: r2.status, answer: (await r2.text()).slice(0, 300) }
+      } catch (e) { out.queryError = String(e).slice(0, 200) }
+    }
+  }
   try { await import('sharp'); out.sharp = 'ok' } catch (e) { out.sharp = String(e).slice(0, 200) }
   try { await import('satori'); out.satori = 'ok' } catch (e) { out.satori = String(e).slice(0, 200) }
   out.font = (await loadFont('https://www.invytory.com')) ? 'ok' : 'missing'
