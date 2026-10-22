@@ -76,7 +76,7 @@ export function PrivacyPage() {
 
       <Section title="How long we keep it">
         <p>
-          An invitation stays online for the hosting period of your plan (90 days for Essential, 365 days for Signature), counted
+          An invitation stays online for the hosting period of your plan (90 days for Essential; for Signature at least 180 days, extended to cover your last ceremony, up to 365 days), counted
           from payment. After it expires the invitation stops showing to guests. We may delete expired invitations and their
           uploads, RSVPs, messages and album photos after a reasonable period. If you want something removed sooner, ask us.
           Payment records are kept as long as the law requires.

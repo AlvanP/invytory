@@ -60,7 +60,7 @@ async function loadInvite(slug: string): Promise<Invite | null> {
   const weddings = await rest(`weddings?slug=eq.${slug}&select=id,status&limit=1`)
   let rows: any[] = []
   if (weddings[0]) {
-    if (weddings[0].status === 'archived') return null
+    if (weddings[0].status !== 'published') return null
     rows = await rest(`invitations?wedding_id=eq.${weddings[0].id}&select=bride_name,groom_name,event_type,hero_image,wedding_date,venue_name,city&order=wedding_date.asc&limit=1`)
   } else {
     rows = await rest(`invitations?slug=eq.${slug}&select=bride_name,groom_name,event_type,hero_image,wedding_date,venue_name,city&limit=1`)

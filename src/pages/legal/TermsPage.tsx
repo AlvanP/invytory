@@ -29,7 +29,7 @@ export function TermsPage() {
         <Bullets
           items={[
             `${essential.name}: ₦${essential.price.toLocaleString('en-NG')}, up to ${essential.maxGuests} guests, hosted for ${essential.hostingDays} days.`,
-            `${signature.name}: ₦${signature.price.toLocaleString('en-NG')}, up to ${signature.maxGuests} guests, hosted for ${signature.hostingDays} days, and includes the guest photo album.`,
+            `${signature.name}: ₦${signature.price.toLocaleString('en-NG')}, up to ${signature.maxGuests} guests, hosted for at least 180 days, extended to cover your last ceremony, up to ${signature.hostingDays} days, and includes the guest photo album.`,
             'Payment is made once per invitation through Paystack. The hosting period starts when your payment is confirmed.',
             'When the hosting period ends, the invitation stops showing to guests. You can ask us about extending it.',
             'Prices are in Nigerian naira and may change for future purchases. A price you have already paid does not change.',

@@ -83,19 +83,20 @@ export function StepPreview() {
         return
       }
 
-      const { verified, error: verifyError } = await paymentService.verifyPayment(reference, plan.price)
-      if (!verified) {
+      // Save the invitation as a draft, then ask the secure server to confirm the payment and publish it.
+      const saved = await weddingService.createDraft(draft, ownerId, plan)
+      const activated = await paymentService.activate(reference, saved.wedding.id, plan.id)
+      if (!activated.ok) {
         setErrorMessage(
-          (verifyError ? verifyError + ' ' : '') +
+          (activated.error ? activated.error + ' ' : '') +
           'If you were charged, contact support with this reference: ' + reference
         )
         setStage('error')
         return
       }
 
-      const published = await weddingService.publish(draft, ownerId, plan, reference)
       reset()
-      navigate(`/success/${published.wedding.slug}`)
+      navigate(`/success/${saved.wedding.slug}`)
     } catch {
       setErrorMessage('Something went wrong during checkout. Please try again.')
       setStage('error')

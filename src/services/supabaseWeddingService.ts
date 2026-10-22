@@ -113,11 +113,14 @@ export const supabaseWeddingService = {
     return counts
   },
 
-  async publish(
+  /**
+   * Saves the invitation as a DRAFT. It only goes live, paid and published, when the secure
+   * server function confirms the Paystack payment (see paymentService.activate).
+   */
+  async createDraft(
     draft: WeddingDraft,
     ownerId: string,
-    plan: PricingPlan,
-    paymentReference: string
+    plan: PricingPlan
   ): Promise<{ wedding: Wedding; ceremonies: WeddingInvitation[] }> {
     const isWedding = draft.eventType === 'wedding'
     const brideName = draft.brideName ?? (isWedding ? 'Bride' : 'Invitation')
@@ -132,11 +135,10 @@ export const supabaseWeddingService = {
       .insert({
         owner_id: ownerId,
         slug,
-        status: 'published',
+        status: 'draft',
         plan: plan.id,
         max_guests: plan.maxGuests,
         expires_at: expiresAt,
-        payment_reference: paymentReference,
       })
       .select()
       .single()
@@ -169,7 +171,7 @@ export const supabaseWeddingService = {
       wedding_hashtag: draft.weddingHashtag ?? null,
       additional_message: draft.additionalMessage ?? null,
       custom_rsvp_message: c.customRsvpMessage ?? null,
-      status: 'published' as const,
+      status: 'draft' as const,
       ceremony_type: isWedding ? c.ceremonyType : 'custom',
       ceremony_label: isWedding ? (c.ceremonyLabel ?? null) : getEventCopy(draft.eventType).label,
       // Only sent for events that are not weddings, so weddings publish exactly as before.

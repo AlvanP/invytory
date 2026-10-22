@@ -1,3 +1,4 @@
+import { supabase } from './supabaseClient'
 declare global {
   interface Window {
     PaystackPop?: {
@@ -42,8 +43,7 @@ export const paymentService = {
    * Opens the Paystack popup. Resolves with the transaction reference
    * once the customer completes payment, or null if they close the
    * popup without paying. This alone does NOT confirm money actually
-   * moved — a browser can be tricked, so verifyPayment() below always
-   * re-checks with Paystack's server using the secret key.
+   * moved: activate() below re-checks with Paystack on the server.
    */
   async checkout({
     email,
@@ -73,29 +73,43 @@ export const paymentService = {
   },
 
   /**
-   * Asks our own server (the /api/verify-payment function) to confirm
-   * with Paystack that this payment really happened and for the right
-   * amount, using the secret key — which never reaches the browser.
-   * Returns the server's actual error message on failure so problems
-   * are diagnosable instead of a generic "something went wrong."
+   * Asks the secure server function (Supabase Edge Function "activate-payment") to confirm the
+   * payment with Paystack and publish the invitation. All the checks happen on the server:
+   * the browser only says which payment, which invitation and which plan.
+   * Retries on a dropped connection; the server treats repeats safely.
    */
-  async verifyPayment(
+  async activate(
     reference: string,
-    expectedAmountNaira: number
-  ): Promise<{ verified: boolean; error?: string }> {
-    try {
-      const response = await fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reference, expectedAmount: Math.round(expectedAmountNaira * 100) }),
-      })
-      const data = await response.json().catch(() => null)
-      if (!data) {
-        return { verified: false, error: 'The verification server did not return a valid response.' }
+    weddingId: string,
+    planId: 'silver' | 'gold'
+  ): Promise<{ ok: boolean; slug?: string; error?: string }> {
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    if (!token) return { ok: false, error: 'Please sign in again.' }
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-payment`
+
+    let lastError = 'Could not reach the payment server.'
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ reference, weddingId, planId }),
+        })
+        const result = await response.json().catch(() => null)
+        if (result?.ok) return { ok: true, slug: result.slug }
+        if (result?.error) lastError = result.error
+        // A clear "no" from the server will not change by trying again.
+        if (response.status >= 400 && response.status < 500) return { ok: false, error: lastError }
+      } catch {
+        // dropped connection: try again below
       }
-      return { verified: !!data.verified, error: data.error }
-    } catch {
-      return { verified: false, error: 'Could not reach the payment verification server.' }
+      await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)))
     }
+    return { ok: false, error: lastError }
   },
 }

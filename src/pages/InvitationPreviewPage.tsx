@@ -148,7 +148,20 @@ export function InvitationPreviewPage() {
 
   const expiresAt = lookup.status === 'wedding' ? lookup.wedding.expiresAt : lookup.invitation.expiresAt
   const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false
-  const isSuspended = (lookup.status === 'wedding' ? lookup.wedding.status : lookup.invitation.status) === 'archived'
+  const currentStatus = lookup.status === 'wedding' ? lookup.wedding.status : lookup.invitation.status
+  const isSuspended = currentStatus === 'archived'
+  const isDraft = currentStatus === 'draft'
+
+  if (isDraft) {
+    return (
+      <div className="mx-auto max-w-md px-6 py-24">
+        <ErrorState
+          title="This invitation is not published yet."
+          description="Please check back soon, or ask the host for an updated link."
+        />
+      </div>
+    )
+  }
 
   if (isSuspended) {
     return (
