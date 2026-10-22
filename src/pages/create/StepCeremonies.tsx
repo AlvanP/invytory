@@ -18,6 +18,8 @@ export function StepCeremonies() {
   const { draft, addCeremony, updateCeremony, removeCeremony } = useWizard()
   const copy = getWizardCopy(draft.eventType)
   const isWedding = draft.eventType === 'wedding'
+  const sampleLabel =
+    [draft.brideName?.trim(), isWedding ? draft.groomName?.trim() : ''].filter(Boolean).join(' & ') || undefined
   const [editing, setEditing] = useState<CeremonyDraft | null>(null)
   const [isNew, setIsNew] = useState(false)
 
@@ -58,6 +60,7 @@ export function StepCeremonies() {
         <CeremonyFormFields
           value={only}
           eventType={draft.eventType}
+          sampleName={sampleLabel}
           onChange={(patch) => updateCeremony(only.id, patch)}
         />
         {!allComplete && <p className="text-xs text-ink-soft/70">Add the date and the venue to continue.</p>}
@@ -120,7 +123,7 @@ export function StepCeremonies() {
       <Modal isOpen={!!editing} onClose={() => setEditing(null)} title={isNew ? 'Add a ceremony' : 'Edit ceremony'}>
         {editing && (
           <div className="flex flex-col gap-5">
-            <CeremonyFormFields value={editing} onChange={(patch) => setEditing({ ...editing, ...patch })} />
+            <CeremonyFormFields value={editing} sampleName={sampleLabel} onChange={(patch) => setEditing({ ...editing, ...patch })} />
             <Button
               size="sm"
               onClick={handleSave}

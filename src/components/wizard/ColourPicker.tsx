@@ -12,11 +12,14 @@ export function ColourPicker({
   values,
   onChange,
   title = 'Colours of the day',
+  sampleName = 'Your names',
   help = `Pick up to ${MAX_COLOURS}. The first one is your main colour: the invitation’s colour blocks, countdown and buttons use it, and the writing on top is chosen automatically so it is easy to read.`,
 }: {
   values: string[]
   onChange: (hexes: string[]) => void
   title?: string
+  /** Shown in the sample strip: the name entered on the names step. */
+  sampleName?: string
   help?: string
 }) {
   const current = values.map((v) => v.toUpperCase())
@@ -119,7 +122,7 @@ export function ColourPicker({
           className="flex items-center justify-between rounded-sm px-4 py-3 text-sm"
           style={{ backgroundColor: theme.main, color: theme.onMain }}
         >
-          <span className="font-display text-base">Ada &amp; Michael</span>
+          <span className="min-w-0 truncate font-display text-base">{sampleName}</span>
           <span className="flex items-center gap-1 text-xs tracking-[0.2em]">
             <Check className="size-3.5" /> SAVE THE DATE
           </span>

@@ -30,7 +30,13 @@ interface WizardContextValue {
   addCeremony: (ceremony: CeremonyDraft) => void
   updateCeremony: (id: string, patch: Partial<CeremonyDraft>) => void
   removeCeremony: (id: string) => void
+  /** Throws away the unfinished invitation for the current kind of event and starts fresh. */
   reset: () => void
+  /**
+   * Moves to another kind of event. Each kind keeps its own unfinished invitation, so nothing
+   * (names, dates, photos) leaks between them. Returns the draft now in use.
+   */
+  switchKind: (kind: EventKind) => WeddingDraft
   /** True while any photo or music upload is still running. */
   uploading: boolean
   /** Call with true when an upload starts and false when it ends. */
@@ -49,32 +55,78 @@ function emptyDraft(): WeddingDraft {
   }
 }
 
-const STORAGE_KEY = 'invytory:wizard-draft:v1'
+// Each kind of event has its own unfinished invitation: v2 keys are per kind.
+const LEGACY_KEY = 'invytory:wizard-draft:v1'
+const ACTIVE_KEY = 'invytory:wizard-active:v2'
+const draftKey = (kind: EventKind) => `invytory:wizard-draft:v2:${kind}`
+const KINDS: EventKind[] = ['wedding', 'child-dedication', 'birthday', 'corporate', 'funeral']
 
-/** Reads the saved draft, if any. Never throws: storage can be blocked. */
-function loadDraft(): WeddingDraft {
+function readJson(key: string): Partial<WeddingDraft> | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return emptyDraft()
-    const parsed = JSON.parse(raw) as Partial<WeddingDraft> | null
-    if (!parsed || !Array.isArray(parsed.ceremonies) || parsed.ceremonies.length === 0) return emptyDraft()
-    return { ...emptyDraft(), ...parsed, ceremonies: parsed.ceremonies } as WeddingDraft
+    const raw = window.localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as Partial<WeddingDraft> | null) : null
   } catch {
-    return emptyDraft()
+    return null
   }
+}
+
+function freshDraft(kind: EventKind): WeddingDraft {
+  const base = emptyDraft()
+  return kind === 'wedding'
+    ? base
+    : { ...base, eventType: kind, ceremonies: [{ id: base.ceremonies[0].id, ceremonyType: 'custom' }] }
+}
+
+function validDraft(parsed: Partial<WeddingDraft> | null, kind: EventKind): WeddingDraft | null {
+  if (!parsed || !Array.isArray(parsed.ceremonies) || parsed.ceremonies.length === 0) return null
+  return { ...freshDraft(kind), ...parsed, eventType: kind, ceremonies: parsed.ceremonies } as WeddingDraft
+}
+
+/** The saved, unfinished invitation for this kind of event, or null. Never throws: storage can be blocked. */
+export function peekDraft(kind: EventKind): WeddingDraft | null {
+  const own = validDraft(readJson(draftKey(kind)), kind)
+  if (own) return own
+  // An invitation saved before drafts were kept per kind.
+  const legacy = readJson(LEGACY_KEY)
+  if (legacy && (legacy.eventType ?? 'wedding') === kind) return validDraft(legacy, kind)
+  return null
+}
+
+/** True when the saved draft has something in it worth continuing. */
+export function hasProgress(d: WeddingDraft | null): boolean {
+  return !!d && !!(d.brideName?.trim() || d.groomName?.trim() || d.ceremonies.some((c) => c.venueName || c.weddingDate))
+}
+
+function loadDraftFor(kind: EventKind): WeddingDraft {
+  return peekDraft(kind) ?? freshDraft(kind)
+}
+
+function activeKind(): EventKind {
+  try {
+    const k = window.localStorage.getItem(ACTIVE_KEY) as EventKind | null
+    if (k && KINDS.includes(k)) return k
+    const legacy = readJson(LEGACY_KEY)
+    if (legacy?.eventType && KINDS.includes(legacy.eventType)) return legacy.eventType
+  } catch {
+    // ignore
+  }
+  return 'wedding'
 }
 
 function saveDraft(draft: WeddingDraft) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
+    window.localStorage.setItem(draftKey(draft.eventType), JSON.stringify(draft))
+    window.localStorage.setItem(ACTIVE_KEY, draft.eventType)
   } catch {
     // Storage full or blocked: the wizard still works, it just won't be remembered.
   }
 }
 
-function clearSavedDraft() {
+function clearSavedDraft(kind: EventKind) {
   try {
-    window.localStorage.removeItem(STORAGE_KEY)
+    window.localStorage.removeItem(draftKey(kind))
+    const legacy = readJson(LEGACY_KEY)
+    if (legacy && (legacy.eventType ?? 'wedding') === kind) window.localStorage.removeItem(LEGACY_KEY)
   } catch {
     // ignore
   }
@@ -83,7 +135,7 @@ function clearSavedDraft() {
 const WizardContext = createContext<WizardContextValue | null>(null)
 
 export function CreateWizardProvider({ children }: { children: ReactNode }) {
-  const [draft, setDraft] = useState<WeddingDraft>(loadDraft)
+  const [draft, setDraft] = useState<WeddingDraft>(() => loadDraftFor(activeKind()))
   const [busyIds, setBusyIds] = useState<string[]>([])
 
   // Save on every change, and again the moment the tab is hidden (phones
@@ -109,7 +161,23 @@ export function CreateWizardProvider({ children }: { children: ReactNode }) {
     setBusyIds((cur) => (busy ? (cur.includes(id) ? cur : [...cur, id]) : cur.filter((x) => x !== id)))
   }, [])
 
+  function switchKind(kind: EventKind): WeddingDraft {
+    const current = draftRef.current
+    if (current.eventType === kind) return current
+    saveDraft(current)
+    const next = loadDraftFor(kind)
+    draftRef.current = next
+    setDraft(next)
+    return next
+  }
+
   function updateDraft(patch: Partial<WeddingDraft>) {
+    // Changing the kind of event swaps to that kind's own draft first, so nothing carries over.
+    if (patch.eventType && patch.eventType !== draftRef.current.eventType) {
+      const { eventType, ...rest } = patch
+      switchKind(eventType)
+      patch = rest
+    }
     setDraft((prev) => ({ ...prev, ...patch }))
   }
 
@@ -132,12 +200,15 @@ export function CreateWizardProvider({ children }: { children: ReactNode }) {
   }
 
   function reset() {
-    clearSavedDraft()
-    setDraft(emptyDraft())
+    const kind = draftRef.current.eventType
+    clearSavedDraft(kind)
+    const next = freshDraft(kind)
+    draftRef.current = next
+    setDraft(next)
   }
 
   return (
-    <WizardContext.Provider value={{ draft, updateDraft, addCeremony, updateCeremony, removeCeremony, reset, uploading: busyIds.length > 0, reportUploading }}>
+    <WizardContext.Provider value={{ draft, updateDraft, addCeremony, updateCeremony, removeCeremony, reset, switchKind, uploading: busyIds.length > 0, reportUploading }}>
       {children}
     </WizardContext.Provider>
   )

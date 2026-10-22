@@ -1,0 +1,7 @@
+PACK 27 - steps (in order)
+1. Unzip into your project folder (say yes to replace files).
+2. Supabase > SQL Editor > New query: paste docs/sql/plans.sql > Run.
+   (This creates the prices table AND makes apgonlyn@gmail.com an admin. Sign in to Invytory once with that email first.)
+3. Supabase > Edge Functions > activate-payment > Code: replace ALL the code with supabase/functions/activate-payment/index.ts > Deploy.
+4. Paystack fix: Vercel > invytory > Settings > Environment Variables: set VITE_PAYSTACK_PUBLIC_KEY to the pk_live_ key of the INVYTORY business (not Alvan Presh). Supabase > Edge Functions > Secrets: PAYSTACK_SECRET_KEY must be the sk_live_ key of the same business. Then Vercel > Deployments > Redeploy.
+5. In your terminal: git add . ; git commit -m "pack 27" ; git push  (push in small batches if you get HTTP 408).

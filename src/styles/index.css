@@ -124,3 +124,20 @@ body {
   font-variation-settings: 'SOFT' 70, 'WONK' 0;
   letter-spacing: -0.012em;
 }
+
+/* Phones: iOS zooms the page in when a field smaller than 16px is focused, and then the page
+   no longer fits the screen. Keeping fields at 16px stops that. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Never let one wide element make the whole page scroll sideways. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}

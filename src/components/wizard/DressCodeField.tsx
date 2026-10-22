@@ -26,10 +26,12 @@ export function DressCodeField({
   dressCode,
   colours,
   onChange,
+  sampleName,
 }: {
   dressCode: string
   colours: string[]
   onChange: (change: DressCodeChange) => void
+  sampleName?: string
 }) {
   function onText(text: string) {
     const found = swatchesInText(text)
@@ -57,6 +59,7 @@ export function DressCodeField({
       <ColourPicker
         values={colours}
         onChange={onColours}
+        sampleName={sampleName}
         title={`Colours of the day (up to ${MAX_COLOURS})`}
       />
     </div>

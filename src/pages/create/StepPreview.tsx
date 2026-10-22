@@ -5,6 +5,7 @@ import { useWizard } from '@/hooks/useWizard'
 import { useAuth } from '@/hooks/useAuth'
 import { templateService } from '@/services/templateService'
 import { weddingService } from '@/services/weddingService'
+import { adminService } from '@/services/adminService'
 import { authService } from '@/services/authService'
 import { paymentService } from '@/services/paymentService'
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans'
@@ -29,6 +30,11 @@ export function StepPreview() {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('mobile')
   const [previewCeremony, setPreviewCeremony] = useState<CeremonyDraft>(draft.ceremonies[0])
   const [stage, setStage] = useState<CheckoutStage>('idle')
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    if (!user) return setIsAdmin(false)
+    adminService.isAdmin().then(setIsAdmin)
+  }, [user])
   const [email, setEmail] = useState('')
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null)
   const [wantsToCheckout, setWantsToCheckout] = useState(false)
@@ -67,6 +73,26 @@ export function StepPreview() {
     if (!email.trim()) return
     await authService.signInWithMagicLink(email.trim())
     setStage('linkSent')
+  }
+
+  async function startFreePublish(plan: PricingPlan) {
+    if (!user) return
+    setStage('processing')
+    try {
+      const saved = await weddingService.createDraft(draft, user.id, plan)
+      const reference = `ADMIN-${saved.wedding.id}`
+      const activated = await paymentService.activate(reference, saved.wedding.id, plan.id, true)
+      if (!activated.ok) {
+        setErrorMessage(activated.error ?? 'Could not publish.')
+        setStage('error')
+        return
+      }
+      reset()
+      navigate(`/success/${saved.wedding.slug}`)
+    } catch {
+      setErrorMessage('Something went wrong. Please try again.')
+      setStage('error')
+    }
   }
 
   async function startCheckout(plan: PricingPlan, ownerId: string, payerEmail: string) {
@@ -195,6 +221,18 @@ export function StepPreview() {
                 />
               )
             })}
+            {isAdmin && (
+              <div className="flex flex-col gap-2 rounded-md border border-gold/50 bg-gold/10 p-4">
+                <p className="text-xs text-ink-soft">Admin only: publish this invitation without payment.</p>
+                <div className="flex flex-wrap gap-2">
+                  {pricingPlans.map((plan) => (
+                    <Button key={plan.id} variant="secondary" onClick={() => startFreePublish(plan)} disabled={!checkPlanHosting(plan.id, draft.ceremonies).fits}>
+                      Publish free: {plan.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
             <p className="text-xs text-ink-soft">
               By paying you agree to our <Link to="/terms" target="_blank" className="text-wine underline">Terms</Link> and{' '}
               <Link to="/privacy" target="_blank" className="text-wine underline">Privacy Policy</Link>.

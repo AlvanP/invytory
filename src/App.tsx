@@ -1,4 +1,5 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect, useSyncExternalStore } from 'react'
+import { planService } from '@/services/planService'
 import { Routes, Route } from 'react-router-dom'
 import { PublicLayout } from '@/components/layouts/PublicLayout'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
@@ -39,6 +40,11 @@ const DashboardGuestsPage = lazy(() => import('@/pages/dashboard/DashboardGuests
 const DashboardSettingsPage = lazy(() => import('@/pages/dashboard/DashboardSettingsPage').then((m) => ({ default: m.DashboardSettingsPage })))
 
 function App() {
+  // Plan prices come from the database; re-draw when they arrive.
+  useSyncExternalStore(planService.subscribe, planService.getVersion)
+  useEffect(() => {
+    void planService.init()
+  }, [])
   return (
     <Suspense fallback={<div className="p-10 text-center text-sm text-ink-soft">Loading…</div>}>
     <Routes>

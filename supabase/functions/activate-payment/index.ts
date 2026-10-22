@@ -77,14 +77,33 @@ export async function handle(req: Request): Promise<Response> {
   if (!user?.id) return reply(401, { ok: false, error: 'Please sign in again.' })
 
   // What are they asking for?
-  const body = (await req.json().catch(() => null)) as { reference?: unknown; weddingId?: unknown; planId?: unknown } | null
+  const body = (await req.json().catch(() => null)) as { reference?: unknown; weddingId?: unknown; planId?: unknown; free?: unknown } | null
   const reference = typeof body?.reference === 'string' ? body.reference.trim() : ''
   const weddingId = typeof body?.weddingId === 'string' ? body.weddingId.trim() : ''
   const planId = typeof body?.planId === 'string' ? body.planId : ''
-  const plan = PLANS[planId]
+  const basePlan = PLANS[planId]
+  const plan = basePlan ? { ...basePlan } : undefined
   if (!/^[A-Za-z0-9._=-]{6,100}$/.test(reference)) return reply(400, { ok: false, error: 'That payment reference does not look right.' })
   if (!/^[0-9a-fA-F-]{36}$/.test(weddingId)) return reply(400, { ok: false, error: 'Missing invitation.' })
   if (!plan) return reply(400, { ok: false, error: 'Unknown plan.' })
+
+  // Prices can be changed by the admin (plans table). If the table cannot be read, the constants above are used.
+  try {
+    const pr = await db(`plans?id=eq.${planId}&select=price_naira&limit=1`)
+    const rows = pr.ok ? ((await pr.json()) as { price_naira: number }[]) : []
+    if (rows[0] && Number.isFinite(rows[0].price_naira) && rows[0].price_naira >= 0) plan.price = Number(rows[0].price_naira)
+  } catch {
+    // keep the default price
+  }
+
+  // Platform admins may publish without paying. Checked here, on the server, never from the browser's word alone.
+  let isAdmin = false
+  if (body?.free === true) {
+    const ar = await db(`platform_admins?user_id=eq.${user.id}&select=user_id&limit=1`)
+    const arows = ar.ok ? ((await ar.json()) as unknown[]) : []
+    isAdmin = arows.length > 0
+    if (!isAdmin) return reply(403, { ok: false, error: 'Only a platform admin can publish without payment.' })
+  }
 
   // 2. The wedding must be theirs.
   const wRes = await db(`weddings?id=eq.${weddingId}&select=id,owner_id,slug,status,payment_reference,expires_at&limit=1`)
@@ -103,7 +122,9 @@ export async function handle(req: Request): Promise<Response> {
   const days = hostingDays(planId, ceremonies.map((c) => c.wedding_date), Date.now())
   if (typeof days !== 'number') return reply(400, { ok: false, error: days.error })
 
-  // 3. Is the payment real?
+  // 3. Is the payment real? (skipped for an admin's free publish)
+  let paidKobo = 0
+  if (!isAdmin) {
   const pRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
     headers: { Authorization: `Bearer ${paystackKey}` },
   })
@@ -113,7 +134,10 @@ export async function handle(req: Request): Promise<Response> {
     data?: { status?: string; amount?: number; currency?: string; customer?: { email?: string } }
   } | null
   if (!pRes.ok || !pJson?.status || !pJson.data) {
-    return reply(400, { ok: false, error: pJson?.message || 'Paystack could not find this payment.' })
+    const hint = /not found/i.test(pJson?.message ?? '')
+      ? ' This usually means the website and the server use keys from different modes or businesses (one test, one live). Both keys must be live keys from the same Paystack business.'
+      : ''
+    return reply(400, { ok: false, error: (pJson?.message || 'Paystack could not find this payment.') + hint })
   }
   const tx = pJson.data
   if (tx.status !== 'success') return reply(400, { ok: false, error: `Paystack reports this payment as "${tx.status}", not successful.` })
@@ -126,12 +150,14 @@ export async function handle(req: Request): Promise<Response> {
   if (user.email && payer && payer !== user.email.toLowerCase()) {
     return reply(403, { ok: false, error: 'This payment was made with a different email address.' })
   }
+  paidKobo = tx.amount
+  }
 
   // 4. One payment, one invitation.
   const claim = await db('payments', {
     method: 'POST',
     headers: { Prefer: 'return=minimal' },
-    body: JSON.stringify({ reference, wedding_id: weddingId, user_id: user.id, plan: planId, amount_kobo: tx.amount }),
+    body: JSON.stringify({ reference, wedding_id: weddingId, user_id: user.id, plan: planId, amount_kobo: paidKobo }),
   })
   if (!claim.ok) {
     const existing = await db(`payments?reference=eq.${encodeURIComponent(reference)}&select=wedding_id&limit=1`)

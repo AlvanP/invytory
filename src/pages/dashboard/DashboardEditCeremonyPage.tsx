@@ -300,6 +300,7 @@ export function DashboardEditCeremonyPage() {
             <Input label="State" optional value={edit.details.state} onChange={(e) => setDetails({ state: e.target.value })} />
             <Input label="Reception info" optional value={edit.details.receptionInfo} onChange={(e) => setDetails({ receptionInfo: e.target.value })} />
             <DressCodeField
+              sampleName={[edit.couple.brideName.trim(), isWedding ? edit.couple.groomName.trim() : ''].filter(Boolean).join(' & ') || undefined}
               dressCode={edit.details.dressCode}
               colours={parseColours(edit.themeColor)}
               onChange={(c) => {

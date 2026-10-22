@@ -81,7 +81,8 @@ export const paymentService = {
   async activate(
     reference: string,
     weddingId: string,
-    planId: 'silver' | 'gold'
+    planId: 'silver' | 'gold',
+    free = false
   ): Promise<{ ok: boolean; slug?: string; error?: string }> {
     const { data } = await supabase.auth.getSession()
     const token = data.session?.access_token
@@ -98,7 +99,7 @@ export const paymentService = {
             Authorization: `Bearer ${token}`,
             apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
           },
-          body: JSON.stringify({ reference, weddingId, planId }),
+          body: JSON.stringify({ reference, weddingId, planId, ...(free ? { free: true } : {}) }),
         })
         const result = await response.json().catch(() => null)
         if (result?.ok) return { ok: true, slug: result.slug }

@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import type { InvitationTemplate } from '@/types'
 import { templateService } from '@/services/templateService'
 import { getTemplateById } from '@/data/templates'
-import { useWizard } from '@/hooks/useWizard'
+import { useWizard, hasProgress } from '@/hooks/useWizard'
 import { PhoneMockup } from '@/components/brand/PhoneMockup'
 import { Badge } from '@/components/ui/Badge'
 import { TemplateCardSkeleton } from '@/components/ui/Skeleton'
@@ -14,7 +14,7 @@ import { cn } from '@/utils/cn'
 import { eventCopy, EVENT_KINDS, type EventKind } from '@/templates/events'
 
 export function StepTemplate() {
-  const { draft, updateDraft, updateCeremony } = useWizard()
+  const { draft, updateDraft, updateCeremony, switchKind, reset } = useWizard()
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const [templates, setTemplates] = useState<InvitationTemplate[] | null>(null)
@@ -38,21 +38,19 @@ export function StepTemplate() {
    */
   function applyTemplate(template: InvitationTemplate) {
     const eventType = template.category as EventKind
+    // Work on this kind's own saved invitation, so names and dates never carry over from another kind.
+    const base = switchKind(eventType)
+    const first = base.ceremonies[0]
     if (eventType !== 'wedding') {
       // Every other kind of event is a single occasion: one date, one place, one design.
       updateDraft({
         templateId: template.id,
-        eventType,
-        ceremonies: draft.ceremonies.slice(0, 1).map((c) => ({ ...c, templateId: template.id, ceremonyType: 'custom' as const })),
+        ceremonies: [{ ...first, templateId: template.id, ceremonyType: 'custom' as const }],
       })
       return
     }
-    updateDraft({ templateId: template.id, eventType })
-    if (draft.eventType !== 'wedding') {
-      // Coming back to a wedding from another event: the first ceremony is a wedding ceremony again.
-      updateCeremony(draft.ceremonies[0].id, { templateId: template.id, ceremonyType: ceremonyTypeForCollection(template.collection) ?? 'white' })
-    } else if (draft.ceremonies.length === 1) {
-      const first = draft.ceremonies[0]
+    updateDraft({ templateId: template.id })
+    if (base.ceremonies.length === 1) {
       const impliedType = ceremonyTypeForCollection(template.collection)
       updateCeremony(first.id, {
         templateId: template.id,
@@ -63,18 +61,16 @@ export function StepTemplate() {
 
   useEffect(() => {
     const preselected = params.get('template')
-    // Arriving with a template already chosen (e.g. "Use Template" from
-    // the gallery) — skip the picker entirely and go straight into the
-    // form flow, rather than making them see and re-confirm the same
-    // templates they just picked from.
-    if (preselected && !draft.templateId) {
+    // Arriving with a template already chosen (e.g. "Use Template" from the gallery):
+    // it always applies to that template's own kind, then we go straight into the form flow.
+    if (preselected) {
       const template = getTemplateById(preselected)
       if (template) {
         applyTemplate(template)
       } else {
         updateDraft({ templateId: preselected })
       }
-      navigate('/create/couple')
+      navigate('/create/couple', { replace: true })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params])
@@ -137,6 +133,21 @@ export function StepTemplate() {
           </button>
         ))}
       </div>
+      {draft.eventType === kind && hasProgress(draft) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-ink">
+          <span>
+            You have an unfinished invitation
+            {draft.brideName ? ` for ${draft.brideName}` : ''}. Pick the same design to keep going, or
+          </span>
+          <button
+            type="button"
+            onClick={() => reset()}
+            className="rounded-full border border-wine/30 px-3 py-1 text-wine hover:border-wine"
+          >
+            Start fresh
+          </button>
+        </div>
+      )}
       {kind === 'wedding' && <CollectionTabs value={filter} onChange={setFilter} />}
 
       {!groups ? (
