@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Camera } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { weddingService } from '@/services/weddingService'
@@ -11,6 +11,7 @@ import { CeremonySelector } from '@/components/invitation/CeremonySelector'
 import { MusicToggle } from '@/components/invitation/MusicToggle'
 import { useInvitationMusic } from '@/hooks/useInvitationMusic'
 import { inviteeService, INVITE_PARAM } from '@/services/inviteeService'
+import { AlbumContext } from '@/templates/AlbumContext'
 import { InviteeContext, type Invitee } from '@/templates/InviteeContext'
 import { ArrivalScene } from '@/components/entrance/ArrivalScene'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
@@ -180,8 +181,16 @@ export function InvitationPreviewPage() {
   const activeInvitation = selectedCeremony ?? (lookup.status === 'legacy' ? lookup.invitation : null)
   const hasCeremonyList = lookup.status === 'wedding' && lookup.ceremonies.length > 1
 
+  // The guest album is part of the Signature plan: open while the invitation is live.
+  const albumOpen = lookup.status === 'wedding' && lookup.wedding.status === 'published' && lookup.wedding.plan === 'gold'
+  const albumValue = albumOpen ? { path: `/album/${lookup.wedding.slug}` } : null
+  // From the day of the event, a small button stays on screen so guests can add photos at any moment.
+  const eventDay = activeInvitation?.weddingDate
+  const eventStarted = !!eventDay && eventDay <= new Date().toISOString().slice(0, 10)
+
   return (
     <InviteeContext.Provider value={invitee}>
+    <AlbumContext.Provider value={albumValue}>
     <ArrivalScene
       tone={entranceTemplate?.previewTone ?? 'classic'}
       templateId={entranceTemplate?.id}
@@ -218,6 +227,15 @@ export function InvitationPreviewPage() {
       )}
     </ArrivalScene>
     {music.visible && <MusicToggle muted={music.muted} needsTap={music.needsTap} onToggle={music.toggle} />}
+    {albumValue && eventStarted && activeInvitation && (
+      <Link
+        to={albumValue.path}
+        className="fixed bottom-4 left-4 z-40 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2.5 text-xs font-medium text-ink shadow-lift backdrop-blur transition-colors hover:bg-white"
+      >
+        <Camera className="size-4" /> Add photos
+      </Link>
+    )}
+    </AlbumContext.Provider>
     </InviteeContext.Provider>
   )
 }

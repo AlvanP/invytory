@@ -11,6 +11,7 @@ import { MomentSection, featurePhoto } from './MomentSection'
 import { GallerySection, sliderPhotos } from './GallerySection'
 import { RsvpSection } from './RsvpSection'
 import { WallSection } from './WallSection'
+import { AlbumSection } from './AlbumSection'
 import { GiftsSection } from './GiftsSection'
 import { FooterSection } from './FooterSection'
 
@@ -32,6 +33,7 @@ export const sectionRegistry: Record<SectionId, SectionEntry> = {
   gallery: { Component: GallerySection, has: (i) => sliderPhotos(i).length > 0 },
   rsvp: { Component: RsvpSection, has: () => true },
   wall: { Component: WallSection, has: () => true },
+  album: { Component: AlbumSection, has: () => true },
   gifts: { Component: GiftsSection, has: (i) => !!(i.giftInformation || i.additionalMessage) },
   footer: { Component: FooterSection, has: () => true },
 }

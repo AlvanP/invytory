@@ -2,48 +2,75 @@ import { useRef, useState } from 'react'
 import { Sparkles, RefreshCw, Pencil, Check, X } from 'lucide-react'
 import { useWizard } from '@/hooks/useWizard'
 import { ceremonyDisplayName } from '@/types'
+import { getEventCopy } from '@/templates/events'
 import { aiService, AiAssistError, type AiField, type AiResult } from '@/services/aiService'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
 
-const DEDICATION_DETAIL_PROMPTS: Record<AiField, string> = {
-  loveStory: 'e.g. how long you waited for this child, what the name means to you, who will be there.',
-  howWeMet: 'e.g. what the name means, how the child is growing, what makes them smile.',
-  vows: 'e.g. what you pray for your child: wisdom, health, faith, a life of purpose.',
-  hashtag: 'Any words you want in it, e.g. a nickname or a favourite phrase.',
-  giftInformation: 'e.g. no gifts please, just prayers, or a wish list link.',
-  additionalMessage: 'e.g. dress colours, parking, when to arrive, anything guests should know.',
-  rsvpMessage: 'e.g. the date guests should reply by.',
+type Kind = 'wedding' | 'child-dedication' | 'birthday' | 'corporate' | 'funeral'
+
+const DETAIL_PROMPTS_BY_KIND: Record<Kind, Record<AiField, string>> = {
+  wedding: {
+    loveStory: 'A few details to include, e.g. where you met, how long you have been together, a favourite memory, the proposal.',
+    howWeMet: 'e.g. the place, the year, who introduced you, what you remember about that day.',
+    vows: 'e.g. what you admire about your partner, promises that matter to you.',
+    hashtag: 'Any words you want in it, e.g. a nickname or a favourite phrase.',
+    giftInformation: 'e.g. cash gifts are welcome, or "your presence is the only gift we need".',
+    additionalMessage: 'e.g. dress colours, parking, what time guests should arrive, anything guests should know.',
+    rsvpMessage: 'e.g. the date guests should reply by.',
+  },
+  'child-dedication': {
+    loveStory: 'e.g. how long you waited for this child, what the name means to you, who will be there.',
+    howWeMet: 'e.g. what the name means, how the child is growing, what makes them smile.',
+    vows: 'e.g. what you pray for your child: wisdom, health, faith, a life of purpose.',
+    hashtag: 'Any words you want in it, e.g. a nickname or a favourite phrase.',
+    giftInformation: 'e.g. no gifts please, just prayers, or a wish list link.',
+    additionalMessage: 'e.g. dress colours, parking, when to arrive, anything guests should know.',
+    rsvpMessage: 'e.g. the date guests should reply by.',
+  },
+  birthday: {
+    loveStory: 'e.g. what this birthday means, a milestone, what the celebrant loves, who is coming.',
+    howWeMet: 'e.g. a funny habit, a favourite food, something everyone knows about the celebrant.',
+    vows: 'e.g. what you want to thank your guests for, how you hope the day feels.',
+    hashtag: 'Any words you want in it, e.g. a nickname or the age.',
+    giftInformation: 'e.g. no gifts please, a wish list link, or cash gifts welcome.',
+    additionalMessage: 'e.g. dress code, theme, parking, when food is served.',
+    rsvpMessage: 'e.g. the date guests should reply by.',
+  },
+  corporate: {
+    loveStory: 'e.g. the purpose of the event, the theme, what attendees will gain, the sponsors you want mentioned.',
+    howWeMet: 'e.g. founders, investors, managers, partners, customers, industry leaders.',
+    vows: 'e.g. the name and role of the keynote speaker or special guest, and what they will speak on.',
+    hashtag: 'Any words you want in it, e.g. the event name or year.',
+    giftInformation: 'e.g. registration opens at 8am, parking is available, bring a valid ID.',
+    additionalMessage: 'e.g. dress code, programme times, how to reach the venue.',
+    rsvpMessage: 'e.g. the deadline to register.',
+  },
+  funeral: {
+    loveStory: 'e.g. who they were to the family, what they did in life, the places and people they loved.',
+    howWeMet: 'e.g. their kindness, faith, generosity, humour, the work they were proud of.',
+    vows: 'e.g. a verse or saying they loved, or a prayer the family wants to share.',
+    hashtag: 'Any words you want in it, e.g. their name or a favourite phrase.',
+    giftInformation: 'e.g. where donations may be sent, or that guests\' prayers are all the family asks.',
+    additionalMessage: 'e.g. dress colours, parking, refreshments after the service.',
+    rsvpMessage: 'e.g. the date to let the family know you are coming.',
+  },
 }
 
-const WEDDING_DETAIL_PROMPTS: Record<AiField, string> = {
-  loveStory: 'A few details to include, e.g. where you met, how long you have been together, a favourite memory, the proposal.',
-  howWeMet: 'e.g. the place, the year, who introduced you, what you remember about that day.',
-  vows: 'e.g. what you admire about your partner, promises that matter to you.',
-  hashtag: 'Any words you want in it, e.g. a nickname or a favourite phrase.',
-  giftInformation: 'e.g. cash gifts are welcome, or "your presence is the only gift we need".',
-  additionalMessage: 'e.g. dress colours, parking, what time guests should arrive, anything guests should know.',
-  rsvpMessage: 'e.g. the date guests should reply by.',
+const LABELS_BY_KIND: Record<Kind, Record<AiField, string>> = {
+  wedding: { loveStory: 'our story', howWeMet: 'how we met', vows: 'vows', hashtag: 'hashtag', giftInformation: 'gift information', additionalMessage: 'additional message', rsvpMessage: 'RSVP message' },
+  'child-dedication': { loveStory: 'why we are celebrating', howWeMet: 'a little about them', vows: 'our prayer for them', hashtag: 'hashtag', giftInformation: 'gift information', additionalMessage: 'additional message', rsvpMessage: 'RSVP message' },
+  birthday: { loveStory: 'the story so far', howWeMet: 'a fun fact', vows: 'a note from me', hashtag: 'hashtag', giftInformation: 'gifts and wish list', additionalMessage: 'additional message', rsvpMessage: 'RSVP message' },
+  corporate: { loveStory: 'about the event', howWeMet: 'who should attend', vows: 'keynote or special guest', hashtag: 'hashtag', giftInformation: 'good to know', additionalMessage: 'additional message', rsvpMessage: 'registration message' },
+  funeral: { loveStory: 'a tribute', howWeMet: 'remembered for', vows: 'a favourite verse', hashtag: 'hashtag', giftInformation: 'donations and notes', additionalMessage: 'additional message', rsvpMessage: 'confirmation message' },
 }
 
-const DEDICATION_LABELS: Record<AiField, string> = {
-  loveStory: 'why we are celebrating',
-  howWeMet: 'a little about them',
-  vows: 'our prayer for them',
-  hashtag: 'hashtag',
-  giftInformation: 'gift information',
-  additionalMessage: 'additional message',
-  rsvpMessage: 'RSVP message',
-}
-
-const WEDDING_LABELS: Record<AiField, string> = {
-  loveStory: 'our story',
-  howWeMet: 'how we met',
-  vows: 'vows',
-  hashtag: 'hashtag',
-  giftInformation: 'gift information',
-  additionalMessage: 'additional message',
-  rsvpMessage: 'RSVP message',
+const NAME_STEP_HINT: Record<Kind, string> = {
+  wedding: 'Add both names on the \u201Ccouple\u201D step first, then AI Assist can write for you.',
+  'child-dedication': 'Add your child\u2019s name on the \u201CChild\u201D step first, then AI Assist can write for you.',
+  birthday: 'Add the celebrant\u2019s name on the \u201CCelebrant\u201D step first, then AI Assist can write for you.',
+  corporate: 'Add the event title on the \u201CEvent\u201D step first, then AI Assist can write for you.',
+  funeral: 'Add your loved one\u2019s name on the \u201CLoved one\u201D step first, then AI Assist can write for you.',
 }
 
 /**
@@ -76,12 +103,13 @@ export function AiAssist({
   const variationRef = useRef(0)
   const editRef = useRef<HTMLTextAreaElement>(null)
 
-  const dedication = draft.eventType === 'child-dedication'
-  const DETAIL_PROMPTS = dedication ? DEDICATION_DETAIL_PROMPTS : WEDDING_DETAIL_PROMPTS
-  const LABELS = dedication ? DEDICATION_LABELS : WEDDING_LABELS
+  const kind = draft.eventType as Kind
+  const wedding = kind === 'wedding'
+  const DETAIL_PROMPTS = DETAIL_PROMPTS_BY_KIND[kind]
+  const LABELS = LABELS_BY_KIND[kind]
   const bride = (draft.brideName ?? '').trim()
-  const groom = dedication ? '' : (draft.groomName ?? '').trim()
-  const hasNames = !!bride && (dedication || !!groom)
+  const groom = wedding ? (draft.groomName ?? '').trim() : ''
+  const hasNames = !!bride && (!wedding || !!groom)
   const isHashtag = field === 'hashtag'
 
   async function generate(isRetry: boolean) {
@@ -96,7 +124,7 @@ export function AiAssist({
     const ceremonies = draft.ceremonies
       .filter((c) => !onlyCeremonyId || c.id === onlyCeremonyId)
       .map((c) => ({
-        name: dedication ? 'Child dedication' : ceremonyDisplayName(c),
+        name: wedding ? ceremonyDisplayName(c) : getEventCopy(kind).label,
         date: c.weddingDate ?? '',
         city: c.city ?? '',
       }))
@@ -106,8 +134,8 @@ export function AiAssist({
     try {
       const next = await aiService.suggest({
         field,
-        eventType: dedication ? 'child-dedication' : 'wedding',
-        parents: dedication ? (draft.tagline ?? '') : undefined,
+        eventType: kind,
+        parents: wedding ? undefined : (draft.tagline ?? ''),
         details: details.trim(),
         bride,
         groom,
@@ -172,7 +200,7 @@ export function AiAssist({
       </div>
 
       {!hasNames ? (
-        <p className="text-sm text-ink-soft">{dedication ? 'Add your child\u2019s name on the \u201CChild\u201D step first, then AI Assist can write for you.' : 'Add both names on the \u201Ccouple\u201D step first, then AI Assist can write for you.'}</p>
+        <p className="text-sm text-ink-soft">{NAME_STEP_HINT[kind]}</p>
       ) : (
         <>
           {!result && (

@@ -252,7 +252,7 @@ export const wizardCopy: Record<EventKind, WizardCopy> = {
     detailsTitle: 'Party details',
     detailsDescription: 'When and where the party is. Everything else is optional.',
     storyTitle: 'About the celebrant',
-    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple.',
+    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple. Not sure what to write? Try AI Assist under each box.',
     storyMain: { label: 'The story so far', placeholder: 'A few lines about the celebrant and the occasion...' },
     storySecond: { label: 'Fun fact', placeholder: 'Something your guests will smile at.' },
     storyThird: { label: 'A note from me', placeholder: 'A short, personal message to your guests.' },
@@ -271,7 +271,7 @@ export const wizardCopy: Record<EventKind, WizardCopy> = {
     detailsTitle: 'Event details',
     detailsDescription: 'When and where the event takes place. Add the programme in the box below.',
     storyTitle: 'About the event',
-    storyDescription: 'Entirely optional. Skip this step if the basics are enough.',
+    storyDescription: 'Entirely optional. Skip this step if the basics are enough. Not sure what to write? Try AI Assist under each box.',
     storyMain: { label: 'About the event', placeholder: 'What the event is, and why it matters...' },
     storySecond: { label: 'Who should attend', placeholder: 'The people this event is for.' },
     storyThird: { label: 'Keynote or special guest', placeholder: 'Who is speaking or presenting.' },
@@ -290,7 +290,7 @@ export const wizardCopy: Record<EventKind, WizardCopy> = {
     detailsTitle: 'Service details',
     detailsDescription: 'When and where the service takes place. Everything else is optional.',
     storyTitle: 'A tribute',
-    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple.',
+    storyDescription: 'Entirely optional. Skip this step if you would rather keep things simple. Not sure what to write? Try AI Assist under each box.',
     storyMain: { label: 'A tribute', placeholder: 'A few words about their life...' },
     storySecond: { label: 'Remembered for', placeholder: 'What they will be remembered for.' },
     storyThird: { label: 'A favourite verse', placeholder: 'A scripture or saying they loved.' },
@@ -344,5 +344,5 @@ export const guestCopy: Record<EventKind, GuestCopy> = {
   },
 }
 
-/** Events where AI Assist can write the wording. Others write their own for now. */
-export const AI_ASSIST_EVENTS: EventKind[] = ['wedding', 'child-dedication']
+/** Events where AI Assist can write the wording. */
+export const AI_ASSIST_EVENTS: EventKind[] = ['wedding', 'child-dedication', 'birthday', 'corporate', 'funeral']
