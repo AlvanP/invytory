@@ -202,7 +202,11 @@ async function renderImage(invite: Invite, guest: string, origin: string): Promi
 
 function injectHead(html: string, tags: string, title: string): string {
   const stripped = html.replace(/<title>[\s\S]*?<\/title>/i, '').replace(/<meta[^>]+(property="og:|name="twitter:|name="description")[^>]*>\s*/gi, '')
-  return stripped.replace('</head>', `<title>${esc(title)}</title>\n${tags}\n</head>`)
+  const block = `<title>${esc(title)}</title>\n${tags}\n`
+  // As early in <head> as possible (right after the charset line): some crawlers read only the first part of the page.
+  const charset = stripped.match(/<meta[^>]+charset[^>]*>/i)
+  if (charset) return stripped.replace(charset[0], `${charset[0]}\n${block}`)
+  return stripped.replace('<head>', `<head>\n${block}`)
 }
 
 async function handle(req: any, res: any) {
@@ -212,6 +216,9 @@ async function handle(req: any, res: any) {
   const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0]
   const origin = `${proto}://${host}`
 
+  // Start loading the page's own HTML at the same time as the database lookup: WhatsApp gives up quickly.
+  const pagePromise = req.query?.image ? null : fetch(`${origin}/index.html`).then((r) => r.text())
+  pagePromise?.catch(() => undefined)
   const invite = await loadInvite(slug)
   const guest = invite && code ? await loadGuestName(code) : ''
 
@@ -231,8 +238,7 @@ async function handle(req: any, res: any) {
   // The normal page: fetch the built index.html and add the sharing tags to it.
   let html = ''
   try {
-    const page = await fetch(`${origin}/index.html`)
-    html = await page.text()
+    html = await pagePromise!
   } catch {
     res.status(500).send('Could not load the page.')
     return
@@ -253,7 +259,9 @@ async function handle(req: any, res: any) {
       `<meta property="og:description" content="${esc(description)}" />`,
       `<meta property="og:url" content="${esc(url)}" />`,
       `<meta property="og:image" content="${esc(image)}" />`,
+      `<meta property="og:image:secure_url" content="${esc(image)}" />`,
       `<meta property="og:image:type" content="image/jpeg" />`,
+      `<meta property="og:image:alt" content="${esc(title)}" />`,
       `<meta property="og:image:width" content="${W}" />`,
       `<meta property="og:image:height" content="${H}" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
@@ -265,7 +273,7 @@ async function handle(req: any, res: any) {
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600')
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400')
   res.status(200).send(html)
 }
 
