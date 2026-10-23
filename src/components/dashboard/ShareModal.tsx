@@ -3,10 +3,12 @@ import { Copy, Check, Mail, MessageCircle, Share2, Download } from 'lucide-react
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { getQrCodeUrl } from '@/utils/qrCode'
+import { useShareVersion, withShareVersion } from '@/services/shareVersion'
 
 export function ShareModal({ isOpen, onClose, slug }: { isOpen: boolean; onClose: () => void; slug: string }) {
   const [copied, setCopied] = useState(false)
-  const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/invitation/${slug}`
+  const v = useShareVersion(slug, isOpen)
+  const url = withShareVersion(`${typeof window !== 'undefined' ? window.location.origin : ''}/invitation/${slug}`, v)
   const qrUrl = getQrCodeUrl(url, 240)
 
   async function handleCopy() {
@@ -46,9 +48,15 @@ export function ShareModal({ isOpen, onClose, slug }: { isOpen: boolean; onClose
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <Button variant="outline" size="sm" icon={<MessageCircle className="size-4" />}>WhatsApp</Button>
-          <Button variant="outline" size="sm" icon={<Share2 className="size-4" />}>Facebook</Button>
-          <Button variant="outline" size="sm" icon={<Mail className="size-4" />}>Email</Button>
+          <a href={`https://wa.me/?text=${encodeURIComponent(`You are invited! ${url}`)}`} target="_blank" rel="noreferrer">
+            <Button variant="outline" size="sm" className="w-full" icon={<MessageCircle className="size-4" />}>WhatsApp</Button>
+          </a>
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer">
+            <Button variant="outline" size="sm" className="w-full" icon={<Share2 className="size-4" />}>Facebook</Button>
+          </a>
+          <a href={`mailto:?subject=${encodeURIComponent("You are invited")}&body=${encodeURIComponent(url)}`}>
+            <Button variant="outline" size="sm" className="w-full" icon={<Mail className="size-4" />}>Email</Button>
+          </a>
         </div>
       </div>
     </Modal>

@@ -46,8 +46,8 @@ function makeCode(): string {
 /** Query-string name used in personal links: /invitation/<slug>?to=<code> */
 export const INVITE_PARAM = 'to'
 
-export function inviteUrl(slug: string, code: string): string {
-  return `${window.location.origin}/invitation/${slug}?${INVITE_PARAM}=${code}`
+export function inviteUrl(slug: string, code: string, v = ''): string {
+  return `${window.location.origin}/invitation/${slug}?${INVITE_PARAM}=${code}${v ? `&v=${v}` : ''}`
 }
 
 export const inviteeService = {

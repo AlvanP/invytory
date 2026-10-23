@@ -6,6 +6,7 @@ import { invitationService } from '@/services/invitationService'
 import { weddingService } from '@/services/weddingService'
 import { getPlanById } from '@/data/pricingPlans'
 import { getQrCodeUrl } from '@/utils/qrCode'
+import { useShareVersion, withShareVersion } from '@/services/shareVersion'
 import { formatDate, namesTitle } from '@/utils/format'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -21,6 +22,7 @@ export function PublishSuccessPage() {
   const { slug } = useParams<{ slug: string }>()
   const [result, setResult] = useState<ResultState>({ status: 'loading' })
   const [copied, setCopied] = useState(false)
+  const shareV = useShareVersion(slug)
 
   useEffect(() => {
     if (!slug) return
@@ -54,7 +56,7 @@ export function PublishSuccessPage() {
   const createdAt = result.status === 'wedding' ? result.wedding.createdAt : result.invitation.createdAt
   const ceremonyCount = result.status === 'wedding' ? result.ceremonies.length : 1
 
-  const url = `${window.location.origin}/invitation/${resolvedSlug}`
+  const url = withShareVersion(`${window.location.origin}/invitation/${resolvedSlug}`, shareV)
   const plan = planId ? getPlanById(planId) : undefined
 
   async function handleCopy() {

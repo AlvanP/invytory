@@ -15,6 +15,8 @@ const W = 1200
 const H = 630
 
 interface Invite {
+  /** Changes whenever anything shown in the preview changes. Used to make a fresh link each time. */
+  ver: string
   names: string
   label: string
   heroImage: string | null
@@ -45,6 +47,14 @@ async function rest(path: string): Promise<any[]> {
   return Array.isArray(data) ? data : []
 }
 
+/** A short code that changes when any of the given values change. */
+function fingerprint(parts: unknown[]): string {
+  const text = JSON.stringify(parts)
+  let h = 5381
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0
+  return (h >>> 0).toString(36)
+}
+
 function cleanSlug(raw: unknown): string {
   return String(raw ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 120)
 }
@@ -69,10 +79,13 @@ async function loadInvite(slug: string): Promise<Invite | null> {
   if (!r) return null
   const first = String(r.bride_name ?? '').trim()
   const second = String(r.groom_name ?? '').trim()
+  const names = second ? `${first} & ${second}` : first
+  const heroImage = typeof r.hero_image === 'string' && /^https?:\/\//.test(r.hero_image) ? r.hero_image : null
   return {
-    names: second ? `${first} & ${second}` : first,
+    ver: fingerprint([names, r.event_type, heroImage, r.wedding_date, r.venue_name, r.city]),
+    names,
     label: LABELS[r.event_type] ?? LABELS.wedding,
-    heroImage: typeof r.hero_image === 'string' && /^https?:\/\//.test(r.hero_image) ? r.hero_image : null,
+    heroImage,
     when: prettyDate(r.wedding_date),
     where: [r.venue_name, r.city].filter(Boolean).join(', '),
   }
@@ -220,13 +233,22 @@ async function handle(req: any, res: any) {
   const pagePromise = req.query?.image ? null : fetch(`${origin}/index.html`).then((r) => r.text())
   pagePromise?.catch(() => undefined)
   const invite = await loadInvite(slug)
+
+  // The dashboard asks for this to build a share link that is new whenever the invitation changes.
+  if (req.query?.fp) {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Cache-Control', 'no-store')
+    res.status(200).send(JSON.stringify({ v: invite?.ver ?? '' }))
+    return
+  }
   const guest = invite && code ? await loadGuestName(code) : ''
 
   if (req.query?.image) {
     try {
-      const jpeg = await renderImage(invite ?? { names: 'You are invited', label: 'Invitation', heroImage: null, when: '', where: '' }, guest, origin)
+      const jpeg = await renderImage(invite ?? { ver: '', names: 'You are invited', label: 'Invitation', heroImage: null, when: '', where: '' }, guest, origin)
       res.setHeader('Content-Type', 'image/jpeg')
-      res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=86400, stale-while-revalidate=604800')
+      // The address carries a version, so a changed invitation always gets a new address and this can be kept for a long time.
+      res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=31536000, immutable')
       res.status(200).send(jpeg)
     } catch (err) {
       console.error('[invite-share] image failed:', err)
@@ -249,7 +271,7 @@ async function handle(req: any, res: any) {
     const description = guest
       ? `${invite.label}: ${invite.names}${invite.when ? `. ${invite.when}` : ''}. Tap to open your personal invitation.`
       : `${invite.when ? `${invite.when}${invite.where ? ` · ${invite.where}` : ''}. ` : ''}Tap to open the invitation, see the details and RSVP.`
-    const image = `${origin}/api/invite-share?slug=${slug}&image=1${code ? `&to=${code}` : ''}`
+    const image = `${origin}/api/invite-share?slug=${slug}&image=1&v=${invite.ver}${code ? `&to=${code}` : ''}`
     const url = `${origin}/invitation/${slug}`
     const tags = [
       `<meta name="description" content="${esc(description)}" />`,
@@ -273,7 +295,8 @@ async function handle(req: any, res: any) {
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400')
+  // Short, so an edit shows up within a minute even for an address that was shared before.
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=30, stale-while-revalidate=30')
   res.status(200).send(html)
 }
 

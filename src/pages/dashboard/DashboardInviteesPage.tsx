@@ -4,6 +4,7 @@ import { ArrowLeft, Check, Copy, Download, MessageCircle, Plus, Trash2 } from 'l
 import type { WeddingInvitation } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { weddingService } from '@/services/weddingService'
+import { useShareVersion } from '@/services/shareVersion'
 import { inviteeService, inviteUrl, type InviteLink } from '@/services/inviteeService'
 import { namesTitle } from '@/utils/format'
 import { Button } from '@/components/ui/Button'
@@ -41,6 +42,7 @@ export function DashboardInviteesPage() {
   const hinted = (useLocation().state as { slug?: string } | null)?.slug ?? null
   const [fetchedSlug, setPageSlug] = useState<string | null>(null)
   const pageSlug = hinted ?? fetchedSlug
+  const shareV = useShareVersion(pageSlug)
   useEffect(() => {
     if (!invitation || hinted) return
     if (!invitation.weddingId) {
@@ -114,7 +116,7 @@ export function DashboardInviteesPage() {
   }
 
   function downloadCsv() {
-    const rows = [['Name', 'Link', 'Opened', 'RSVP'], ...list.map((l) => [l.guestName, inviteUrl(pageSlug ?? '', l.code), String(l.openedCount), answers[l.code] ?? ''])]
+    const rows = [['Name', 'Link', 'Opened', 'RSVP'], ...list.map((l) => [l.guestName, inviteUrl(pageSlug ?? '', l.code, shareV), String(l.openedCount), answers[l.code] ?? ''])]
     const blob = new Blob([rows.map((r) => r.map(csvCell).join(',')).join('\n')], { type: 'text/csv' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
@@ -163,7 +165,7 @@ export function DashboardInviteesPage() {
                   size="sm"
                   variant="outline"
                   icon={copied === 'all' ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  onClick={() => copy(list.map((l) => `${l.guestName}: ${inviteUrl(pageSlug ?? '', l.code)}`).join('\n'), 'all')}
+                  onClick={() => copy(list.map((l) => `${l.guestName}: ${inviteUrl(pageSlug ?? '', l.code, shareV)}`).join('\n'), 'all')}
                 >
                   Copy all links
                 </Button>
@@ -183,7 +185,7 @@ export function DashboardInviteesPage() {
           )}
           <ul className="mt-4 flex flex-col gap-3">
             {pageSlug && list.map((l) => {
-              const url = inviteUrl(pageSlug!, l.code)
+              const url = inviteUrl(pageSlug!, l.code, shareV)
               const answer = answers[l.code]
               return (
                 <li key={l.id} className="rounded-md border border-ink/10 bg-white p-4">
