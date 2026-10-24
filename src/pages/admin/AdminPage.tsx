@@ -313,7 +313,7 @@ export function AdminPage() {
     <div className="min-h-screen bg-ivory text-ink">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 bg-white px-6 py-4">
         <div className="flex items-center gap-3">
-          <Logo className="text-lg" />
+          <Logo className="h-6" />
           <span className="flex items-center gap-1 rounded-full bg-wine px-2.5 py-1 text-xs text-ivory"><ShieldCheck className="size-3.5" /> Platform admin</span>
         </div>
         <div className="flex items-center gap-2">

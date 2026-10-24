@@ -37,7 +37,7 @@ export function DashboardSidebar() {
     <aside className="flex w-full shrink-0 flex-col justify-between border-b border-ink/10 bg-ivory-deep md:h-full md:w-60 md:border-b-0 md:border-r">
       <div>
         <div className="p-6">
-          <Logo className="text-lg" />
+          <Logo className="h-6" />
           <p className="text-xs text-ink-soft">Organizer dashboard</p>
         </div>
 

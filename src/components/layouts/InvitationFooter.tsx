@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { LogoMark } from '@/components/brand/Logo'
+import { Logo } from '@/components/brand/Logo'
 import { BRAND_LINKS, type BrandLinkKey } from '@/data/brandLinks'
 
 const ICONS: Record<Exclude<BrandLinkKey, 'website'>, { label: string; icon: ReactNode }> = {
@@ -55,8 +55,7 @@ export function InvitationFooter() {
     <footer className="bg-wine text-ivory">
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-12 text-center">
         <a href={BRAND_LINKS.website} target="_blank" rel="noopener noreferrer" aria-label="Invytory home" className="group inline-flex items-center gap-3">
-          <LogoMark className="size-10 transition-transform duration-500 group-hover:rotate-[-6deg]" />
-          <span className="font-brand text-5xl leading-none tracking-tight">Invytory</span>
+          <Logo tone="light" className="h-12 transition-transform duration-500 group-hover:scale-[1.03]" />
         </a>
         <p className="font-display text-lg italic opacity-90">Tell a story, with your invites.</p>
 
