@@ -1,10 +1,50 @@
 import { useEffect, useState } from 'react'
-import { Check, Loader2, Mail } from 'lucide-react'
+import { Camera, Check, Clock, CreditCard, Loader2, LifeBuoy, Send, Users } from 'lucide-react'
 import { CONTACT_EMAIL } from '@/pages/legal/LegalPage'
 import { BRAND_LINKS } from '@/data/brandLinks'
-import { Button } from '@/components/ui/Button'
+import { ICONS } from '@/components/brand/SocialIcons'
 
 const TOPICS = ['General question', 'Help with my invitation', 'Payments', 'Guest photo album', 'Partnerships and planners', 'Report a problem']
+const ORDER = ['instagram', 'tiktok', 'linkedin', 'facebook'] as const
+
+const HELP = [
+  { icon: LifeBuoy, title: 'Help with an invitation', text: 'Editing, sharing links, RSVPs and guest lists.' },
+  { icon: CreditCard, title: 'Payments', text: 'Plans, receipts and anything about checkout.' },
+  { icon: Camera, title: 'Guest photo album', text: 'QR codes, uploads and downloads.' },
+  { icon: Users, title: 'Planners and partners', text: 'Planning many events? Let us talk.' },
+]
+
+/** Sends through our own server first; if that is not set up yet, straight to the Invytory inbox. */
+async function sendMessage(payload: { name: string; email: string; topic: string; message: string; website: string }): Promise<void> {
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string }
+    if (res.ok && data.ok) return
+    if (data.error && data.error !== 'not_configured' && data.error !== 'send_failed') throw new Error(data.error)
+  } catch (err) {
+    if (err instanceof Error && err.message && !/fetch|network|json|load failed/i.test(err.message)) throw err
+  }
+  // Backup route: delivers to the same inbox.
+  const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      name: payload.name,
+      email: payload.email,
+      topic: payload.topic,
+      message: payload.message,
+      _subject: `[Invytory contact] ${payload.topic} from ${payload.name}`,
+      _template: 'table',
+      _captcha: 'false',
+    }),
+  })
+  const data = (await res.json().catch(() => ({}))) as { success?: string | boolean }
+  if (!res.ok || !(data.success === true || data.success === 'true')) throw new Error('send_failed')
+}
 
 export function ContactPage() {
   const [name, setName] = useState('')
@@ -26,90 +66,143 @@ export function ContactPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if (trap) return
     setState('sending')
     setError('')
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, topic, message, website: trap }),
-      })
-      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string }
-      if (res.ok && data.ok) {
-        setState('sent')
-        return
-      }
-      setError(
-        data.error === 'not_configured' || data.error === 'send_failed'
-          ? `We could not send that just now. Please email us directly at ${CONTACT_EMAIL}.`
-          : (data.error ?? 'Something went wrong. Please try again.')
-      )
-    } catch {
-      setError(`Could not reach the server. Please check your connection, or email us at ${CONTACT_EMAIL}.`)
+      await sendMessage({ name, email, topic, message, website: trap })
+      setState('sent')
+    } catch (err) {
+      const text = err instanceof Error ? err.message : ''
+      setError(text && text !== 'send_failed' ? text : 'We could not send that just now. Please try again in a moment.')
+      setState('error')
     }
-    setState('error')
   }
 
-  const field = 'rounded-xs border border-ink/15 bg-white px-3 py-2.5 text-base text-ink outline-none focus:border-wine'
+  const field =
+    'w-full rounded-sm border border-ink/15 bg-ivory/60 px-4 py-3 text-base text-ink outline-none transition-colors placeholder:text-ink-soft/60 focus:border-wine focus:bg-white'
+  const links = ORDER.filter((k) => BRAND_LINKS[k])
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-14 sm:py-20">
-      <h1 className="font-display text-4xl text-ink">Contact us</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
-        Questions, feedback or need a hand with your invitation? Send us a message and we will reply by email.
-      </p>
-
-      {state === 'sent' ? (
-        <div role="status" className="mt-8 flex items-start gap-3 rounded-md border border-ink/10 bg-white p-6">
-          <Check className="mt-0.5 size-5 shrink-0 text-success" />
-          <div>
-            <p className="font-display text-xl text-ink">Message sent</p>
-            <p className="mt-1 text-sm text-ink-soft">Thank you. We will reply to {email} as soon as we can.</p>
-          </div>
+    <div>
+      <section className="relative overflow-hidden bg-wine text-ivory">
+        <div className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-gold/20 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-32 -left-16 size-72 rounded-full bg-ivory/10 blur-3xl" aria-hidden />
+        <div className="relative mx-auto max-w-5xl px-6 py-16 text-center sm:py-24">
+          <p className="text-xs tracking-[0.25em] text-gold-soft">CONTACT US</p>
+          <h1 className="mt-4 font-display text-4xl sm:text-6xl">We would love to hear from you</h1>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed opacity-85">
+            A question, an idea, or a hand needed with your invitation. Send us a message and a real person will reply by email.
+          </p>
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-ivory/25 px-4 py-1.5 text-xs">
+            <Clock className="size-3.5 text-gold-soft" /> We usually reply within a day
+          </p>
         </div>
-      ) : (
-        <form onSubmit={submit} className="mt-8 flex flex-col gap-4 rounded-md border border-ink/10 bg-white p-6">
-          <label className="flex flex-col gap-1 text-sm text-ink-soft">
-            Your name
-            <input required value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className={field} autoComplete="name" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-ink-soft">
-            Your email
-            <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} className={field} autoComplete="email" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-ink-soft">
-            Topic
-            <select value={topic} onChange={(e) => setTopic(e.target.value)} className={field}>
-              {TOPICS.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-ink-soft">
-            Message
-            <textarea required rows={6} value={message} onChange={(e) => setMessage(e.target.value)} maxLength={4000} className={field} />
-          </label>
-          {/* Hidden from people; bots fill it in and are ignored. */}
-          <input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} className="absolute -left-[9999px] h-0 w-0 opacity-0" aria-hidden name="website" />
-          {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-          <Button type="submit" disabled={state === 'sending'} icon={state === 'sending' ? <Loader2 className="size-4 animate-spin" /> : undefined}>
-            {state === 'sending' ? 'Sending…' : 'Send message'}
-          </Button>
-        </form>
-      )}
+      </section>
 
-      <p className="mt-8 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-soft">
-        <Mail className="size-4 text-wine" /> You can also email{' '}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="text-wine underline-offset-2 hover:underline">{CONTACT_EMAIL}</a>
-      </p>
-      {(BRAND_LINKS.instagram || BRAND_LINKS.tiktok) && (
-        <p className="mt-2 text-sm text-ink-soft">
-          Follow us on{' '}
-          {BRAND_LINKS.instagram && <a href={BRAND_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="text-wine underline-offset-2 hover:underline">Instagram</a>}
-          {BRAND_LINKS.instagram && BRAND_LINKS.tiktok && ' and '}
-          {BRAND_LINKS.tiktok && <a href={BRAND_LINKS.tiktok} target="_blank" rel="noopener noreferrer" className="text-wine underline-offset-2 hover:underline">TikTok</a>}
-        </p>
-      )}
+      <div className="mx-auto grid max-w-5xl gap-8 px-6 pb-20 lg:grid-cols-[1.25fr_1fr]">
+        <div className="relative z-10 -mt-10 rounded-md border border-ink/10 bg-white p-6 shadow-lift sm:p-9">
+          {state === 'sent' ? (
+            <div role="status" className="flex flex-col items-center gap-3 py-10 text-center">
+              <span className="flex size-14 items-center justify-center rounded-full bg-success/10 text-success">
+                <Check className="size-7" />
+              </span>
+              <h2 className="font-display text-3xl text-ink">Message sent</h2>
+              <p className="max-w-sm text-sm leading-relaxed text-ink-soft">Thank you, {name.split(' ')[0] || 'friend'}. We will reply to {email} as soon as we can.</p>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="flex flex-col gap-5">
+              <div>
+                <h2 className="font-display text-2xl text-ink">Send us a message</h2>
+                <p className="mt-1 text-sm text-ink-soft">Fill in the form and we will get back to you.</p>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-sm font-medium text-ink">
+                  Your name
+                  <input required value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Ada Okafor" className={field} autoComplete="name" />
+                </label>
+                <label className="flex flex-col gap-1.5 text-sm font-medium text-ink">
+                  Your email
+                  <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} placeholder="you@example.com" className={field} autoComplete="email" />
+                </label>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-ink">What is this about?</span>
+                <div className="flex flex-wrap gap-2">
+                  {TOPICS.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTopic(t)}
+                      aria-pressed={topic === t}
+                      className={
+                        topic === t
+                          ? 'rounded-full border border-wine bg-wine px-3.5 py-1.5 text-xs font-medium text-ivory'
+                          : 'rounded-full border border-ink/15 bg-white px-3.5 py-1.5 text-xs text-ink-soft transition-colors hover:border-wine hover:text-wine'
+                      }
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <label className="flex flex-col gap-1.5 text-sm font-medium text-ink">
+                Your message
+                <textarea required rows={6} value={message} onChange={(e) => setMessage(e.target.value)} maxLength={4000} placeholder="Tell us how we can help" className={field} />
+              </label>
+              <input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} className="absolute -left-[9999px] h-0 w-0 opacity-0" aria-hidden name="website" />
+              {error && <p role="alert" className="rounded-xs bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}
+              <button
+                type="submit"
+                disabled={state === 'sending'}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-wine px-7 py-3.5 text-base font-medium text-ivory transition-colors hover:bg-wine-soft disabled:opacity-60"
+              >
+                {state === 'sending' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                {state === 'sending' ? 'Sending…' : 'Send message'}
+              </button>
+            </form>
+          )}
+        </div>
+
+        <aside className="flex flex-col gap-6 lg:pt-8">
+          <ul className="flex flex-col gap-4">
+            {HELP.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex items-start gap-4 rounded-md border border-ink/10 bg-white p-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-wine/10 text-wine">
+                  <Icon className="size-5" />
+                </span>
+                <div>
+                  <p className="font-medium text-ink">{title}</p>
+                  <p className="mt-0.5 text-sm text-ink-soft">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {links.length > 0 && (
+            <div className="rounded-md bg-ivory-deep p-6 text-center">
+              <p className="font-display text-xl text-wine">Follow our stories</p>
+              <p className="mt-1 text-sm text-ink-soft">Ideas, new designs and real celebrations.</p>
+              <ul className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {links.map((k) => (
+                  <li key={k}>
+                    <a
+                      href={BRAND_LINKS[k]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={ICONS[k].label}
+                      title={ICONS[k].label}
+                      className="flex size-12 items-center justify-center rounded-full bg-wine text-ivory transition-transform hover:scale-110"
+                    >
+                      {ICONS[k].icon}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }
