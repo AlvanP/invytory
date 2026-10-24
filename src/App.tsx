@@ -9,6 +9,7 @@ import { TemplateGalleryPage } from '@/pages/TemplateGalleryPage'
 import { TemplatePreviewPage } from '@/pages/TemplatePreviewPage'
 import { InvitationPreviewPage } from '@/pages/InvitationPreviewPage'
 import { PricingPage } from '@/pages/PricingPage'
+import { ContactPage } from '@/pages/ContactPage'
 import { PrivacyPage } from '@/pages/legal/PrivacyPage'
 import { TermsPage } from '@/pages/legal/TermsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -54,6 +55,7 @@ function App() {
         <Route path="/templates" element={<TemplateGalleryPage />} />
         <Route path="/templates/:templateId" element={<TemplatePreviewPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/invitation/:slug" element={<InvitationPreviewPage />} />

@@ -210,7 +210,7 @@ function Events({ events, reload }: { events: AdminEvent[] | null; reload: () =>
                   <Link to={`/invitation/${e.slug}`} target="_blank" className="font-medium text-ink hover:underline">{e.title || e.slug}</Link>
                   <p className="text-xs text-ink-soft">{TYPE_LABELS[e.event_type] ?? e.event_type} · {e.ceremonies} {e.ceremonies === 1 ? 'ceremony' : 'ceremonies'} · {formatDate(e.created_at.slice(0, 10))}</p>
                 </td>
-                <td className="p-3 text-ink-soft">{e.owner_email ?? '—'}</td>
+                <td className="p-3 text-ink-soft">{e.owner_email ?? '-'}</td>
                 <td className="p-3 text-ink-soft">{PLAN_NAMES[e.plan ?? 'none']}</td>
                 <td className="p-3">
                   <span className={cn('rounded-full px-2 py-0.5 text-xs', e.status === 'published' ? 'bg-success/15 text-success' : 'bg-ink/10 text-ink-soft')}>
@@ -223,7 +223,7 @@ function Events({ events, reload }: { events: AdminEvent[] | null; reload: () =>
                   <span className="flex items-center gap-1"><MessageSquare className="size-3" /> {e.rsvps} RSVPs</span>
                   {e.album_photos > 0 && <span className="flex items-center gap-1"><ImageIcon className="size-3" /> {e.album_photos}</span>}
                 </td>
-                <td className="p-3 text-xs text-ink-soft">{e.expires_at ? formatDate(e.expires_at.slice(0, 10)) : '—'}</td>
+                <td className="p-3 text-xs text-ink-soft">{e.expires_at ? formatDate(e.expires_at.slice(0, 10)) : '-'}</td>
                 <td className="p-3">
                   <div className="flex flex-wrap justify-end gap-1.5">
                     <Button size="sm" variant="outline" disabled={busyId === e.id} onClick={() => extend(e)}>Extend</Button>
@@ -269,7 +269,7 @@ function UsersTab() {
           <tbody className="divide-y divide-ink/10">
             {shown.map((u) => (
               <tr key={u.id}>
-                <td className="p-3 text-ink">{u.email ?? '—'} {u.is_admin && <span className="ml-1 rounded-full bg-wine/10 px-2 py-0.5 text-xs text-wine">Admin</span>}</td>
+                <td className="p-3 text-ink">{u.email ?? '-'} {u.is_admin && <span className="ml-1 rounded-full bg-wine/10 px-2 py-0.5 text-xs text-wine">Admin</span>}</td>
                 <td className="p-3 text-ink-soft">{formatDate(u.created_at.slice(0, 10))}</td>
                 <td className="p-3 text-ink-soft">{u.last_sign_in_at ? formatDate(u.last_sign_in_at.slice(0, 10)) : 'Never'}</td>
                 <td className="p-3 text-ink-soft">{u.events}</td>

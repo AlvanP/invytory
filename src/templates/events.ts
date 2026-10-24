@@ -285,7 +285,7 @@ export const wizardCopy: Record<EventKind, WizardCopy> = {
     firstLabel: 'Full name',
     firstPlaceholder: 'e.g. Chief Emmanuel Adewale',
     taglineLabel: 'Dates',
-    taglinePlaceholder: '1951 – 2026',
+    taglinePlaceholder: '1951 - 2026',
     taglineHint: 'Appears under the name on the invitation.',
     detailsTitle: 'Service details',
     detailsDescription: 'When and where the service takes place. Everything else is optional.',

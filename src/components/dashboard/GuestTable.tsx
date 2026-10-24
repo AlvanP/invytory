@@ -38,12 +38,12 @@ export function GuestTable({ guests, ceremonyNames }: GuestTableProps) {
           {guests.map((g) => (
             <tr key={g.id} className="border-b border-ink/8 last:border-0">
               <td className="px-4 py-4 text-ink">{g.fullName}</td>
-              {ceremonyNames && <td className="px-4 py-4 text-ink-soft">{ceremonyNames[g.invitationId] ?? '—'}</td>}
+              {ceremonyNames && <td className="px-4 py-4 text-ink-soft">{ceremonyNames[g.invitationId] ?? '-'}</td>}
               <td className="px-4 py-4"><Badge tone={statusTone[g.status]}>{g.status}</Badge></td>
               <td className="px-4 py-4 text-ink-soft">{g.numberOfGuests}</td>
-              <td className="px-4 py-4 text-ink-soft">{g.phone ?? '—'}</td>
-              <td className="px-4 py-4 max-w-[220px] truncate text-ink-soft" title={g.message}>{g.message ?? '—'}</td>
-              <td className="px-4 py-4 text-ink-soft">{g.responseDate ? formatDate(g.responseDate.slice(0, 10)) : '—'}</td>
+              <td className="px-4 py-4 text-ink-soft">{g.phone ?? '-'}</td>
+              <td className="px-4 py-4 max-w-[220px] truncate text-ink-soft" title={g.message}>{g.message ?? '-'}</td>
+              <td className="px-4 py-4 text-ink-soft">{g.responseDate ? formatDate(g.responseDate.slice(0, 10)) : '-'}</td>
             </tr>
           ))}
         </tbody>

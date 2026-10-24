@@ -11,7 +11,7 @@ export function Logo({ className, tone = 'dark' }: { className?: string; tone?: 
     <img
       src={tone === 'light' ? '/brand/logo-full-light.svg' : '/brand/logo-full.svg'}
       alt="Invytory"
-      className={cn('h-9 w-auto', className)}
+      className={cn('h-8 w-auto sm:h-9', className)}
     />
   )
 }

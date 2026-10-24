@@ -81,7 +81,7 @@ export function StepOptions() {
           <CeremonyTabs ceremonies={draft.ceremonies} activeId={active.id} onChange={setActiveId} />
           <Input
             key={active.id}
-            label={multiple ? `RSVP message — ${ceremonyDisplayName(active)}` : 'Custom RSVP message'}
+            label={multiple ? `RSVP message: ${ceremonyDisplayName(active)}` : 'Custom RSVP message'}
             optional
             value={active.customRsvpMessage ?? ''}
             onChange={(e) => updateCeremony(active.id, { customRsvpMessage: e.target.value })}

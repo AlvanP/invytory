@@ -18,7 +18,7 @@ export function SiteHeader() {
   const links = loading ? baseLinks : [...baseLinks, user ? { to: '/dashboard', label: 'Dashboard' } : { to: '/sign-in', label: 'Sign in' }]
 
   return (
-    <header className="sticky top-0 z-40 bg-ivory/85 backdrop-blur-md">
+    <header className="relative z-40 bg-ivory/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link to="/" aria-label="Invytory home" onClick={() => setOpen(false)}>
           <Logo />

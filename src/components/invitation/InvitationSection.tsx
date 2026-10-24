@@ -86,7 +86,7 @@ export function InvitationSection({
       {body === 'ledger' ? (
         <div className="relative mx-auto grid max-w-4xl gap-8 px-6 py-20 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] sm:gap-14 sm:py-24">
           <RevealOnScroll>
-            <header className="text-left sm:sticky sm:top-24 sm:self-start">
+            <header className="text-left">
               {eyebrow && <p className={cn('text-[11px] font-medium uppercase tracking-[0.32em]', c.eyebrow)}>{eyebrow}</p>}
               {divider('my-4 !mx-0')}
               {titleEl}

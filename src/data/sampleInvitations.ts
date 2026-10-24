@@ -130,7 +130,7 @@ const others: Record<Exclude<EventKind, 'wedding'>, SampleContent> = {
   },
   funeral: {
     names: ['Chief Emmanuel Adewale', ''],
-    tagline: '1951 – 2026',
+    tagline: '1951 - 2026',
     date: '2027-01-16', time: '10:00',
     venue: 'St. Peter’s Cathedral', address: '8 Marina Road', city: 'Ibadan',
     dressCode: 'White and soft colours', reception: 'Refreshments will be served at the family house after the burial.',

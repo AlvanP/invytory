@@ -261,8 +261,8 @@ export function StepPreview() {
           <div className="flex flex-col items-center gap-3 py-4 text-center">
             <Mail className="size-8 text-gold" strokeWidth={1.5} />
             <p className="text-sm text-ink-soft">
-              We sent a link to <span className="text-ink">{email}</span>. Open it to sign in —
-              this page will pick up right where you left off and take you to checkout automatically.
+              We sent a link to <span className="text-ink">{email}</span>. Open it to sign in.
+              This page will pick up right where you left off and take you to checkout automatically.
             </p>
           </div>
         )}

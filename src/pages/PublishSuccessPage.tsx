@@ -76,7 +76,7 @@ export function PublishSuccessPage() {
       <h1 className="mt-2 font-display text-3xl text-ink">Your invitation is published</h1>
       <p className="mt-2 text-sm text-ink-soft">
         {namesTitle(brideName, groomName)}{groomName?.trim() ? "'s" : ':'} invitation is live and ready to share
-        {ceremonyCount > 1 ? ` — all ${ceremonyCount} ceremonies included` : ''}.
+        {ceremonyCount > 1 ? ` (all ${ceremonyCount} ceremonies included)` : ''}.
       </p>
 
       {plan && (

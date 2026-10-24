@@ -50,7 +50,7 @@ export function SignInPage() {
       ) : (
         <form onSubmit={handleSubmit} className="mt-8 flex w-full flex-col gap-4">
           <p className="text-sm text-ink-soft">
-            Enter your email and we'll send you a link to sign in — no password needed.
+            Enter your email and we'll send you a link to sign in. No password needed.
           </p>
           <Input
             type="email"

@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 /** Where people reach you about privacy, terms and takedown requests. Change this one line. */
-export const CONTACT_EMAIL = 'hello@invytory.com'
+export const CONTACT_EMAIL = 'invytory1@gmail.com'
 export const LEGAL_UPDATED = '20 October 2026'
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {

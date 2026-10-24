@@ -55,8 +55,8 @@ export interface WholesaleTier {
 }
 
 export const wholesaleTiers: WholesaleTier[] = [
-  { range: '1–5 weddings', pricePerEvent: 7000 },
-  { range: '6–20 weddings', pricePerEvent: 6000 },
+  { range: '1-5 weddings', pricePerEvent: 7000 },
+  { range: '6-20 weddings', pricePerEvent: 6000 },
   { range: '21+ weddings', pricePerEvent: 5000 },
 ]
 
