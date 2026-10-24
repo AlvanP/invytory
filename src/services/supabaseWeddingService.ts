@@ -78,6 +78,14 @@ export const supabaseWeddingService = {
     return (data as { slug: string | null }).slug ?? null
   },
 
+  /** What the album page needs to know about an event (its plan lives on the event, not on each ceremony). */
+  async getAlbumInfo(weddingId: string): Promise<{ slug: string | null; plan: string | null; status: string } | null> {
+    const { data, error } = await supabase.from('weddings').select('slug, plan, status').eq('id', weddingId).maybeSingle()
+    if (error || !data) return null
+    const row = data as { slug: string | null; plan: string | null; status: string }
+    return { slug: row.slug, plan: row.plan, status: row.status }
+  },
+
   async getCeremoniesById(weddingId: string): Promise<WeddingInvitation[]> {
     const { data, error } = await supabase
       .from('invitations')

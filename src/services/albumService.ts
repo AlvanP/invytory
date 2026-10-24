@@ -4,6 +4,49 @@ const BUCKET = 'guest-album'
 /** Largest original we accept. Matches the bucket limit in docs/sql/album.sql. */
 export const ALBUM_MAX_BYTES = 30 * 1024 * 1024
 const THUMB_EDGE = 560
+const KEY_STORAGE = 'invytory:album-key'
+const MINE_STORAGE = 'invytory:album-mine'
+
+const memoryKey = crypto.randomUUID() + crypto.randomUUID()
+
+/** A private code that lives only in this guest's browser. It proves "I added this photo". */
+function deviceKey(): string {
+  try {
+    let key = window.localStorage.getItem(KEY_STORAGE)
+    if (!key) {
+      key = crypto.randomUUID() + crypto.randomUUID()
+      window.localStorage.setItem(KEY_STORAGE, key)
+    }
+    return key
+  } catch {
+    return memoryKey
+  }
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const bytes = new TextEncoder().encode(text)
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+let memoryMine: string[] = []
+function readMine(): string[] {
+  try {
+    const raw = window.localStorage.getItem(MINE_STORAGE)
+    const list = raw ? (JSON.parse(raw) as unknown) : []
+    return Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : []
+  } catch {
+    return memoryMine
+  }
+}
+function writeMine(list: string[]) {
+  memoryMine = list
+  try {
+    window.localStorage.setItem(MINE_STORAGE, JSON.stringify(list.slice(-500)))
+  } catch {
+    // kept in memory for this visit
+  }
+}
 
 export interface AlbumPhoto {
   id: string
@@ -67,7 +110,7 @@ function describeError(err: unknown): string {
     return 'Connection dropped. Check your internet and tap to try again.'
   }
   if (lower.includes('row-level security') || lower.includes('unauthorized') || lower.includes('not authorized')) {
-    return 'This album is closed, so photos can no longer be added.'
+    return 'The album is not open for new photos right now. It opens on the day of the event.'
   }
   if (lower.includes('exceeded') || lower.includes('too large') || lower.includes('payload')) {
     return 'That photo is too large to upload.'
@@ -144,7 +187,7 @@ export const albumService = {
   },
 
   /** Uploads the original at full quality plus a small preview, then records it. */
-  async upload(weddingId: string, file: File, uploaderName: string): Promise<void> {
+  async upload(weddingId: string, file: File, uploaderName: string): Promise<string> {
     const problem = albumService.validate(file)
     if (problem) throw new Error(problem)
 
@@ -174,18 +217,49 @@ export const albumService = {
     }
     await uploadWithRetry(path, body, contentType)
 
-    const { error } = await supabase.from('album_photos').insert({
+    const row: Record<string, unknown> = {
       id,
       wedding_id: weddingId,
       path,
       thumb_path: thumbPath,
       uploader_name: uploaderName.trim().slice(0, 60) || null,
       size_bytes: file.size,
-    })
+    }
+    let uploaderKey: string | null = null
+    try {
+      uploaderKey = await sha256Hex(deviceKey())
+    } catch {
+      uploaderKey = null
+    }
+    let { error } = await supabase.from('album_photos').insert(uploaderKey ? { ...row, uploader_key: uploaderKey } : row)
+    // Safety net: if the database has not been updated yet, still save the photo (without self-delete).
+    if (error && uploaderKey && String(error.message ?? '').toLowerCase().includes('uploader_key')) {
+      uploaderKey = null
+      ;({ error } = await supabase.from('album_photos').insert(row))
+    }
     if (error) {
       console.error('[album] insert failed:', error)
       throw new Error(describeError(error))
     }
+    if (uploaderKey) writeMine([...readMine(), id])
+    return id
+  },
+
+  /** Photos this guest added from this phone or browser. */
+  mine(): Set<string> {
+    return new Set(readMine())
+  },
+
+  /** A guest removes a photo they added themselves (checked in the database with their private code). */
+  async removeOwn(photo: AlbumPhoto): Promise<void> {
+    const key = await sha256Hex(deviceKey())
+    const { data, error } = await supabase.rpc('album_guest_delete', { photo_id: photo.id, key_hash: key })
+    if (error) throw new Error(describeError(error))
+    const rows = (data ?? []) as Array<{ path: string; thumb_path: string | null }>
+    if (rows.length === 0) throw new Error('Could not remove it. It may already be gone, or it was added from another phone.')
+    const paths = rows.flatMap((r) => [r.path, ...(r.thumb_path ? [r.thumb_path] : [])])
+    await supabase.storage.from(BUCKET).remove(paths)
+    writeMine(readMine().filter((x) => x !== photo.id))
   },
 
   /** Owner only. */
@@ -193,6 +267,7 @@ export const albumService = {
     const { data, error } = await supabase.from('album_photos').delete().eq('id', photo.id).select('id')
     if (error) throw new Error(describeError(error))
     if (!data || data.length === 0) throw new Error('Could not delete: not found, or you are not the owner.')
+    writeMine(readMine().filter((x) => x !== photo.id))
     const paths = [photo.path, ...(photo.thumbPath ? [photo.thumbPath] : [])]
     await supabase.storage.from(BUCKET).remove(paths)
   },

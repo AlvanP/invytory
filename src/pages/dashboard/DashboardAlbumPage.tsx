@@ -55,13 +55,14 @@ export function DashboardAlbumPage() {
 
   const weddingId = invitation?.weddingId
   const hinted = (useLocation().state as { slug?: string } | null)?.slug ?? null
-  const [fetchedSlug, setPageSlug] = useState<string | null>(null)
-  const pageSlug = hinted ?? fetchedSlug
+  // The plan is saved on the event itself (not on each ceremony), so it is read from there.
+  const [info, setInfo] = useState<{ slug: string | null; plan: string | null; status: string } | null | undefined>(undefined)
   useEffect(() => {
-    if (!weddingId || hinted) return
-    weddingService.getSlugById(weddingId).then(setPageSlug)
-  }, [weddingId, hinted])
-  const hasAlbum = invitation?.plan === 'gold' && !!weddingId
+    if (!weddingId) return
+    weddingService.getAlbumInfo(weddingId).then(setInfo)
+  }, [weddingId])
+  const pageSlug = info?.slug ?? hinted
+  const hasAlbum = info?.plan === 'gold' && !!weddingId
 
   const load = useCallback(async () => {
     if (!weddingId) return
@@ -77,7 +78,7 @@ export function DashboardAlbumPage() {
     if (hasAlbum) void load()
   }, [hasAlbum, load])
 
-  if (invitation === undefined) return <InvitationPreviewSkeleton />
+  if (invitation === undefined || (invitation?.weddingId && info === undefined)) return <InvitationPreviewSkeleton />
   if (invitation === null) {
     return <ErrorState title="Invitation not found" description="It may have been removed, or the link may be incorrect." />
   }
@@ -142,14 +143,19 @@ export function DashboardAlbumPage() {
     }
   }
 
-  async function deleteSelected() {
-    if (selected.size === 0) return
-    if (!window.confirm(`Delete ${selected.size} ${selected.size === 1 ? 'photo' : 'photos'} for good?`)) return
+  async function deleteSelected(only?: AlbumPhoto) {
+    const targets = only ? [only] : list.filter((p) => selected.has(p.id))
+    if (targets.length === 0) return
+    if (!window.confirm(`Delete ${targets.length} ${targets.length === 1 ? 'photo' : 'photos'} for good? This cannot be undone.`)) return
     setBusy('Deleting…')
     setError(null)
     try {
-      for (const photo of list.filter((p) => selected.has(p.id))) await albumService.remove(photo)
-      setSelected(new Set())
+      for (const photo of targets) await albumService.remove(photo)
+      setSelected((cur) => {
+        const next = new Set(cur)
+        for (const t of targets) next.delete(t.id)
+        return next
+      })
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Delete failed.')
@@ -208,11 +214,12 @@ export function DashboardAlbumPage() {
                   {selected.size === list.length ? 'Clear selection' : 'Select all'}
                 </Button>
               )}
+              <Button size="sm" variant="outline" disabled={!!busy} onClick={() => void load()}>Refresh</Button>
               <Button size="sm" disabled={!!busy || toDownload.length === 0} icon={<Download className="size-4" />} onClick={downloadMany}>
                 {selected.size > 0 ? 'Download selected' : 'Download all'}
               </Button>
               {selected.size > 0 && (
-                <Button size="sm" variant="danger" disabled={!!busy} icon={<Trash2 className="size-4" />} onClick={deleteSelected}>Delete</Button>
+                <Button size="sm" variant="danger" disabled={!!busy} icon={<Trash2 className="size-4" />} onClick={() => deleteSelected()}>Delete selected</Button>
               )}
             </div>
           </div>
@@ -244,6 +251,15 @@ export function DashboardAlbumPage() {
                 >
                   {selected.has(p.id) && <Check className="size-3" />}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => deleteSelected(p)}
+                  disabled={!!busy}
+                  aria-label="Delete this photo"
+                  className="absolute right-1.5 top-1.5 rounded-full bg-white/90 p-1.5 text-danger shadow-sm hover:bg-white disabled:opacity-50"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
                 <button
                   type="button"
                   onClick={() => downloadOne(p)}

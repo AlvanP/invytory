@@ -12,6 +12,7 @@ import { MusicToggle } from '@/components/invitation/MusicToggle'
 import { useInvitationMusic } from '@/hooks/useInvitationMusic'
 import { inviteeService, INVITE_PARAM } from '@/services/inviteeService'
 import { AlbumContext } from '@/templates/AlbumContext'
+import { albumHasOpened, earliestEventDate } from '@/utils/albumDate'
 import { InviteeContext, type Invitee } from '@/templates/InviteeContext'
 import { ArrivalScene } from '@/components/entrance/ArrivalScene'
 import { InvitationPreviewSkeleton } from '@/components/ui/Skeleton'
@@ -196,10 +197,11 @@ export function InvitationPreviewPage() {
 
   // The guest album is part of the Signature plan: open while the invitation is live.
   const albumOpen = lookup.status === 'wedding' && lookup.wedding.status === 'published' && lookup.wedding.plan === 'gold'
-  const albumValue = albumOpen ? { path: `/album/${lookup.wedding.slug}` } : null
+  // The album opens on the first day of the event; before that the section shows but explains.
+  const albumOpensOn = lookup.status === 'wedding' ? earliestEventDate(lookup.ceremonies.map((c) => c.weddingDate)) : null
+  const albumValue = albumOpen ? { path: `/album/${lookup.wedding.slug}`, opensOn: albumOpensOn } : null
   // From the day of the event, a small button stays on screen so guests can add photos at any moment.
-  const eventDay = activeInvitation?.weddingDate
-  const eventStarted = !!eventDay && eventDay <= new Date().toISOString().slice(0, 10)
+  const eventStarted = albumHasOpened(albumOpensOn)
 
   return (
     <InviteeContext.Provider value={invitee}>
