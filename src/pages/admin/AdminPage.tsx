@@ -6,13 +6,14 @@ import { authService } from '@/services/authService'
 import { pricingPlans } from '@/data/pricingPlans'
 import { AdminMusicTab } from './AdminMusicTab'
 import { AdminPricingTab } from './AdminPricingTab'
+import { AdminMessagesTab } from './AdminMessagesTab'
 import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { formatDate, formatNumber } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
-type Tab = 'overview' | 'events' | 'users' | 'music' | 'pricing'
+type Tab = 'overview' | 'events' | 'users' | 'music' | 'pricing' | 'messages'
 
 const TYPE_LABELS: Record<string, string> = {
   wedding: 'Wedding',
@@ -307,6 +308,7 @@ export function AdminPage() {
     { id: 'users', label: 'People' },
     { id: 'music', label: 'Music' },
     { id: 'pricing', label: 'Pricing' },
+    { id: 'messages', label: 'Messages' },
   ]
 
   return (
@@ -341,6 +343,7 @@ export function AdminPage() {
         {tab === 'users' && <UsersTab />}
         {tab === 'music' && <AdminMusicTab />}
         {tab === 'pricing' && <AdminPricingTab />}
+        {tab === 'messages' && <AdminMessagesTab />}
       </main>
     </div>
   )

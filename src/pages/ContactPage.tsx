@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Camera, Check, Clock, CreditCard, Loader2, LifeBuoy, Send, Users } from 'lucide-react'
 import { CONTACT_EMAIL } from '@/pages/legal/LegalPage'
+import { contactService } from '@/services/contactService'
 import { BRAND_LINKS } from '@/data/brandLinks'
 import { ICONS } from '@/components/brand/SocialIcons'
 
@@ -14,36 +15,46 @@ const HELP = [
   { icon: Users, title: 'Planners and partners', text: 'Planning many events? Let us talk.' },
 ]
 
-/** Sends through our own server first; if that is not set up yet, straight to the Invytory inbox. */
-async function sendMessage(payload: { name: string; email: string; topic: string; message: string; website: string }): Promise<void> {
+/** Tries to email the Invytory inbox: our own server first, then a backup service. True if one worked. */
+async function emailInbox(payload: { name: string; email: string; topic: string; message: string; website: string }): Promise<boolean> {
   try {
     const res = await fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string }
-    if (res.ok && data.ok) return
-    if (data.error && data.error !== 'not_configured' && data.error !== 'send_failed') throw new Error(data.error)
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean }
+    if (res.ok && data.ok) return true
   } catch (err) {
-    if (err instanceof Error && err.message && !/fetch|network|json|load failed/i.test(err.message)) throw err
+    console.error('[contact] server route failed:', err)
   }
-  // Backup route: delivers to the same inbox.
-  const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      name: payload.name,
-      email: payload.email,
-      topic: payload.topic,
-      message: payload.message,
-      _subject: `[Invytory contact] ${payload.topic} from ${payload.name}`,
-      _template: 'table',
-      _captcha: 'false',
-    }),
-  })
-  const data = (await res.json().catch(() => ({}))) as { success?: string | boolean }
-  if (!res.ok || !(data.success === true || data.success === 'true')) throw new Error('send_failed')
+  try {
+    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        name: payload.name,
+        email: payload.email,
+        topic: payload.topic,
+        message: payload.message,
+        _subject: `[Invytory contact] ${payload.topic} from ${payload.name}`,
+        _template: 'table',
+        _captcha: 'false',
+      }),
+    })
+    const data = (await res.json().catch(() => ({}))) as { success?: string | boolean; message?: string }
+    if (res.ok && (data.success === true || data.success === 'true')) return true
+    console.error('[contact] backup route said:', data.message ?? res.status)
+  } catch (err) {
+    console.error('[contact] backup route failed:', err)
+  }
+  return false
+}
+
+/** The message is kept in the database (so it can never be lost) and emailed when an email route works. */
+async function sendMessage(payload: { name: string; email: string; topic: string; message: string; website: string }): Promise<void> {
+  const [saved, emailed] = await Promise.all([contactService.save(payload), emailInbox(payload)])
+  if (!saved && !emailed) throw new Error('send_failed')
 }
 
 export function ContactPage() {
