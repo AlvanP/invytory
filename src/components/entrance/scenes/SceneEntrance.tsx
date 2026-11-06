@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/utils/cn'
 import { getTemplateById } from '@/data/templates'
 import type { EntranceDesign } from './types'
+import { vars } from './shared'
 import { SCENES } from './registry'
+import { Emblem, type EmblemKind } from './emblems'
 import './scenes.css'
 
 const KICKERS: Record<string, string> = {
   wedding: 'You are invited',
-  dedication: 'A blessing to share',
+  'child-dedication': 'A blessing to share',
   birthday: 'Let’s celebrate',
   corporate: 'You are invited',
   funeral: 'In loving memory',
@@ -34,6 +36,7 @@ export function SceneEntrance({
   inviteeName?: string
 }) {
   const [open, setOpen] = useState(false)
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const Scene = SCENES[design.scene]
   const category = getTemplateById(templateId)?.category ?? 'wedding'
   const names = groomName.trim() ? `${brideName.trim()} & ${groomName.trim()}` : brideName.trim()
@@ -61,9 +64,20 @@ export function SceneEntrance({
 
   const shadow = light ? '0 2px 14px rgba(0,0,0,.55)' : '0 1px 10px rgba(255,255,255,.7)'
   return (
-    <div className="relative h-full w-full overflow-hidden bg-ink">
+    <div
+      className="relative h-full w-full overflow-hidden bg-ink"
+      style={{ '--tx': `${tilt.x}deg`, '--ty': `${tilt.y}deg` } as React.CSSProperties}
+      onPointerMove={(ev) => {
+        const r = ev.currentTarget.getBoundingClientRect()
+        setTilt({ x: -((ev.clientY - r.top) / r.height - 0.5) * 14, y: ((ev.clientX - r.left) / r.width - 0.5) * 18 })
+      }}
+      onPointerLeave={() => setTilt({ x: 0, y: 0 })}
+    >
       <Scene open={open} go={go} d={design} initials={initials || 'I'} names={names} />
 
+      {design.layout === 'split' && !['medallion', 'gate', 'gift', 'balloons', 'candle', 'meadow', 'dawn'].includes(design.scene) && (
+        <div style={{ ...vars(design), ...(design.emblem ? { '--a': design.emblem, '--b1': '#fff' } : {}) } as React.CSSProperties}><Emblem kind={(category === 'child-dedication' ? 'dedication' : ['birthday', 'corporate', 'funeral'].includes(category) ? category : 'wedding') as EmblemKind} initials={initials || 'I'} open={open} /></div>
+      )}
       <div
         aria-hidden
         className={cn('pointer-events-none absolute inset-x-0 top-0 z-30 h-1/2 transition-opacity duration-500', open && 'opacity-0')}

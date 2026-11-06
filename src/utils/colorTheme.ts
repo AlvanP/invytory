@@ -108,9 +108,9 @@ function nudgeForText(colour: string): string {
   return result
 }
 
-export function buildTheme(hex: string): InvitationTheme {
+export function buildTheme(hex: string, paper: string = PAPER): InvitationTheme {
   const main = nudgeForText(isHexColour(hex) ? hex.toUpperCase() : '#B08D57')
-  const soft = mix(main, PAPER, 0.88)
+  const soft = mix(main, paper, 0.88)
   return {
     main,
     onMain: readableOn(main),
@@ -131,15 +131,18 @@ export const DEFAULT_THEME_COLOUR: Record<string, string> = {
 }
 
 /** CSS variables that the invitation's pieces read, so one wrapper themes them all. */
-export function themeStyle(hex: string): CSSProperties {
-  const t = buildTheme(hex)
+export function themeStyle(hex: string, paper: string = PAPER): CSSProperties {
+  const t = buildTheme(hex, paper)
+  const deep = mix(t.main, '#000000', 0.62)
   return {
+    '--iv-deep': deep,
+    '--iv-on-deep': readableOn(deep),
     '--iv-main': t.main,
     '--iv-on-main': t.onMain,
     '--iv-soft': t.soft,
     '--iv-ink': t.ink,
     '--iv-accent': t.accent,
-    '--iv-paper': PAPER,
+    '--iv-paper': paper,
   } as CSSProperties
 }
 

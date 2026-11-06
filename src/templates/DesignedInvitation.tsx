@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { TemplateRendererProps } from './types'
 import { SECTION_IDS } from './sections'
 import { sectionRegistry } from './sections/index'
 import { DesignContext, makeDesignContext } from './DesignContext'
 import { DateGateProvider } from './DateGate'
 import { WallProvider } from './WallContext'
+import { getKit, kitStyle, loadKit } from './fontKits'
 
 /**
  * The one renderer for every template. It lays out the same sections, in the same order, for
@@ -16,11 +17,13 @@ export function DesignedInvitation({ invitation, noScratch }: TemplateRendererPr
     const base = makeDesignContext(invitation.templateId, invitation.eventType, invitation.brideName)
     return noScratch ? { ...base, design: { ...base.design, scratchDate: false } } : base
   }, [invitation.templateId, invitation.eventType, invitation.brideName, noScratch])
+  const kit = getKit(ctx.design.kit)
+  useEffect(() => loadKit(kit), [kit])
   return (
     <DesignContext.Provider value={ctx}>
       <DateGateProvider enabled={!!ctx.design.scratchDate}>
         <WallProvider invitationId={invitation.id} published={invitation.status === 'published'}>
-        <div>
+        <div style={kitStyle(kit)}>
           {SECTION_IDS.filter((id) => !ctx.event.skip.includes(id) && sectionRegistry[id].has(invitation)).map((id) => {
             const { Component } = sectionRegistry[id]
             return <Component key={id} invitation={invitation} />

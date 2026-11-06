@@ -1,5 +1,6 @@
 import type { SceneProps } from './types'
 import { Motes, Burst, rnd, vars } from './shared'
+import { Sprig } from './emblems'
 
 /* ───────────────────────── Wax-sealed envelope ───────────────────────── */
 
@@ -27,12 +28,20 @@ export function EnvelopeScene({ open, go, d, initials, names }: SceneProps) {
           <path d="M300 0 L150 112 L300 200Z" fill="var(--p)" />
           <path d="M0 200 L150 92 L300 200Z" fill="var(--p)" />
           <path d="M0 0 L150 112 L0 200Z M300 0 L150 112 L300 200Z M0 200 L150 92 L300 200Z" fill="url(#envSide)" />
+          <pattern id="damask" width="30" height="40" patternUnits="userSpaceOnUse">
+            <path d="M15 4c5 6 5 12 0 16-5-4-5-10 0-16zM15 36c5-6 5-12 0-16-5 4-5 10 0 16zM2 20c6-4 10-4 13 0-3 4-7 4-13 0zM28 20c-6-4-10-4-13 0 3 4 7 4 13 0z" fill="none" stroke="var(--a)" strokeWidth="0.7" />
+          </pattern>
+          <path d="M0 0 L150 112 L0 200Z M300 0 L150 112 L300 200Z M0 200 L150 92 L300 200Z" fill="url(#damask)" opacity="0.55" />
           <path d="M0 200 L150 92 L300 200 M0 0 L150 112 L300 0" fill="none" stroke="var(--a)" strokeOpacity="0.35" />
         </svg>
+        <Sprig style={{ left: '-6%', bottom: '-14%', width: '34%', zIndex: 4 }} />
+        <Sprig flip style={{ right: '-6%', bottom: '-14%', width: '34%', zIndex: 4 }} />
         <div className="env-flap">
           <svg viewBox="0 0 300 110" preserveAspectRatio="none" aria-hidden>
             <path d="M0 0 H300 L150 110Z" fill="var(--p)" />
             <path d="M0 0 H300 L150 110Z" fill="#000" fillOpacity="0.05" />
+            <path d="M0 0 H300 L150 110Z" fill="url(#damask)" opacity="0.55" />
+            <path d="M14 4 H286 L150 98Z" fill="none" stroke="var(--a)" strokeOpacity="0.35" strokeDasharray="2 3" />
             <path d="M0 0 L150 110 L300 0" fill="none" stroke="var(--a)" strokeOpacity="0.45" />
           </svg>
         </div>
@@ -47,8 +56,9 @@ export function EnvelopeScene({ open, go, d, initials, names }: SceneProps) {
                     <stop offset="1" stopColor="#000" stopOpacity="0.35" />
                   </radialGradient>
                 </defs>
-                <path d="M40 3c9 0 13 6 20 8 8 3 14 9 14 18 0 8-5 11-5 18 0 8 5 12 1 20-4 8-14 8-22 10-8 2-14 7-22 4C16 77 6 70 5 60c-1-8 5-13 4-21C8 29 5 22 12 14 20 5 31 3 40 3Z" fill={`url(#wax${half})`} />
-                <circle cx="40" cy="40" r="24" fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="1.4" />
+                <path d={Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2; const r = i % 2 ? 35 : 38.5; return `${i ? 'L' : 'M'}${(40 + Math.cos(a) * r).toFixed(1)} ${(40 + Math.sin(a) * r).toFixed(1)}` }).join('') + 'Z'} fill={`url(#wax${half})`} />
+                <circle cx="40" cy="40" r="28" fill="none" stroke="#fff" strokeOpacity="0.4" strokeWidth="1.2" />
+                <circle cx="40" cy="40" r="25" fill="none" stroke="#fff" strokeOpacity="0.2" strokeWidth="0.8" strokeDasharray="1 2.4" />
                 <text x="40" y="49" textAnchor="middle" fontFamily="Bodoni Moda, Georgia, serif" fontSize={initials.length > 1 ? 22 : 28} fill="#fff" fillOpacity="0.9">{initials}</text>
               </svg>
             </span>
@@ -106,6 +116,33 @@ function GateLeaf({ side }: { side: 'l' | 'r' }) {
   )
 }
 
+function FloralArch() {
+  const blooms = Array.from({ length: 15 }, (_, i) => {
+    const t = i / 14
+    const ang = Math.PI * (1 - t)
+    return { x: 120 + Math.cos(ang) * 112, y: 112 - Math.sin(ang) * 98, r: 9 + rnd(i, 3) * 8, hue: i % 3, rot: rnd(i, 5) * 360 }
+  })
+  const fills = ['#FFFFFF', '#F6D9DD', '#F3C2CB']
+  return (
+    <svg className="gate-arch" viewBox="0 0 240 120" preserveAspectRatio="xMidYMax meet" aria-hidden>
+      <path d="M8 118A112 100 0 0 1 232 118" fill="none" stroke="#5E7E55" strokeWidth="5" strokeLinecap="round" />
+      {Array.from({ length: 34 }, (_, i) => {
+        const t = i / 33
+        const ang = Math.PI * (1 - t)
+        const x = 120 + Math.cos(ang) * 112
+        const y = 112 - Math.sin(ang) * 98
+        return <ellipse key={i} cx={x} cy={y} rx="9" ry="4" fill={i % 3 ? '#6E8E63' : '#8FB081'} transform={`rotate(${(ang * 180) / Math.PI + (i % 2 ? 70 : -70)} ${x} ${y})`} />
+      })}
+      {blooms.map((b, i) => (
+        <g key={i} transform={`translate(${b.x} ${b.y}) rotate(${b.rot})`}>
+          {[0, 72, 144, 216, 288].map((r) => <ellipse key={r} cx="0" cy={-b.r * 0.55} rx={b.r * 0.5} ry={b.r * 0.62} fill={fills[b.hue]} stroke="#00000015" strokeWidth="0.5" transform={`rotate(${r})`} />)}
+          <circle r={b.r * 0.22} fill="#E3B25B" />
+        </g>
+      ))}
+    </svg>
+  )
+}
+
 export function GateScene({ open, go, d }: SceneProps) {
   return (
     <div className="sc sc-gate" data-open={open} style={vars(d)} onClick={go}>
@@ -119,6 +156,7 @@ export function GateScene({ open, go, d }: SceneProps) {
       <div className="gate-frame">
         <GateLeaf side="l" />
         <GateLeaf side="r" />
+        <FloralArch />
       </div>
       <Burst open={open} n={34} colors={['#fff', '#F6D9DD', '#F3E3A3']} shape="petal" />
     </div>
@@ -302,6 +340,41 @@ export function BookScene({ open, go, d, names }: SceneProps) {
           <div className="book-back" />
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ───────────────────────── Wax medallion on cream paper ───────────────────────── */
+
+export function MedallionScene({ open, go, d, initials, names }: SceneProps) {
+  return (
+    <div className="sc sc-medal" data-open={open} style={vars(d)} onClick={go}>
+      <div className="sc-bg" />
+      <div className="medal-paper" aria-hidden />
+      <div className="medal-florals" aria-hidden>
+        <Sprig style={{ left: '-8%', top: '-3%', width: '58%', transform: 'rotate(100deg)' }} />
+        <Sprig flip style={{ right: '-8%', top: '-3%', width: '58%', transform: 'rotate(-100deg)' }} />
+        <Sprig style={{ left: '-6%', bottom: '-3%', width: '52%', transform: 'rotate(10deg)' }} />
+        <Sprig flip style={{ right: '-6%', bottom: '-3%', width: '52%', transform: 'rotate(-10deg)' }} />
+      </div>
+      <div className="medal-frame" aria-hidden />
+      <button type="button" className="medal-seal" aria-label="Open the invitation">
+        <svg viewBox="0 0 120 120" aria-hidden>
+          <defs>
+            <radialGradient id="medalWax" cx="35%" cy="28%">
+              <stop offset="0" stopColor="#fff" stopOpacity="0.28" />
+              <stop offset="0.45" stopColor="var(--b1)" />
+              <stop offset="1" stopColor="#000" stopOpacity="0.55" />
+            </radialGradient>
+          </defs>
+          <path d={Array.from({ length: 36 }, (_, i) => { const a = (i / 36) * Math.PI * 2; const r = i % 2 ? 52 : 57; return `${i ? 'L' : 'M'}${(60 + Math.cos(a) * r).toFixed(1)} ${(60 + Math.sin(a) * r).toFixed(1)}` }).join('') + 'Z'} fill="url(#medalWax)" />
+          <circle cx="60" cy="60" r="42" fill="none" stroke="var(--a)" strokeOpacity="0.8" strokeWidth="1.4" />
+          <circle cx="60" cy="60" r="38" fill="none" stroke="var(--a)" strokeOpacity="0.45" strokeWidth="0.8" strokeDasharray="1.5 3" />
+          <text x="60" y="71" textAnchor="middle" fontFamily="var(--font-display)" fontSize={initials.length > 1 ? 30 : 38} fill="var(--a)">{initials}</text>
+        </svg>
+      </button>
+      <p className="medal-names">{names}</p>
+      <Burst open={open} n={24} colors={['var(--a)', '#fff']} shape="circle" />
     </div>
   )
 }

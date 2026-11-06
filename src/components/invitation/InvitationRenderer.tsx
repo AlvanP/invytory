@@ -23,9 +23,10 @@ export function InvitationRenderer({
   const Renderer = (template && templateRegistry[template.rendererKey]) || DesignedInvitation
   // The couple's colour of the day, or the design's own colour. Every piece of the
   // invitation reads its colours from these variables.
-  const colour = parseColours(invitation.themeColor)[0] ?? getDesign(invitation.templateId).colour
+  const design = getDesign(invitation.templateId)
+  const colour = parseColours(invitation.themeColor)[0] ?? design.colour
   return (
-    <div style={themeStyle(colour)} className="bg-[color:var(--iv-paper)] text-[color:var(--iv-ink)]">
+    <div style={themeStyle(colour, design.paper)} className="bg-[color:var(--iv-paper)] text-[color:var(--iv-ink)]">
       <Renderer invitation={invitation} noScratch={noScratch} />
     </div>
   )

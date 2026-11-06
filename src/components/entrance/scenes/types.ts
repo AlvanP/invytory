@@ -1,5 +1,5 @@
 export type SceneKey =
-  | 'envelope' | 'gate' | 'doors' | 'curtain' | 'lattice' | 'book'
+  | 'envelope' | 'gate' | 'doors' | 'curtain' | 'lattice' | 'book' | 'medallion'
   | 'sky' | 'bloom' | 'dawn' | 'meadow'
   | 'balloons' | 'gift' | 'spotlight'
   | 'shutter' | 'mountain' | 'linesplit'
@@ -32,6 +32,8 @@ export interface EntranceDesign {
   /** Doors with a rounded top. */
   arch?: boolean
   petals?: number
+  /** Colour of the crest over the scene; only needed on light scenes where the gold accent would disappear. */
+  emblem?: string
 }
 
 export interface SceneProps {

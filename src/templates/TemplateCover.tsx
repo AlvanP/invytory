@@ -9,7 +9,8 @@ import { useDesign } from '@/templates/DesignContext'
 import { useInvitee, specialLead } from '@/templates/InviteeContext'
 import { useDateGate } from '@/templates/DateGate'
 import type { NameStyle } from '@/templates/designs'
-import { NAME_FONT, AND_FONT } from '@/templates/fonts'
+import { getKit } from '@/templates/fontKits'
+import { toneVars } from '@/templates/tones'
 import { MotifDivider } from '@/components/invitation/Motifs'
 
 export type CoverTone = 'royal' | 'garden' | 'storybook' | 'modern' | 'heritage' | 'classic'
@@ -36,11 +37,12 @@ function CoverPattern() {
  * the letter, so the name stays readable on any colour.
  */
 function AnimatedName({ text, revealed, startIndex, style }: { text: string; revealed: boolean; startIndex: number; style: NameStyle }) {
-  // All three are Bodoni; they differ in case, slant and spacing.
+  // The family comes from the template's lettering kit; the style decides case, slant and spacing.
+  const kit = getKit(useDesign().design.kit)
   const font: CSSProperties = {
-    fontFamily: NAME_FONT,
-    ...(style === 'caps' ? { letterSpacing: '0.16em' } : {}),
-    ...(style === 'serif' ? { fontStyle: 'italic' } : {}),
+    fontFamily: 'var(--iv-name-font)',
+    ...(style === 'caps' ? { letterSpacing: `${kit.capsTracking ?? 0.16}em` } : {}),
+    ...(style === 'serif' && !kit.upright ? { fontStyle: 'italic' } : {}),
   }
   return (
     <span aria-label={text} className="block" style={font}>
@@ -86,6 +88,16 @@ function AnimatedName({ text, revealed, startIndex, style }: { text: string; rev
 }
 
 export function TemplateCover({ invitation }: { invitation: WeddingInvitation }) {
+  const { design } = useDesign()
+  // The tone only swaps two colour variables, so every layout below adapts to it.
+  return (
+    <div className="contents" style={toneVars(design.coverTone)}>
+      <CoverLayout invitation={invitation} />
+    </div>
+  )
+}
+
+function CoverLayout({ invitation }: { invitation: WeddingInvitation }) {
   const revealed = useRevealed()
   const { design, art, event, kind } = useDesign()
   const invitee = useInvitee()
@@ -134,10 +146,11 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
           <>
             <span
               className={cn(
-                'block text-[2.6rem] leading-[1.1] opacity-90 transition-all duration-1000',
+                'block leading-[1.1] opacity-90 transition-all duration-1000',
+                design.names === 'script' ? 'text-[2.6rem]' : 'my-1 font-display text-2xl italic',
                 revealed ? 'translate-y-0 opacity-90' : 'translate-y-3 !opacity-0'
               )}
-              style={{ fontFamily: AND_FONT, transitionDelay: revealed ? '1100ms' : '0ms' }}
+              style={{ ...(design.names === 'script' ? { fontFamily: 'var(--iv-name-font)' } : {}), transitionDelay: revealed ? '1100ms' : '0ms' }}
             >
               and
             </span>
@@ -193,7 +206,141 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
   const chevron = <ChevronDown aria-hidden className="absolute bottom-6 left-1/2 size-6 -translate-x-1/2 animate-bounce opacity-80" />
 
   // The four photo layouts need a photo; without one they use the stacked colour block.
-  const layout = !hasPhoto && ['print', 'medallion', 'split', 'poster'].includes(design.cover) ? 'stacked' : design.cover
+  const layout = !hasPhoto && ['print', 'medallion', 'split', 'poster', 'frame', 'magazine', 'window', 'veil'].includes(design.cover)
+    ? (['frame', 'magazine', 'window', 'veil'].includes(design.cover) ? 'monogram' : 'stacked')
+    : design.cover
+  const initials = [invitation.brideName, invitation.groomName].map((n) => Array.from(n.trim())[0]?.toUpperCase()).filter(Boolean).join(' & ')
+  const dateCell = gate.hidden ? 'Waiting below' : formatDate(invitation.weddingDate)
+  const timeCell = gate.hidden ? '' : formatTime(invitation.weddingTime)
+
+
+  // ── Monogram: initials in a fine ring, names, a slim photo strip. Pure stationery ──
+  if (layout === 'monogram') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[color:var(--iv-main)] px-6 py-20 text-center text-[color:var(--iv-on-main)]"
+        style={coverBackground ? { backgroundImage: `url(${coverBackground})`, backgroundSize: 'cover' } : undefined}>
+        <div aria-hidden className="absolute inset-4 border" style={{ borderColor: line }} />
+        <div className="relative z-10 flex flex-col items-center gap-7">
+          {emblemEl}{topEl}
+          {eyebrowEl}
+          <div {...rise(1)} className={cn('flex size-28 items-center justify-center rounded-full border', rise(1).className)} style={{ ...rise(1).style, borderColor: line }}>
+            <span className="text-3xl" style={{ fontFamily: 'var(--iv-name-font)' }}>{initials}</span>
+          </div>
+          <div>{names}</div>
+          {hasPhoto && (
+            <div {...rise(2)} className={cn('border p-1.5', rise(2).className)} style={{ ...rise(2).style, borderColor: line }}>
+              <div className="aspect-[16/10] w-64 overflow-hidden sm:w-80">
+                <img src={invitation.heroImage ?? ''} alt="" className={cn('size-full object-cover', photoIntro)} />
+              </div>
+            </div>
+          )}
+          {summary}
+          {bottomEl}
+        </div>
+        {chevron}
+      </div>
+    )
+  }
+
+  // ── Frame: the photo inside two fine rules, like a printed card ──
+  if (layout === 'frame') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[color:var(--iv-main)] px-6 py-20 text-center text-[color:var(--iv-on-main)]"
+        style={coverBackground ? { backgroundImage: `url(${coverBackground})`, backgroundSize: 'cover' } : undefined}>
+        <div className="relative z-10 flex flex-col items-center gap-7">
+          {emblemEl}{topEl}
+          {eyebrowEl}
+          <div {...rise(1)} className={cn('border p-2', rise(1).className)} style={{ ...rise(1).style, borderColor: line }}>
+            <div className="border p-2" style={{ borderColor: line }}>
+              <div className="relative aspect-[4/5] w-60 overflow-hidden sm:w-72">
+                <img src={invitation.heroImage ?? ''} alt="" className={cn('size-full object-cover', photoIntro)} />
+                {frameOver}
+              </div>
+            </div>
+          </div>
+          <div>{names}</div>
+          {summary}
+          {bottomEl}
+        </div>
+        {chevron}
+      </div>
+    )
+  }
+
+  // ── Window: a photo with a second outline offset behind it ──
+  if (layout === 'window') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[color:var(--iv-main)] px-6 py-20 text-center text-[color:var(--iv-on-main)]"
+        style={coverBackground ? { backgroundImage: `url(${coverBackground})`, backgroundSize: 'cover' } : undefined}>
+        <div className="relative z-10 flex flex-col items-center gap-9">
+          {emblemEl}{topEl}
+          {eyebrowEl}
+          <div {...rise(1)} className={cn('relative', rise(1).className)} style={rise(1).style}>
+            <div aria-hidden className="absolute inset-0 translate-x-3.5 translate-y-3.5 border" style={{ borderColor: line }} />
+            <div className="relative aspect-square w-64 overflow-hidden sm:w-80">
+              <img src={invitation.heroImage ?? ''} alt="" className={cn('size-full object-cover', photoIntro)} />
+              {frameOver}
+            </div>
+          </div>
+          <div className="pt-2">{names}</div>
+          {summary}
+          {bottomEl}
+        </div>
+        {chevron}
+      </div>
+    )
+  }
+
+  // ── Magazine: a tall photo, the names set big across its foot, details in a ruled row ──
+  if (layout === 'magazine') {
+    const cells = [
+      { label: 'Date', value: dateCell },
+      { label: 'Time', value: timeCell || ceremonyDisplayName(invitation) },
+      { label: 'Place', value: place || (event.coverTag ?? '') },
+    ].filter((c) => c.value)
+    return (
+      <div className="relative flex min-h-[100svh] flex-col bg-[color:var(--iv-main)] text-[color:var(--iv-on-main)]">
+        <div className="relative min-h-[66svh] flex-1 overflow-hidden" style={{ '--iv-on-main': '#FFFFFF' } as CSSProperties}>
+          <img src={invitation.heroImage ?? ''} alt="" className={cn('absolute inset-0 size-full object-cover', photoIntro)} />
+          {frameOver}
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/25" />
+          <div className="relative z-10 flex h-full min-h-[66svh] flex-col justify-between px-7 pb-9 pt-10 text-left text-white">
+            <div className="[&>*]:!items-start [&_p]:!text-left">{eyebrowEl}</div>
+            <div {...rise(1)} className={rise(1).className}>{names}</div>
+          </div>
+        </div>
+        <div className="mx-auto grid w-full max-w-3xl grid-cols-1 sm:grid-cols-3">
+          {cells.map((c, i) => (
+            <div key={c.label} className={cn('px-7 py-5 text-left', i > 0 && 'border-t sm:border-l sm:border-t-0')} style={{ borderColor: line }}>
+              <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">{c.label}</p>
+              <p className="mt-1 text-sm">{c.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Veil: the photo fills the screen, the writing rests on a soft glass card ──
+  if (layout === 'veil') {
+    return (
+      <div className="relative flex min-h-[100svh] flex-col items-center justify-end overflow-hidden px-5 pb-14 pt-24 text-center">
+        <img src={invitation.heroImage ?? ''} alt="" className={cn('absolute inset-0 size-full object-cover', photoIntro)} />
+        {frameOver}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/45" />
+        <div
+          className="relative z-10 flex w-full max-w-md flex-col items-center gap-6 rounded-[1.75rem] px-6 py-10 text-[color:var(--iv-on-main)] shadow-2xl backdrop-blur-md"
+          style={{ background: 'color-mix(in srgb, var(--iv-main) 82%, transparent)' }}
+        >
+          {emblemEl}
+          {eyebrowEl}
+          <div {...rise(1)} className={rise(1).className}>{names}</div>
+          {summary}
+          {bottomEl}
+        </div>
+      </div>
+    )
+  }
 
   // ── A framed print: photo on a white mat, slightly turned, names beneath ──
   if (layout === 'print') {

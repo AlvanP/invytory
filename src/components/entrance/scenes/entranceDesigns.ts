@@ -8,7 +8,7 @@ export const entranceDesigns: Record<string, EntranceDesign> = {
   // ── White wedding ───────────────────────────────────────────────
   'classic-elegance': { scene: 'envelope', ink: 'light', layout: 'hintonly', hint: 'Tap the seal to open', ms: 2500, c: { a: '#B8975A', b1: '#2B2118', b2: '#5A4531', p: '#F6EBDD', s: '#9C2F3A' } },
   'garden-romance': { scene: 'gate', ink: 'dark', layout: 'split', hint: 'Tap to open the gate', ms: 2300, c: { a: '#3F5A39', b1: '#BFD3B0', b2: '#F1F5E4' } },
-  'modern-luxury': { scene: 'linesplit', ink: 'light', layout: 'center', hint: 'Tap to enter', ms: 2100, c: { a: '#C9A961', b1: '#0E0D0C', b2: '#201D1A' } },
+  'modern-luxury': { scene: 'medallion', ink: 'dark', layout: 'hintonly', hint: 'Tap the seal to open', ms: 2300, c: { a: '#B8975A', b1: '#2A2623', b2: '#F4F1EC', p: '#FBF9F5' } },
 
   // ── Igbo ────────────────────────────────────────────────────────
   'igbo-design-1': { scene: 'doors', ink: 'light', layout: 'split', hint: 'Tap to open the doors', ms: 2500, pattern: 'uli', c: { a: '#F0B79A', b1: '#7E2616', b2: '#C4472D' } },
@@ -26,10 +26,10 @@ export const entranceDesigns: Record<string, EntranceDesign> = {
   storybook: { scene: 'book', ink: 'light', layout: 'hintonly', hint: 'Tap to open the book', ms: 2500, c: { a: '#E7C874', b1: '#0A4A50', b2: '#1E8D93' } },
 
   // ── Child dedication ────────────────────────────────────────────
-  'dedication-heavenly-blue': { scene: 'sky', ink: 'dark', layout: 'split', hint: 'Tap to part the clouds', ms: 2500, c: { a: '#FFFFFF', b1: '#8DB8E6', b2: '#EAF4FF' } },
-  'dedication-blush-blessing': { scene: 'bloom', ink: 'dark', layout: 'split', hint: 'Tap to bloom', ms: 2500, petals: 9, c: { a: '#E48CA5', b1: '#F3C9D3', b2: '#FFF3F2' } },
+  'dedication-heavenly-blue': { scene: 'sky', ink: 'dark', layout: 'split', hint: 'Tap to part the clouds', ms: 2500, emblem: '#5E86B8', c: { a: '#FFFFFF', b1: '#8DB8E6', b2: '#EAF4FF' } },
+  'dedication-blush-blessing': { scene: 'bloom', ink: 'dark', layout: 'split', hint: 'Tap to bloom', ms: 2500, petals: 9, emblem: '#C0577A', c: { a: '#E48CA5', b1: '#F3C9D3', b2: '#FFF3F2' } },
   'dedication-golden-grace': { scene: 'dawn', ink: 'light', layout: 'split', hint: 'Tap to let the light in', ms: 2400, c: { a: '#F3C45A', b1: '#2A1A06', b2: '#8A5A12' } },
-  'dedication-little-lamb': { scene: 'meadow', ink: 'dark', layout: 'split', hint: 'Tap to meet the lamb', ms: 2400, c: { a: '#FFE08A', b1: '#CFE8F7', b2: '#F7FBEF' } },
+  'dedication-little-lamb': { scene: 'meadow', ink: 'dark', layout: 'split', hint: 'Tap to meet the lamb', ms: 2400, emblem: '#B58A2E', c: { a: '#FFE08A', b1: '#CFE8F7', b2: '#F7FBEF' } },
   'dedication-royal-heritage': { scene: 'doors', ink: 'light', layout: 'split', hint: 'Tap to open the doors', ms: 2500, pattern: 'adire', arch: true, c: { a: '#E3C277', b1: '#101A44', b2: '#2F3E73' } },
 
   // ── Birthday ────────────────────────────────────────────────────
@@ -44,6 +44,6 @@ export const entranceDesigns: Record<string, EntranceDesign> = {
 
   // ── Funeral ─────────────────────────────────────────────────────
   'funeral-serene': { scene: 'candle', ink: 'light', layout: 'split', hint: 'Tap to enter', ms: 2300, c: { a: '#FFD9A0', b1: '#12161C', b2: '#3A4452' } },
-  'funeral-life-celebrated': { scene: 'leaves', ink: 'dark', layout: 'split', hint: 'Tap to enter', ms: 2300, c: { a: '#7B9A6A', b1: '#E8EFD9', b2: '#FBF7EC' } },
-  'funeral-white-lily': { scene: 'sky', ink: 'dark', layout: 'split', hint: 'Tap to enter', ms: 2600, c: { a: '#FFFFFF', b1: '#C9CFDA', b2: '#F5F6FA' } },
+  'funeral-life-celebrated': { scene: 'leaves', ink: 'dark', layout: 'split', hint: 'Tap to enter', ms: 2300, emblem: '#5E7A4E', c: { a: '#7B9A6A', b1: '#E8EFD9', b2: '#FBF7EC' } },
+  'funeral-white-lily': { scene: 'sky', ink: 'dark', layout: 'split', hint: 'Tap to enter', ms: 2600, emblem: '#7C879E', c: { a: '#FFFFFF', b1: '#C9CFDA', b2: '#F5F6FA' } },
 }

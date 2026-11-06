@@ -267,3 +267,43 @@
 .sc-leaves[data-open="true"] .lv-layer { animation: lvGust 2.2s .1s cubic-bezier(.5,0,.9,.5) forwards; }
 @keyframes lvGust { 0% { transform: translate(0, 0); } 100% { transform: translate(120vw, -35vh) rotate(8deg); opacity: 0; } }
 .lv-wash { position: absolute; inset: 0; background: #F6F1E6; opacity: 0; } .sc-leaves[data-open="true"] .lv-wash { animation: flashIn 2.2s ease-in forwards; }
+
+/* ── Category emblem (shown over doors, curtains, lattice, sky... so the occasion is clear before anything opens) ── */
+.sc-emblem { position: absolute; left: 50%; top: 50%; width: min(42vw, 168px); translate: -50% -50%; z-index: 20; pointer-events: none; filter: drop-shadow(0 4px 10px rgba(0,0,0,.35)); animation: emblemIn 1.1s .2s both cubic-bezier(.2,.8,.2,1); }
+.sc-emblem svg { width: 100%; height: auto; display: block; }
+.sc-emblem[data-open="true"] { animation: emblemOut .9s ease-in forwards; }
+@keyframes emblemIn { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+@keyframes emblemOut { to { opacity: 0; transform: scale(1.25); } }
+
+/* ── Botanical sprigs on the embossed envelope ── */
+.sc-sprig { position: absolute; height: auto; opacity: .7; pointer-events: none; }
+.env-wrap .sc-sprig { aspect-ratio: 200 / 260; }
+
+/* ── Floral arch over the garden gate ── */
+.gate-arch { position: absolute; left: -4%; right: -4%; top: -2%; width: 108%; height: auto; z-index: 6; pointer-events: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.2)); }
+.sc-gate[data-open="true"] .gate-arch { animation: archLift 2.2s .1s ease-in forwards; }
+@keyframes archLift { to { transform: translateY(-14px) scale(1.12); opacity: 0; } }
+
+/* ── Medallion: dark wax seal on cream paper ── */
+.sc-medal .sc-bg { background: radial-gradient(120% 90% at 50% 40%, var(--p), var(--b2)); }
+.medal-paper { position: absolute; inset: 0; background-image: radial-gradient(rgba(0,0,0,.035) 1px, transparent 1px); background-size: 5px 5px; }
+.medal-florals { position: absolute; inset: 0; }
+.medal-florals .sc-sprig { aspect-ratio: 200 / 260; opacity: .55; }
+.medal-frame { position: absolute; inset: 4.5vh 5vw; border: 1px solid var(--a); opacity: .55; outline: 1px solid var(--a); outline-offset: -7px; outline-color: color-mix(in srgb, var(--a) 40%, transparent); }
+.medal-seal { position: absolute; left: 50%; top: 48%; width: min(46vw, 190px); aspect-ratio: 1; translate: -50% -50%; background: none; border: 0; padding: 0; cursor: pointer; filter: drop-shadow(0 12px 14px rgba(0,0,0,.35)); animation: scPulse 2.8s ease-in-out infinite; }
+.medal-seal svg { width: 100%; height: 100%; display: block; }
+.medal-names { position: absolute; left: 0; right: 0; top: calc(48% + min(23vw, 95px) + 22px); text-align: center; font-family: var(--font-display); font-size: clamp(24px, 7vw, 34px); color: var(--b1); padding: 0 8vw; line-height: 1.15; }
+.sc-medal[data-open="true"] .medal-seal { animation: medalOpen 1.3s cubic-bezier(.5,0,.2,1) forwards; }
+.sc-medal[data-open="true"] .medal-names, .sc-medal[data-open="true"] .medal-florals { animation: medalFade 1.6s .2s ease-in forwards; }
+.sc-medal[data-open="true"] .medal-frame { animation: medalFade 1.8s ease-in forwards; }
+@keyframes medalOpen { 40% { transform: scale(1.12); } to { transform: scale(6); opacity: 0; } }
+@keyframes medalFade { to { opacity: 0; transform: scale(1.06); } }
+
+/* ── Depth: the main objects lean toward the finger or mouse ── */
+.env-wrap, .medal-seal, .door-frame, .book-wrap, .gate-frame { transition: rotate .25s ease-out; }
+.sc:not([data-open="true"]) .env-wrap,
+.sc:not([data-open="true"]) .book-wrap { rotate: x var(--tx, 0deg); }
+.sc:not([data-open="true"]) .env-wrap { transform-style: preserve-3d; }
+.sc:not([data-open="true"]) .door-frame { rotate: y calc(var(--ty, 0deg) * .5); }
+.sc:not([data-open="true"]) .medal-seal { rotate: y var(--ty, 0deg); }
+.sc-emblem svg { transform: rotateY(var(--ty, 0deg)) rotateX(var(--tx, 0deg)); transition: transform .25s ease-out; }
