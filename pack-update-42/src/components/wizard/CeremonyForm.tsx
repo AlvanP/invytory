@@ -1,0 +1,211 @@
+import { useEffect, useState } from 'react'
+import type { CeremonyDraft, InvitationTemplate } from '@/types'
+import { CEREMONY_TYPE_LABELS } from '@/types'
+import { templateService } from '@/services/templateService'
+import { collectionForCeremonyType, groupTemplates, COLLECTION_LABELS } from '@/utils/templateCollections'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { DressCodeField } from '@/components/wizard/DressCodeField'
+import { parseColours, joinColours } from '@/utils/colorTheme'
+import { TemplatePreviewPlaceholder } from '@/components/ui/Placeholder'
+import { Badge } from '@/components/ui/Badge'
+import { cn } from '@/utils/cn'
+import { getEventCopy, type EventKind } from '@/templates/events'
+
+export function CeremonyFormFields({
+  value,
+  onChange,
+  eventType = 'wedding',
+  sampleName,
+}: {
+  value: CeremonyDraft
+  onChange: (patch: Partial<CeremonyDraft>) => void
+  /** Weddings pick a ceremony type and design; every other event only picks a design for its own kind. */
+  eventType?: EventKind
+  /** The name shown under the colour swatches, e.g. the celebrant's name from step 2. */
+  sampleName?: string
+}) {
+  const isWedding = eventType === 'wedding'
+  const event = getEventCopy(eventType)
+  const [templates, setTemplates] = useState<InvitationTemplate[] | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  // The design is chosen once, on the Templates page, so the picker only shows here if none was chosen yet.
+  const pickerOpen = !value.templateId
+
+  useEffect(() => {
+    templateService.listAll().then((all) => setTemplates(all.filter((t) => t.category === eventType)))
+  }, [eventType])
+
+  // Which collection this ceremony type browses first. Custom Traditional
+  // has none, so it simply shows every design.
+  const collection = isWedding ? collectionForCeremonyType(value.ceremonyType) : null
+  const groups = templates ? groupTemplates(templates, collection, showAll) : null
+
+  // A template the couple already chose is never hidden by the filter:
+  // if it sits outside the visible groups, pin it at the top.
+  let pinned: InvitationTemplate | undefined
+  if (groups && templates && value.templateId) {
+    const visible = [...groups.primary, ...groups.universal, ...groups.others]
+    if (!visible.some((t) => t.id === value.templateId)) {
+      pinned = templates.find((t) => t.id === value.templateId)
+    }
+  }
+
+  function renderCard(t: InvitationTemplate) {
+    const selected = value.templateId === t.id
+    return (
+      <button
+        key={t.id}
+        type="button"
+        onClick={() => onChange({ templateId: t.id })}
+        className={cn(
+          'flex flex-col gap-1 rounded-sm p-1 text-left transition-all',
+          selected ? 'ring-2 ring-gold' : 'ring-1 ring-ink/10 hover:ring-ink/30'
+        )}
+      >
+        <TemplatePreviewPlaceholder tone={t.previewTone} templateId={t.id} />
+        <div className="flex items-center gap-1 px-0.5">
+          <span className="truncate text-[11px] text-ink">{t.name}</span>
+          {t.isPremium && <Badge tone="premium">Pro</Badge>}
+        </div>
+      </button>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className={cn('flex flex-col gap-3', !pickerOpen && 'hidden')}>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium text-ink-soft">{isWedding ? 'Template for this ceremony' : 'Design'}</p>
+          {collection && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="text-xs text-ink-soft underline-offset-2 hover:text-ink hover:underline"
+            >
+              {showAll ? `Show only ${COLLECTION_LABELS[collection]} designs` : 'Show all designs'}
+            </button>
+          )}
+        </div>
+
+        {collection && (
+          <p className="text-xs text-ink-soft/70">
+            {showAll
+              ? 'Showing every collection.'
+              : `Showing ${COLLECTION_LABELS[collection]} designs first.`}
+          </p>
+        )}
+
+        {pinned && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] tracking-[0.15em] text-ink-soft">CURRENTLY CHOSEN</p>
+            <div className="grid grid-cols-3 gap-3">{renderCard(pinned)}</div>
+          </div>
+        )}
+
+        {groups && groups.primary.length > 0 && (
+          <div className="grid grid-cols-3 gap-3">{groups.primary.map(renderCard)}</div>
+        )}
+
+        {groups && groups.universal.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] tracking-[0.15em] text-ink-soft">WORKS WITH ANY CEREMONY</p>
+            <div className="grid grid-cols-3 gap-3">{groups.universal.map(renderCard)}</div>
+          </div>
+        )}
+
+        {groups && groups.others.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] tracking-[0.15em] text-ink-soft">OTHER COLLECTIONS</p>
+            <div className="grid grid-cols-3 gap-3">{groups.others.map(renderCard)}</div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {isWedding && (
+        <Select
+          label="Ceremony type"
+          className="sm:col-span-2"
+          value={value.ceremonyType}
+          onChange={(e) => {
+            setShowAll(false)
+            onChange({ ceremonyType: e.target.value as CeremonyDraft['ceremonyType'] })
+          }}
+        >
+          {Object.entries(CEREMONY_TYPE_LABELS).map(([v, label]) => (
+            <option key={v} value={v}>{label}</option>
+          ))}
+        </Select>
+        )}
+
+        {isWedding && value.ceremonyType === 'custom' && (
+          <Input
+            label="Ceremony name"
+            className="sm:col-span-2"
+            value={value.ceremonyLabel ?? ''}
+            onChange={(e) => onChange({ ceremonyLabel: e.target.value })}
+            placeholder="e.g. Edo Traditional Wedding"
+          />
+        )}
+
+        <Input
+          label="Date"
+          type="date"
+          value={value.weddingDate ?? ''}
+          onChange={(e) => onChange({ weddingDate: e.target.value })}
+          required
+        />
+        <Input
+          label="Time"
+          type="time"
+          optional
+          value={value.weddingTime ?? ''}
+          onChange={(e) => onChange({ weddingTime: e.target.value })}
+        />
+        <Input
+          label={isWedding ? "Venue name" : "Venue"}
+          className="sm:col-span-2"
+          value={value.venueName ?? ''}
+          onChange={(e) => onChange({ venueName: e.target.value })}
+          required
+        />
+        <Input
+          label="Venue address"
+          className="sm:col-span-2"
+          optional
+          value={value.venueAddress ?? ''}
+          onChange={(e) => onChange({ venueAddress: e.target.value })}
+        />
+        <Input
+          label="City"
+          optional
+          value={value.city ?? ''}
+          onChange={(e) => onChange({ city: e.target.value })}
+        />
+        <Input
+          label="State"
+          optional
+          value={value.state ?? ''}
+          onChange={(e) => onChange({ state: e.target.value })}
+        />
+        <Input
+          label={isWedding ? "Reception info" : event.receptionLabel}
+          optional
+          value={value.receptionInfo ?? ''}
+          onChange={(e) => onChange({ receptionInfo: e.target.value })}
+        />
+      </div>
+
+      <DressCodeField
+        sampleName={sampleName}
+        dressCode={value.dressCode ?? ''}
+        colours={parseColours(value.themeColor)}
+        onChange={(c) => {
+          const { colours, ...rest } = c
+          onChange(colours ? { ...rest, themeColor: joinColours(colours) } : rest)
+        }}
+      />
+    </div>
+  )
+}
