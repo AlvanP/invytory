@@ -24,6 +24,7 @@ const DashboardAlbumPage = lazy(() => import('@/pages/dashboard/DashboardAlbumPa
 const AdminPage = lazy(() => import('@/pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
 const DashboardInviteesPage = lazy(() => import('@/pages/dashboard/DashboardInviteesPage').then((m) => ({ default: m.DashboardInviteesPage })))
 const SignInPage = lazy(() => import('@/pages/SignInPage').then((m) => ({ default: m.SignInPage })))
+const JoinTeamPage = lazy(() => import('@/pages/JoinTeamPage').then((m) => ({ default: m.JoinTeamPage })))
 const PublishSuccessPage = lazy(() => import('@/pages/PublishSuccessPage').then((m) => ({ default: m.PublishSuccessPage })))
 const CreateLayout = lazy(() => import('@/pages/create/CreateLayout').then((m) => ({ default: m.CreateLayout })))
 const StepTemplate = lazy(() => import('@/pages/create/StepTemplate').then((m) => ({ default: m.StepTemplate })))
@@ -66,6 +67,7 @@ function App() {
       <Route path="/preview-draft" element={<DraftPreviewPage />} />
       <Route path="/sample/:templateId" element={<SamplePage />} />
       <Route path="/sign-in" element={<SignInPage />} />
+      <Route path="/join/:token" element={<JoinTeamPage />} />
       <Route path="/entrance-lab" element={<EntranceLabPage />} />
 
       <Route path="/create" element={<CreateLayout />}>

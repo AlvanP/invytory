@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Loader2, Music, Pause, Play, Upload } from 'lucide-react'
+import { Loader2, Music, Pause, Play, Search, Upload, X } from 'lucide-react'
 import type { CeremonyDraft } from '@/types'
 import { musicService, type MusicTrack } from '@/services/musicService'
 import { collectionForCeremonyType, COLLECTION_LABELS } from '@/utils/templateCollections'
@@ -32,6 +32,8 @@ export function MusicPicker({
   const [tracks, setTracks] = useState<MusicTrack[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const [previewId, setPreviewId] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -139,8 +141,15 @@ export function MusicPicker({
   const all = (tracks ?? []).filter((t) => t.category === eventKind)
   const primary = collection ? all.filter((t) => t.collection === collection) : all
   const universal = collection ? all.filter((t) => t.collection === 'universal') : []
-  const others =
-    collection && showAll ? all.filter((t) => t.collection !== collection && t.collection !== 'universal') : []
+  const others = collection ? all.filter((t) => t.collection !== collection && t.collection !== 'universal') : []
+  // The page shows only the first few; the full library opens in a window with search.
+  const PREVIEW_COUNT = 7
+  const suggested = [...primary, ...universal]
+  const inline = suggested.slice(0, PREVIEW_COUNT)
+  const inModal = (showAll || !collection ? [...primary, ...universal, ...others] : suggested).filter((t) => {
+    const q = query.trim().toLowerCase()
+    return !q || [t.title, t.mood, t.artistCredit].some((v) => v?.toLowerCase().includes(q))
+  })
 
   function renderTrack(track: MusicTrack) {
     const selected = ceremony.musicUrl === track.url
@@ -221,13 +230,16 @@ export function MusicPicker({
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs tracking-[0.15em] text-ink-soft">OUR LIBRARY</p>
-          {collection && (
+          {all.length > 0 && (
             <button
               type="button"
-              onClick={() => setShowAll((v) => !v)}
+              onClick={() => {
+                setShowAll(true)
+                setModalOpen(true)
+              }}
               className="text-xs text-ink-soft underline-offset-2 hover:text-ink hover:underline"
             >
-              {showAll ? `Show only ${COLLECTION_LABELS[collection]} music` : 'Show all music'}
+              Show all music
             </button>
           )}
         </div>
@@ -245,22 +257,81 @@ export function MusicPicker({
           </p>
         )}
 
-        {primary.length > 0 && <ul className="flex flex-col gap-2">{primary.map(renderTrack)}</ul>}
+        {inline.length > 0 && <ul className="flex flex-col gap-2">{inline.map(renderTrack)}</ul>}
 
-        {universal.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[11px] tracking-[0.15em] text-ink-soft">WORKS WITH ANY CEREMONY</p>
-            <ul className="flex flex-col gap-2">{universal.map(renderTrack)}</ul>
-          </div>
-        )}
-
-        {others.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[11px] tracking-[0.15em] text-ink-soft">OTHER COLLECTIONS</p>
-            <ul className="flex flex-col gap-2">{others.map(renderTrack)}</ul>
-          </div>
+        {all.length > inline.length && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowAll(false)
+              setModalOpen(true)
+            }}
+            className="w-full rounded-sm border border-dashed border-ink/20 px-4 py-2.5 text-sm text-ink-soft transition-colors hover:border-gold hover:text-ink"
+          >
+            Load all ({all.length} songs)
+          </button>
         )}
       </div>
+
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="Music library">
+          <div className="flex max-h-[88vh] w-full max-w-lg flex-col rounded-t-xl bg-white shadow-xl sm:rounded-xl">
+            <div className="flex items-center justify-between gap-3 border-b border-ink/10 px-4 py-3">
+              <p className="text-sm font-medium text-ink">Music library</p>
+              <button
+                type="button"
+                onClick={() => {
+                  stopPreview()
+                  setModalOpen(false)
+                  setQuery('')
+                }}
+                aria-label="Close"
+                className="rounded-full p-1.5 text-ink-soft hover:bg-ink/5"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 border-b border-ink/10 px-4 py-3">
+              <label className="flex items-center gap-2 rounded-sm border border-ink/15 px-3 py-2">
+                <Search className="size-4 text-ink-soft" />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search songs"
+                  className="w-full bg-transparent text-sm outline-none"
+                />
+              </label>
+              {collection && (
+                <button
+                  type="button"
+                  onClick={() => setShowAll((v) => !v)}
+                  className="self-start text-xs text-ink-soft underline-offset-2 hover:text-ink hover:underline"
+                >
+                  {showAll ? `Show only ${COLLECTION_LABELS[collection]} music` : 'Show all music'}
+                </button>
+              )}
+            </div>
+            <ul className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-3">
+              {inModal.map(renderTrack)}
+              {inModal.length === 0 && <li className="py-6 text-center text-sm text-ink-soft">No songs match &ldquo;{query}&rdquo;.</li>}
+            </ul>
+            <div className="border-t border-ink/10 px-4 py-3">
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  stopPreview()
+                  setModalOpen(false)
+                  setQuery('')
+                }}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 border-t border-ink/10 pt-4">
         <p className="text-xs tracking-[0.15em] text-ink-soft">OR UPLOAD YOUR OWN</p>

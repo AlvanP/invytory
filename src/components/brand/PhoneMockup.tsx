@@ -14,9 +14,12 @@ export function PhoneMockup({
   auto = true,
   interactive = false,
   scratch = false,
+  src: srcOverride,
   className,
 }: {
-  templateId: string
+  templateId?: string
+  /** Show this page instead of a sample (the draft preview in the create flow). */
+  src?: string
   /** Scrolls by itself. */
   auto?: boolean
   /** Lets the visitor scroll and tap inside the phone. */
@@ -54,7 +57,7 @@ export function PhoneMockup({
   }, [])
 
   const query = [auto && !interactive ? 'auto=1' : '', auto || interactive ? 'entrance=1' : '', scratch ? 'scratch=1' : ''].filter(Boolean).join('&')
-  const src = `/sample/${templateId}${query ? `?${query}` : ''}`
+  const src = srcOverride ?? `/sample/${templateId}${query ? `?${query}` : ''}`
   const ready = loadedSrc === src
 
   return (

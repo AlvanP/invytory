@@ -24,19 +24,24 @@ const toMessage = (r: WallRow): WallMessage => ({
   createdAt: r.created_at,
 })
 
-/** Most messages a wall loads at once (the newest ones). */
-export const WALL_LIMIT = 100
-
 export const supabaseWallService = {
   async list(invitationId: string): Promise<WallMessage[]> {
-    const { data, error } = await supabase
-      .from('wall_messages')
-      .select('*')
-      .eq('invitation_id', invitationId)
-      .order('created_at', { ascending: false })
-      .limit(WALL_LIMIT)
-    if (error) throw error
-    return (data as WallRow[]).map(toMessage)
+    // Read every message, a page at a time, so a busy wall is never cut short.
+    const PAGE = 500
+    const all: WallMessage[] = []
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from('wall_messages')
+        .select('*')
+        .eq('invitation_id', invitationId)
+        .order('created_at', { ascending: false })
+        .range(from, from + PAGE - 1)
+      if (error) throw error
+      const rows = (data as WallRow[]).map(toMessage)
+      all.push(...rows)
+      if (rows.length < PAGE || all.length >= 5000) break
+    }
+    return all
   },
 
   async listByInvitations(invitationIds: string[]): Promise<WallMessage[]> {

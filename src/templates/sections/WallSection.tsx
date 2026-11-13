@@ -34,7 +34,7 @@ export function WallSection(_props: { invitation: WeddingInvitation }) {
         <ul
           tabIndex={0}
           aria-label="Messages from guests"
-          className="max-h-[22rem] space-y-3 overflow-y-auto rounded-md pr-1 text-left [scrollbar-color:var(--iv-main)_transparent] [scrollbar-width:thin]"
+          className="max-h-[70vh] space-y-3 overflow-y-scroll overscroll-contain rounded-md pr-2 text-left [scrollbar-color:var(--iv-main)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[color:var(--iv-main)]"
         >
           {messages.map((m) => (
             <li key={m.id} className="rounded-md bg-[color:var(--iv-paper)] p-4 text-[color:var(--iv-ink)] shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]">
@@ -46,9 +46,9 @@ export function WallSection(_props: { invitation: WeddingInvitation }) {
             </li>
           ))}
         </ul>
-        {messages.length > 3 && (
+        {messages.length > 2 && (
           <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-[color:var(--iv-ink)] opacity-55">
-            {messages.length} messages &middot; scroll to read
+            {messages.length} message{messages.length === 1 ? '' : 's'} &middot; scroll to read them all
           </p>
         )}
       </div>

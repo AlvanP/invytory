@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CreditCard, Smartphone, Monitor, Mail, AlertCircle } from 'lucide-react'
+import { Banknote, CreditCard, Smartphone, Monitor, Mail, AlertCircle } from 'lucide-react'
 import { useWizard } from '@/hooks/useWizard'
 import { useAuth } from '@/hooks/useAuth'
 import { weddingService } from '@/services/weddingService'
@@ -11,13 +11,15 @@ import { pricingPlans, type PricingPlan } from '@/data/pricingPlans'
 import { checkPlanHosting } from '@/utils/hostingDuration'
 import type { CeremonyDraft } from '@/types'
 import { ceremonyDisplayName } from '@/types'
+import { PhoneMockup } from '@/components/brand/PhoneMockup'
+import { ManualPayPanel } from '@/components/pay/ManualPayPanel'
 import { PlanCard } from '@/components/pricing/PlanCard'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { cn } from '@/utils/cn'
 
-type CheckoutStage = 'idle' | 'selectPlan' | 'signIn' | 'linkSent' | 'processing' | 'error'
+type CheckoutStage = 'idle' | 'selectPlan' | 'method' | 'signIn' | 'linkSent' | 'processing' | 'manual' | 'error'
 
 export function StepPreview() {
   const { draft, reset } = useWizard()
@@ -34,15 +36,13 @@ export function StepPreview() {
   }, [user])
   const [email, setEmail] = useState('')
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null)
-  const [wantsToCheckout, setWantsToCheckout] = useState(false)
+  const [transferRef, setTransferRef] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
+  // After the sign-in link is opened in this browser, carry on to the choice of how to pay.
   useEffect(() => {
-    if (user && wantsToCheckout && stage === 'linkSent' && selectedPlan) {
-      startCheckout(selectedPlan, user.id, user.email ?? email)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, wantsToCheckout, stage])
+    if (user && stage === 'linkSent' && selectedPlan) setStage('method')
+  }, [user, stage, selectedPlan])
 
   function handlePublishClick() {
     setStage('selectPlan')
@@ -50,9 +50,8 @@ export function StepPreview() {
 
   function handleSelectPlan(plan: PricingPlan) {
     setSelectedPlan(plan)
-    setWantsToCheckout(true)
     if (user) {
-      startCheckout(plan, user.id, user.email ?? email)
+      setStage('method')
     } else {
       setStage('signIn')
     }
@@ -81,6 +80,19 @@ export function StepPreview() {
       navigate(`/success/${saved.wedding.slug}`)
     } catch {
       setErrorMessage('Something went wrong. Please try again.')
+      setStage('error')
+    }
+  }
+
+  /** Saves the invitation as a draft and shows the bank details. An admin publishes it once the payment is confirmed. */
+  async function startTransfer(plan: PricingPlan, ownerId: string) {
+    setStage('processing')
+    try {
+      const saved = await weddingService.createDraft(draft, ownerId, plan)
+      setTransferRef(`INV-${saved.wedding.id.replace(/-/g, '').slice(0, 6).toUpperCase()}`)
+      setStage('manual')
+    } catch {
+      setErrorMessage('We could not save your invitation. Please try again.')
       setStage('error')
     }
   }
@@ -163,20 +175,30 @@ export function StepPreview() {
         <p className="text-center text-xs text-ink-soft">
           This is how your guests will see it. Tap the entrance to open it, and scroll. Your music plays after the tap.
         </p>
-        <div
-          className={cn(
-            'overflow-hidden bg-ivory shadow-lift transition-all duration-300',
-            device === 'mobile' ? 'w-full max-w-[22rem] rounded-[2rem] border-[6px] border-ink' : 'w-full rounded-md'
-          )}
-        >
-          <iframe
-            key={`${previewCeremony.id}-${replay}-${device}`}
-            title="Invitation preview"
-            src={`/preview-draft?c=${encodeURIComponent(previewCeremony.id)}`}
-            allow="autoplay"
-            className={cn('block w-full border-0', device === 'mobile' ? 'h-[70vh] max-h-[44rem] min-h-[28rem]' : 'h-[70vh] min-h-[30rem]')}
-          />
-        </div>
+        {device === 'mobile' ? (
+          <div className="mx-auto w-[17.5rem] sm:w-[20rem]">
+            <PhoneMockup
+              key={`${previewCeremony.id}-${replay}`}
+              src={`/preview-draft?c=${encodeURIComponent(previewCeremony.id)}`}
+              interactive
+            />
+          </div>
+        ) : (
+          <div className="w-full overflow-hidden rounded-md border border-ink/10 bg-ivory shadow-lift">
+            <div className="flex items-center gap-1.5 border-b border-ink/10 bg-white px-3 py-2">
+              <span className="size-2.5 rounded-full bg-ink/15" />
+              <span className="size-2.5 rounded-full bg-ink/15" />
+              <span className="size-2.5 rounded-full bg-ink/15" />
+            </div>
+            <iframe
+              key={`${previewCeremony.id}-${replay}-desktop`}
+              title="Invitation preview"
+              src={`/preview-draft?c=${encodeURIComponent(previewCeremony.id)}`}
+              allow="autoplay"
+              className="block h-[75vh] min-h-[32rem] w-full border-0"
+            />
+          </div>
+        )}
         <button type="button" onClick={() => setReplay((n) => n + 1)} className="text-xs text-wine underline-offset-2 hover:underline">
           Replay from the entrance
         </button>
@@ -191,9 +213,11 @@ export function StepPreview() {
 
       <Modal
         isOpen={stage !== 'idle'}
-        onClose={() => { if (stage === 'selectPlan' || stage === 'signIn' || stage === 'linkSent' || stage === 'error') setStage('idle') }}
+        onClose={() => { if (stage === 'manual') { reset(); navigate('/dashboard/events'); return } if (stage === 'method' || stage === 'selectPlan' || stage === 'signIn' || stage === 'linkSent' || stage === 'error') setStage('idle') }}
         title={
           stage === 'selectPlan' ? 'Choose your plan'
+          : stage === 'method' ? 'How would you like to pay?'
+          : stage === 'manual' ? 'Pay by bank transfer'
           : stage === 'signIn' ? 'Sign in to continue'
           : stage === 'linkSent' ? 'Check your email'
           : stage === 'processing' ? 'Processing'
@@ -237,6 +261,48 @@ export function StepPreview() {
               By paying you agree to our <Link to="/terms" target="_blank" className="text-wine underline">Terms</Link> and{' '}
               <Link to="/privacy" target="_blank" className="text-wine underline">Privacy Policy</Link>.
             </p>
+          </div>
+        )}
+
+        {stage === 'method' && selectedPlan && user && (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-ink-soft">
+              {selectedPlan.name} plan: <span className="font-medium text-ink">₦{selectedPlan.price.toLocaleString()}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => startCheckout(selectedPlan, user.id, user.email ?? email)}
+              className="flex items-start gap-3 rounded-md border border-ink/15 p-4 text-left hover:border-gold"
+            >
+              <CreditCard className="mt-0.5 size-5 shrink-0 text-gold" />
+              <span>
+                <span className="block text-sm font-medium text-ink">Pay online with Paystack</span>
+                <span className="block text-xs text-ink-soft">Card, bank or USSD. Your invitation goes live right away.</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => startTransfer(selectedPlan, user.id)}
+              className="flex items-start gap-3 rounded-md border border-ink/15 p-4 text-left hover:border-gold"
+            >
+              <Banknote className="mt-0.5 size-5 shrink-0 text-gold" />
+              <span>
+                <span className="block text-sm font-medium text-ink">Pay by bank transfer</span>
+                <span className="block text-xs text-ink-soft">
+                  Transfer from any bank or app (OPay included), then send us your receipt on WhatsApp. We publish it once confirmed.
+                </span>
+              </span>
+            </button>
+            <button type="button" onClick={() => setStage('selectPlan')} className="self-start text-xs text-ink-soft underline-offset-2 hover:underline">
+              Choose a different plan
+            </button>
+          </div>
+        )}
+
+        {stage === 'manual' && selectedPlan && (
+          <div className="flex flex-col gap-4">
+            <ManualPayPanel amount={selectedPlan.price} reference={transferRef} planName={selectedPlan.name} email={user?.email ?? email} />
+            <Button onClick={() => { reset(); navigate('/dashboard/events') }}>Go to my dashboard</Button>
           </div>
         )}
 

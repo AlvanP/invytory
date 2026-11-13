@@ -96,11 +96,14 @@ export const supabaseWeddingService = {
     return ((data ?? []) as InvitationRow[]).map(rowToInvitation)
   },
 
+  /** Events this person owns, plus events they were invited to manage. */
   async listByOwner(ownerId: string): Promise<Wedding[]> {
+    const { data: managed } = await supabase.from('event_managers').select('wedding_id').eq('user_id', ownerId)
+    const ids = (managed ?? []).map((r) => (r as { wedding_id: string }).wedding_id)
     const { data, error } = await supabase
       .from('weddings')
       .select('*')
-      .eq('owner_id', ownerId)
+      .or(ids.length ? `owner_id.eq.${ownerId},id.in.(${ids.join(',')})` : `owner_id.eq.${ownerId}`)
       .order('created_at', { ascending: false })
     if (error) throw error
     return (data as WeddingRow[]).map(rowToWedding)

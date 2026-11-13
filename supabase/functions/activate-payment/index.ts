@@ -110,7 +110,7 @@ export async function handle(req: Request): Promise<Response> {
   const wRows = wRes.ok ? ((await wRes.json()) as Record<string, string>[]) : []
   const wedding = wRows[0]
   if (!wedding) return reply(404, { ok: false, error: 'We could not find that invitation.' })
-  if (wedding.owner_id !== user.id) return reply(403, { ok: false, error: 'That invitation belongs to another account.' })
+  if (wedding.owner_id !== user.id && !isAdmin) return reply(403, { ok: false, error: 'That invitation belongs to another account.' })
   if (wedding.status === 'published' && wedding.payment_reference === reference) {
     return reply(200, { ok: true, slug: wedding.slug, expiresAt: wedding.expires_at, already: true })
   }
@@ -157,7 +157,7 @@ export async function handle(req: Request): Promise<Response> {
   const claim = await db('payments', {
     method: 'POST',
     headers: { Prefer: 'return=minimal' },
-    body: JSON.stringify({ reference, wedding_id: weddingId, user_id: user.id, plan: planId, amount_kobo: paidKobo }),
+    body: JSON.stringify({ reference, wedding_id: weddingId, user_id: wedding.owner_id, plan: planId, amount_kobo: paidKobo }),
   })
   if (!claim.ok) {
     const existing = await db(`payments?reference=eq.${encodeURIComponent(reference)}&select=wedding_id&limit=1`)

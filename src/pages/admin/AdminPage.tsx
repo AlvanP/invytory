@@ -4,6 +4,7 @@ import { CalendarClock, Eye, ImageIcon, LogOut, MessageSquare, Search, ShieldChe
 import { adminService, type AdminEvent, type AdminOverview, type AdminUser } from '@/services/adminService'
 import { authService } from '@/services/authService'
 import { pricingPlans } from '@/data/pricingPlans'
+import { paymentService } from '@/services/paymentService'
 import { AdminMusicTab } from './AdminMusicTab'
 import { AdminPricingTab } from './AdminPricingTab'
 import { AdminMessagesTab } from './AdminMessagesTab'
@@ -227,6 +228,22 @@ function Events({ events, reload }: { events: AdminEvent[] | null; reload: () =>
                 <td className="p-3 text-xs text-ink-soft">{e.expires_at ? formatDate(e.expires_at.slice(0, 10)) : '-'}</td>
                 <td className="p-3">
                   <div className="flex flex-wrap justify-end gap-1.5">
+                    {e.status === 'draft' && (e.plan === 'silver' || e.plan === 'gold') && (
+                      <Button
+                        size="sm"
+                        disabled={busyId === e.id}
+                        onClick={() => {
+                          if (!window.confirm(`Confirm you received the transfer for "${e.title || e.slug}" and publish it?`)) return
+                          const plan = e.plan as 'silver' | 'gold'
+                          void run(e.id, async () => {
+                            const r = await paymentService.activate(`TRF-${e.id}`, e.id, plan, true)
+                            if (!r.ok) throw new Error(r.error ?? 'Could not publish.')
+                          })
+                        }}
+                      >
+                        Payment received: publish
+                      </Button>
+                    )}
                     <Button size="sm" variant="outline" disabled={busyId === e.id} onClick={() => extend(e)}>Extend</Button>
                     <Button size="sm" variant="outline" disabled={busyId === e.id} onClick={() => run(e.id, () => adminService.setStatus(e.id, e.status === 'archived' ? 'published' : 'archived'))}>
                       {e.status === 'archived' ? 'Restore' : 'Suspend'}

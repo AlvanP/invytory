@@ -29,9 +29,8 @@ export function CeremonyFormFields({
   const event = getEventCopy(eventType)
   const [templates, setTemplates] = useState<InvitationTemplate[] | null>(null)
   const [showAll, setShowAll] = useState(false)
-  // The design is chosen once, on the Templates page. Here it stays folded away unless they want to change it.
-  const [changing, setChanging] = useState(false)
-  const pickerOpen = !value.templateId || changing
+  // The design is chosen once, on the Templates page, so the picker only shows here if none was chosen yet.
+  const pickerOpen = !value.templateId
 
   useEffect(() => {
     templateService.listAll().then((all) => setTemplates(all.filter((t) => t.category === eventType)))
@@ -75,16 +74,6 @@ export function CeremonyFormFields({
 
   return (
     <div className="flex flex-col gap-5">
-      {!pickerOpen && (
-        <div className="flex items-center justify-between gap-3 rounded-md border border-ink/10 px-4 py-3 text-sm">
-          <span className="text-ink-soft">
-            Design: <span className="font-medium text-ink">{templates?.find((t) => t.id === value.templateId)?.name ?? 'chosen'}</span>
-          </span>
-          <button type="button" onClick={() => setChanging(true)} className="text-wine underline-offset-2 hover:underline">
-            {isWedding ? 'Change design for this ceremony' : 'Change design'}
-          </button>
-        </div>
-      )}
       <div className={cn('flex flex-col gap-3', !pickerOpen && 'hidden')}>
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium text-ink-soft">{isWedding ? 'Template for this ceremony' : 'Design'}</p>

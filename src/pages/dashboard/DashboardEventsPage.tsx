@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Users, Share2, Settings, ScrollText, Pencil, UserCheck, Camera } from 'lucide-react'
+import { Eye, Users, Share2, Settings, ScrollText, Pencil, UserCheck, Camera, UserPlus } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { ceremonyDisplayName } from '@/types'
 import { invitationService } from '@/services/invitationService'
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/State'
 import { DashboardCardSkeleton } from '@/components/ui/Skeleton'
+import { TeamModal } from '@/components/dashboard/TeamModal'
 import { ShareModal } from '@/components/dashboard/ShareModal'
 
 interface WeddingWithCeremonies {
@@ -25,6 +26,7 @@ export function DashboardEventsPage() {
   const [legacyInvitations, setLegacyInvitations] = useState<WeddingInvitation[] | null>(null)
   const [templates, setTemplates] = useState<Record<string, InvitationTemplate>>({})
   const [shareSlug, setShareSlug] = useState<string | null>(null)
+  const [teamFor, setTeamFor] = useState<{ id: string; names: string } | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -83,6 +85,7 @@ export function DashboardEventsPage() {
                           {first ? namesTitle(first.brideName, first.groomName) : 'Untitled invitation'}
                         </h3>
                         <Badge tone={wedding.status === 'published' ? 'confirmed' : 'draft'}>{wedding.status}</Badge>
+                        {wedding.ownerId !== user?.id && <Badge tone="draft">Shared with you</Badge>}
                         {wedding.plan && <Badge tone="premium">{wedding.plan === 'gold' ? 'Signature' : 'Essential'}</Badge>}
                       </div>
                       <p className="mt-1 text-sm text-ink-soft">
@@ -105,6 +108,16 @@ export function DashboardEventsPage() {
                       <Button variant="outline" size="sm" icon={<Share2 className="size-4" />} onClick={() => setShareSlug(wedding.slug)}>
                         Share
                       </Button>
+                      {wedding.ownerId === user?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          icon={<UserPlus className="size-4" />}
+                          onClick={() => setTeamFor({ id: wedding.id, names: first ? namesTitle(first.brideName, first.groomName) : 'our event' })}
+                        >
+                          Team
+                        </Button>
+                      )}
                       {first && (
                         <Link to={`/dashboard/events/${first.id}/invitees`} state={{ slug: wedding.slug }}>
                           <Button variant="outline" size="sm" icon={<UserCheck className="size-4" />}>Special guests</Button>
@@ -191,6 +204,7 @@ export function DashboardEventsPage() {
         )}
       </div>
 
+      {teamFor && <TeamModal isOpen weddingId={teamFor.id} names={teamFor.names} onClose={() => setTeamFor(null)} />}
       {shareSlug && <ShareModal isOpen={!!shareSlug} onClose={() => setShareSlug(null)} slug={shareSlug} />}
     </div>
   )
