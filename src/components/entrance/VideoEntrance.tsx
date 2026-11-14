@@ -4,7 +4,7 @@ import { getKit, kitStyle, loadKit, type KitId } from '@/templates/fontKits'
 
 const FADE_MS = 1000
 /** Give up on a video that has not arrived by now, and use the built-in entrance. */
-const LOAD_TIMEOUT_MS = 30000
+const LOAD_TIMEOUT_MS = 25000
 
 /**
  * A designer-made entrance video. The whole file is downloaded before it can be tapped, so the
@@ -63,28 +63,19 @@ export function VideoEntrance({
     if (kit) loadKit(kitDef)
   }, [kit, kitDef])
 
-  // Download the entire video first, then play it from memory: no stalls, ever.
+  // Play straight from the link so the first frame shows quickly, and quietly download a full copy
+  // in the background. If the copy arrives before the guest taps, playback uses it (no stalls).
   useEffect(() => {
     let cancelled = false
     let objectUrl: string | null = null
-    const timeout = window.setTimeout(() => {
-      if (!cancelled) onFail()
-    }, LOAD_TIMEOUT_MS)
     ;(async () => {
       try {
         const res = await fetch(src)
         const type = res.headers.get('content-type') ?? ''
-        // A missing file is answered with the site's home page, not an error.
-        if (!res.ok || type.includes('text/html')) throw new Error('missing')
+        if (!res.ok || type.includes('text/html')) return
         const total = Number(res.headers.get('content-length')) || 0
         const reader = res.body?.getReader()
-        if (!reader) {
-          const blob = await res.blob()
-          if (cancelled) return
-          objectUrl = URL.createObjectURL(blob)
-          setBlobUrl(objectUrl)
-          return
-        }
+        if (!reader) return
         const chunks: Uint8Array[] = []
         let got = 0
         for (;;) {
@@ -94,34 +85,37 @@ export function VideoEntrance({
           got += value.length
           if (total && !cancelled) setProgress(Math.min(0.99, got / total))
         }
-        if (cancelled) return
+        if (cancelled || phaseRef.current !== 'idle') return
         objectUrl = URL.createObjectURL(new Blob(chunks as BlobPart[], { type: type.startsWith('video/') ? type : 'video/mp4' }))
         setBlobUrl(objectUrl)
       } catch {
-        if (!cancelled) onFail()
+        // the direct link keeps working without the background copy
       }
     })()
     return () => {
       cancelled = true
-      window.clearTimeout(timeout)
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src])
 
-  // Ready when the downloaded video can show its first frame (it may already have by the time this runs).
+  // Ready when the video can show its first frame. If that never happens, use the built-in entrance.
   useEffect(() => {
     const v = videoRef.current
-    if (!v || !blobUrl) return
+    if (!v) return
     const mark = () => setReady(true)
     if (v.readyState >= 2) mark()
     v.addEventListener('loadeddata', mark)
     v.addEventListener('canplay', mark)
+    const giveUp = window.setTimeout(() => {
+      if (v.readyState < 2) onFail()
+    }, LOAD_TIMEOUT_MS)
     return () => {
+      window.clearTimeout(giveUp)
       v.removeEventListener('loadeddata', mark)
       v.removeEventListener('canplay', mark)
     }
-  }, [blobUrl])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Show the names when the video reaches the chosen second.
   useEffect(() => {
@@ -185,20 +179,22 @@ export function VideoEntrance({
         if (e.key === 'Enter' || e.key === ' ') start()
       }}
     >
-      {blobUrl && (
+      {
         <video
           ref={videoRef}
-          src={blobUrl}
+          src={blobUrl ?? `${src}#t=0.001`}
           playsInline
           muted={muted}
           preload="auto"
           disableRemotePlayback
-          onError={onFail}
+          onError={() => {
+            if (!blobUrl) onFail()
+          }}
           onEnded={fade}
           // object-cover fills a phone screen; on a wide screen the whole video stays visible instead of being cropped.
           className="absolute inset-0 h-full w-full object-cover landscape:object-contain"
         />
-      )}
+      }
 
       {!ready && (
         <div className="absolute inset-0 grid place-items-center">
