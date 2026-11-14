@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/utils/cn'
+import { categoryMusicService } from '@/services/categoryMusicService'
+import { previewMusic } from '@/services/previewMusic'
 
 const SCREEN_W = 390
 const SCREEN_H = 844
@@ -14,6 +16,7 @@ export function PhoneMockup({
   auto = true,
   interactive = false,
   scratch = false,
+  music = false,
   src: srcOverride,
   className,
 }: {
@@ -25,6 +28,8 @@ export function PhoneMockup({
   /** Lets the visitor scroll and tap inside the phone. */
   interactive?: boolean
   scratch?: boolean
+  /** Plays this category's preview song while the phone is on screen (set in Admin > Page music). */
+  music?: boolean
   className?: string
 }) {
   const screen = useRef<HTMLDivElement | null>(null)
@@ -55,6 +60,38 @@ export function PhoneMockup({
       watch.disconnect()
     }
   }, [])
+
+  // The category's song plays only while this phone is mostly on screen, and stops when it scrolls away.
+  useEffect(() => {
+    const node = screen.current
+    if (!music || !templateId || !node) return
+    const id = `phone-${templateId}-${Math.random().toString(36).slice(2, 7)}`
+    let url: string | null = null
+    let visible = false
+    let gone = false
+    const apply = () => {
+      if (gone || !url) return
+      if (visible) previewMusic.request(id, url)
+      else previewMusic.release(id)
+    }
+    categoryMusicService.urlFor(templateId).then((u) => {
+      url = u
+      apply()
+    })
+    const io = new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting && e.intersectionRatio >= 0.5
+        apply()
+      },
+      { threshold: [0, 0.5, 1] }
+    )
+    io.observe(node)
+    return () => {
+      gone = true
+      io.disconnect()
+      previewMusic.release(id)
+    }
+  }, [music, templateId])
 
   const query = [auto && !interactive ? 'auto=1' : '', auto || interactive ? 'entrance=1' : '', scratch ? 'scratch=1' : ''].filter(Boolean).join('&')
   const src = srcOverride ?? `/sample/${templateId}${query ? `?${query}` : ''}`

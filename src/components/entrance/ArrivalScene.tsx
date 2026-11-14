@@ -20,6 +20,7 @@ export function ArrivalScene({
   groomName,
   onTap,
   onStartMusic,
+  muteVideo,
   autoOpenMs,
   onRevealed,
   inviteeName,
@@ -33,6 +34,8 @@ export function ArrivalScene({
   onTap?: () => void
   /** Starts the music. When it runs depends on the entrance's setting (admin > Entrances). */
   onStartMusic?: () => void
+  /** Play any entrance video without sound (the samples on the website). */
+  muteVideo?: boolean
   /** Opens the entrance by itself after this many ms (used by the moving samples). */
   autoOpenMs?: number
   /** Called once the invitation is showing. */
@@ -44,7 +47,8 @@ export function ArrivalScene({
   const [exiting, setExiting] = useState(false)
   const [revealed, setRevealed] = useState(false)
   const [overlayGone, setOverlayGone] = useState(false)
-  const { loading, setting } = useEntranceSetting(templateId)
+  const { loading, setting: base } = useEntranceSetting(templateId)
+  const setting = muteVideo ? { ...base, muted: true } : base
   const musicStarted = useRef(false)
   const timers = useRef<number[]>([])
 

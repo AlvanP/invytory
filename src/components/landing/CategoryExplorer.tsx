@@ -27,8 +27,8 @@ function featured(kind: EventKind) {
  * beside it, and the designs available for that event underneath.
  */
 export function CategoryExplorer() {
-  const [kind, setKind] = useState<EventKind>('child-dedication')
-  const [templateId, setTemplateId] = useState(featured('child-dedication')[0].id)
+  const [kind, setKind] = useState<EventKind>('wedding')
+  const [templateId, setTemplateId] = useState(featured('wedding')[0].id)
   const list = featured(kind)
   const count = templates.filter((t) => t.category === kind).length
 
@@ -106,7 +106,7 @@ export function CategoryExplorer() {
         <div className="relative mx-auto w-[15.5rem] sm:w-[17rem]">
           <div aria-hidden className="drift-a absolute -inset-10 rounded-full opacity-40 blur-3xl transition-colors duration-700" style={{ backgroundColor: ACCENTS[kind] }} />
           <div className="relative">
-            <PhoneMockup key={templateId} templateId={templateId} />
+            <PhoneMockup key={templateId} templateId={templateId} music />
           </div>
         </div>
       </div>

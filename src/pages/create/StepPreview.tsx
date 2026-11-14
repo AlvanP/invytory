@@ -17,6 +17,7 @@ import { PlanCard } from '@/components/pricing/PlanCard'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
+import { leadService } from '@/services/leadService'
 import { cn } from '@/utils/cn'
 
 type CheckoutStage = 'idle' | 'selectPlan' | 'method' | 'signIn' | 'linkSent' | 'processing' | 'manual' | 'error'
@@ -60,6 +61,13 @@ export function StepPreview() {
   async function handleSendLink(e: FormEvent) {
     e.preventDefault()
     if (!email.trim()) return
+    void leadService.capture({
+      email,
+      eventType: draft.eventType,
+      names: [draft.brideName, draft.groomName].filter(Boolean).join(' & '),
+      templateId: draft.templateId,
+      plan: selectedPlan?.name,
+    })
     await authService.signInWithMagicLink(email.trim())
     setStage('linkSent')
   }

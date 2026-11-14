@@ -126,6 +126,7 @@ export function SamplePage() {
       {entrance ? (
         <ArrivalScene
           key={run}
+          muteVideo
           tone={template?.previewTone ?? 'classic'}
           templateId={template?.id}
           brideName={invitation.brideName ?? ''}

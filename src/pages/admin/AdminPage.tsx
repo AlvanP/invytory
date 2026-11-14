@@ -6,6 +6,8 @@ import { authService } from '@/services/authService'
 import { pricingPlans } from '@/data/pricingPlans'
 import { paymentService } from '@/services/paymentService'
 import { AdminEntrancesTab } from './AdminEntrancesTab'
+import { AdminPageMusicTab } from './AdminPageMusicTab'
+import { AdminLeadsTab } from './AdminLeadsTab'
 import { AdminMusicTab } from './AdminMusicTab'
 import { AdminPricingTab } from './AdminPricingTab'
 import { AdminMessagesTab } from './AdminMessagesTab'
@@ -15,7 +17,7 @@ import { StatCard } from '@/components/dashboard/StatCard'
 import { formatDate, formatNumber } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
-type Tab = 'overview' | 'events' | 'users' | 'music' | 'entrances' | 'pricing' | 'messages'
+type Tab = 'overview' | 'events' | 'users' | 'music' | 'entrances' | 'pagemusic' | 'leads' | 'pricing' | 'messages'
 
 const TYPE_LABELS: Record<string, string> = {
   wedding: 'Wedding',
@@ -326,6 +328,8 @@ export function AdminPage() {
     { id: 'users', label: 'People' },
     { id: 'music', label: 'Music' },
     { id: 'entrances', label: 'Entrances' },
+    { id: 'pagemusic', label: 'Page music' },
+    { id: 'leads', label: 'Leads' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'messages', label: 'Messages' },
   ]
@@ -362,6 +366,8 @@ export function AdminPage() {
         {tab === 'users' && <UsersTab />}
         {tab === 'music' && <AdminMusicTab />}
         {tab === 'entrances' && <AdminEntrancesTab />}
+        {tab === 'pagemusic' && <AdminPageMusicTab />}
+        {tab === 'leads' && <AdminLeadsTab />}
         {tab === 'pricing' && <AdminPricingTab />}
         {tab === 'messages' && <AdminMessagesTab />}
       </main>

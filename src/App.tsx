@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useSyncExternalStore } from 'react'
 import { planService } from '@/services/planService'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { PublicLayout } from '@/components/layouts/PublicLayout'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AdminRoute } from '@/components/auth/AdminRoute'
@@ -42,6 +42,15 @@ const DashboardEditCeremonyPage = lazy(() => import('@/pages/dashboard/Dashboard
 const DashboardGuestsPage = lazy(() => import('@/pages/dashboard/DashboardGuestsPage').then((m) => ({ default: m.DashboardGuestsPage })))
 const DashboardSettingsPage = lazy(() => import('@/pages/dashboard/DashboardSettingsPage').then((m) => ({ default: m.DashboardSettingsPage })))
 
+/** Every page opens at its top, unless the link points at a section (#pricing) which the page scrolls to itself. */
+function ScrollToTop() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    if (!hash) window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
+  }, [pathname, hash])
+  return null
+}
+
 function App() {
   // Plan prices come from the database; re-draw when they arrive.
   useSyncExternalStore(planService.subscribe, planService.getVersion)
@@ -50,6 +59,7 @@ function App() {
   }, [])
   return (
     <Suspense fallback={<div className="p-10 text-center text-sm text-ink-soft">Loading…</div>}>
+    <ScrollToTop />
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />

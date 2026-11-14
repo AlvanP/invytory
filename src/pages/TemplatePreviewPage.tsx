@@ -81,7 +81,7 @@ export function TemplatePreviewPage() {
         </div>
 
         <div className="mx-auto w-[18rem] sm:w-[21rem]">
-          <PhoneMockup key={template.id} templateId={template.id} interactive scratch={scratch} />
+          <PhoneMockup key={template.id} templateId={template.id} interactive scratch={scratch} music />
         </div>
       </div>
     </div>

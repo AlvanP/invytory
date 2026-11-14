@@ -36,6 +36,26 @@ const styles: Record<string, GalleryStyle> = {
   'funeral-serene': 'frames',
   'funeral-life-celebrated': 'slider',
   'funeral-white-lily': 'cascade',
+
+  // new designs
+  'white-blue-hour': 'mosaic',
+  'white-peach-blossom': 'deck',
+  'igbo-isi-agu': 'frames',
+  'igbo-ofala': 'cascade',
+  'yoruba-aso-oke': 'zoom',
+  'yoruba-gele': 'slider',
+  'hausa-sahara-sand': 'mosaic',
+  'hausa-dutse-olive': 'frames',
+  'dedication-lilac-prayer': 'zoom',
+  'birthday-neon-pop': 'deck',
+  'birthday-pastel-cake': 'frames',
+  'birthday-retro-disco': 'spotlight',
+  'corporate-launch': 'cascade',
+  'corporate-awards-night': 'frames',
+  'corporate-workshop': 'slider',
+  'funeral-gentle-rest': 'zoom',
+  'funeral-heritage-tribute': 'spotlight',
+  'funeral-sunset-farewell': 'deck',
 }
 
 export function galleryStyleFor(templateId: string | undefined): GalleryStyle {

@@ -299,21 +299,19 @@ function CoverLayout({ invitation }: { invitation: WeddingInvitation }) {
       { label: 'Place', value: place || (event.coverTag ?? '') },
     ].filter((c) => c.value)
     return (
-      <div className="relative flex min-h-[100svh] flex-col bg-[color:var(--iv-main)] text-[color:var(--iv-on-main)]">
-        <div className="relative min-h-[66svh] flex-1 overflow-hidden" style={{ '--iv-on-main': '#FFFFFF' } as CSSProperties}>
-          <img src={invitation.heroImage ?? ''} alt="" className={cn('absolute inset-0 size-full object-cover', photoIntro)} />
-          {frameOver}
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/25" />
-          <div className="relative z-10 flex h-full min-h-[66svh] flex-col justify-between px-7 pb-9 pt-10 text-left text-white">
-            <div className="[&>*]:!items-start [&_p]:!text-left">{eyebrowEl}</div>
-            <div {...rise(1)} className={rise(1).className}>{names}</div>
-          </div>
+      <div className="relative flex h-[100svh] min-h-[100svh] flex-col overflow-hidden bg-[color:var(--iv-main)] text-white" style={{ '--iv-on-main': '#FFFFFF' } as CSSProperties}>
+        <img src={invitation.heroImage ?? ''} alt="" className={cn('absolute inset-0 size-full object-cover', photoIntro)} />
+        {frameOver}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/30" />
+        <div className="relative z-10 flex flex-1 flex-col justify-between px-7 pb-6 pt-10 text-left text-white">
+          <div className="[&>*]:!items-start [&_p]:!text-left">{eyebrowEl}</div>
+          <div {...rise(1)} className={rise(1).className}>{names}</div>
         </div>
-        <div className="mx-auto grid w-full max-w-3xl grid-cols-1 sm:grid-cols-3">
+        <div className="relative z-10 mx-auto grid w-full max-w-3xl grid-cols-3 border-t border-white/30 pb-2">
           {cells.map((c, i) => (
-            <div key={c.label} className={cn('px-7 py-5 text-left', i > 0 && 'border-t sm:border-l sm:border-t-0')} style={{ borderColor: line }}>
-              <p className="text-[10px] uppercase tracking-[0.3em] opacity-70">{c.label}</p>
-              <p className="mt-1 text-sm">{c.value}</p>
+            <div key={c.label} className={cn('px-4 py-4 text-left sm:px-7', i > 0 && 'border-l border-white/30')}>
+              <p className="text-[9px] uppercase tracking-[0.28em] opacity-70 sm:text-[10px]">{c.label}</p>
+              <p className="mt-1 text-xs leading-snug sm:text-sm">{c.value}</p>
             </div>
           ))}
         </div>

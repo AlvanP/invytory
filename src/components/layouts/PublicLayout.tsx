@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { InvitationFooter } from './InvitationFooter'
 import { SiteHeader } from './SiteHeader'
 import { SiteFooter } from './SiteFooter'
+import { PreviewSoundButton } from './PreviewSoundButton'
 
 export function PublicLayout() {
   // A guest opening an invitation sees a small Invytory footer, not the whole website's.
@@ -13,6 +14,7 @@ export function PublicLayout() {
         <Outlet />
       </main>
       {onInvitation ? <InvitationFooter /> : <SiteFooter />}
+      {!onInvitation && <PreviewSoundButton />}
     </div>
   )
 }

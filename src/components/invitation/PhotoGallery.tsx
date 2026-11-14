@@ -203,10 +203,24 @@ function Spotlight({ photos }: { photos: GalleryPhoto[] }) {
     setIndex(best)
   }, [])
 
+  // Painting follows the scroll one frame at a time. A CSS transition on top of it made each photo
+  // chase the scroll position and shiver before it settled, so there is none.
+  const raf = useRef(0)
+  const onScroll = useCallback(() => {
+    if (raf.current) return
+    raf.current = requestAnimationFrame(() => {
+      raf.current = 0
+      paint()
+    })
+  }, [paint])
+
   useEffect(() => {
     paint()
     window.addEventListener('resize', paint)
-    return () => window.removeEventListener('resize', paint)
+    return () => {
+      window.removeEventListener('resize', paint)
+      if (raf.current) cancelAnimationFrame(raf.current)
+    }
   }, [paint])
 
   function to(i: number) {
@@ -219,12 +233,12 @@ function Spotlight({ photos }: { photos: GalleryPhoto[] }) {
     <div className="relative">
       <div
         ref={track}
-        onScroll={paint}
-        className="-mx-6 flex snap-x snap-mandatory items-center gap-3 overflow-x-auto py-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onScroll={onScroll}
+        className="-mx-6 flex snap-x snap-mandatory items-center gap-3 overflow-x-auto overscroll-x-contain py-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div aria-hidden className="w-[16%] shrink-0 sm:w-[33%]" />
         {photos.map((p) => (
-          <figure key={p.id} className="w-[68%] shrink-0 snap-center transition-[transform,opacity] duration-150 sm:w-[34%]">
+          <figure key={p.id} className="w-[68%] shrink-0 snap-center will-change-transform sm:w-[34%]">
             <img src={p.url} alt={p.caption ?? ''} loading="lazy" draggable={false} className="aspect-[3/4] w-full object-cover shadow-[0_22px_40px_-22px_rgba(0,0,0,0.55)]" />
           </figure>
         ))}
