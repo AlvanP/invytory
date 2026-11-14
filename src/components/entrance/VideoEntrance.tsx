@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { posterUrl } from '@/services/entranceService'
 import { cn } from '@/utils/cn'
 import { getKit, kitStyle, loadKit, type KitId } from '@/templates/fontKits'
 
@@ -7,10 +8,9 @@ const FADE_MS = 1000
 const LOAD_TIMEOUT_MS = 25000
 
 /**
- * A designer-made entrance video. The whole file is downloaded before it can be tapped, so the
- * playback never stalls halfway on a slow connection. It waits on its first frame with a "tap to
- * open" prompt. A tap plays it from the start; when it ends the whole layer fades from fully
- * visible to fully transparent, revealing the invitation underneath.
+ * A designer-made entrance video. It shows its still picture at once, then "tap to open" (after a
+ * moment at most, whatever the connection). A tap plays it, buffering as needed; when it ends the
+ * whole layer fades from fully visible to fully transparent, revealing the invitation underneath.
  */
 export function VideoEntrance({
   src,
@@ -49,8 +49,8 @@ export function VideoEntrance({
   autoOpenMs?: number
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [blobUrl, setBlobUrl] = useState<string | null>(null)
-  const [progress, setProgress] = useState(0)
+  const [buffering, setBuffering] = useState(false)
+  const poster = posterUrl(src)
   const [ready, setReady] = useState(false)
   const [phase, setPhase] = useState<'idle' | 'playing' | 'fading'>('idle')
   const [canSkip, setCanSkip] = useState(false)
@@ -63,54 +63,25 @@ export function VideoEntrance({
     if (kit) loadKit(kitDef)
   }, [kit, kitDef])
 
-  // Play straight from the link so the first frame shows quickly, and quietly download a full copy
-  // in the background. If the copy arrives before the guest taps, playback uses it (no stalls).
-  useEffect(() => {
-    let cancelled = false
-    let objectUrl: string | null = null
-    ;(async () => {
-      try {
-        const res = await fetch(src)
-        const type = res.headers.get('content-type') ?? ''
-        if (!res.ok || type.includes('text/html')) return
-        const total = Number(res.headers.get('content-length')) || 0
-        const reader = res.body?.getReader()
-        if (!reader) return
-        const chunks: Uint8Array[] = []
-        let got = 0
-        for (;;) {
-          const { done, value } = await reader.read()
-          if (done) break
-          chunks.push(value)
-          got += value.length
-          if (total && !cancelled) setProgress(Math.min(0.99, got / total))
-        }
-        if (cancelled || phaseRef.current !== 'idle') return
-        objectUrl = URL.createObjectURL(new Blob(chunks as BlobPart[], { type: type.startsWith('video/') ? type : 'video/mp4' }))
-        setBlobUrl(objectUrl)
-      } catch {
-        // the direct link keeps working without the background copy
-      }
-    })()
-    return () => {
-      cancelled = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [src])
-
-  // Ready when the video can show its first frame. If that never happens, use the built-in entrance.
+  // The guest can tap as soon as the picture (or the video's first frame) is there, or after a
+  // short moment at most. Nothing ever waits on the whole video: it buffers while they look.
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
     const mark = () => setReady(true)
-    if (v.readyState >= 2) mark()
+    if (v.readyState >= 1) mark()
+    v.addEventListener('loadedmetadata', mark)
     v.addEventListener('loadeddata', mark)
     v.addEventListener('canplay', mark)
+    const soon = window.setTimeout(mark, 1200)
+    // A video that gives no sign of life at all (broken file) hands over to the built-in entrance.
     const giveUp = window.setTimeout(() => {
-      if (v.readyState < 2) onFail()
+      if (v.readyState < 1 && v.networkState !== 2) onFail()
     }, LOAD_TIMEOUT_MS)
     return () => {
+      window.clearTimeout(soon)
       window.clearTimeout(giveUp)
+      v.removeEventListener('loadedmetadata', mark)
       v.removeEventListener('loadeddata', mark)
       v.removeEventListener('canplay', mark)
     }
@@ -142,7 +113,7 @@ export function VideoEntrance({
 
   function start() {
     const v = videoRef.current
-    if (!v || !ready || phaseRef.current !== 'idle') return
+    if (!v || phaseRef.current !== 'idle') return
     onTap?.()
     try {
       navigator.vibrate?.(18)
@@ -150,7 +121,6 @@ export function VideoEntrance({
       // not supported
     }
     setPhase('playing')
-    v.currentTime = 0
     v.muted = muted
     v.play().catch(() => {
       // Some phones refuse sound; try again silently rather than leave the guest stuck.
@@ -182,28 +152,24 @@ export function VideoEntrance({
       {
         <video
           ref={videoRef}
-          src={blobUrl ?? `${src}#t=0.001`}
+          src={src}
+          poster={poster}
+          onWaiting={() => phaseRef.current === 'playing' && setBuffering(true)}
+          onPlaying={() => setBuffering(false)}
           playsInline
           muted={muted}
           preload="auto"
           disableRemotePlayback
-          onError={() => {
-            if (!blobUrl) onFail()
-          }}
+          onError={onFail}
           onEnded={fade}
           // object-cover fills a phone screen; on a wide screen the whole video stays visible instead of being cropped.
           className="absolute inset-0 h-full w-full object-cover landscape:object-contain"
         />
       }
 
-      {!ready && (
-        <div className="absolute inset-0 grid place-items-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-1 w-32 overflow-hidden rounded-full bg-white/15">
-              <div className="h-full bg-white/70 transition-[width] duration-200" style={{ width: `${Math.max(6, Math.round(progress * 100))}%` }} />
-            </div>
-            <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">Preparing</p>
-          </div>
+      {(buffering || !ready) && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/25 border-t-white/80" />
         </div>
       )}
 

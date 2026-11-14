@@ -27,8 +27,8 @@ create policy "Admins delete entrance settings" on public.entrance_settings for 
 
 -- Storage: one public-read bucket for the videos.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('entrance-videos', 'entrance-videos', true, 52428800, array['video/mp4', 'video/webm'])
-on conflict (id) do update set public = true, file_size_limit = 52428800, allowed_mime_types = array['video/mp4', 'video/webm'];
+values ('entrance-videos', 'entrance-videos', true, 52428800, array['video/mp4', 'video/webm', 'image/jpeg'])
+on conflict (id) do update set public = true, file_size_limit = 52428800, allowed_mime_types = array['video/mp4', 'video/webm', 'image/jpeg'];
 
 drop policy if exists "Anyone can watch entrance videos" on storage.objects;
 create policy "Anyone can watch entrance videos" on storage.objects for select using (bucket_id = 'entrance-videos');
