@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { setWorkspace } from '@/hooks/useWorkspace'
 import { teamService } from '@/services/teamService'
 import { PENDING_JOIN_KEY } from '@/components/auth/ProtectedRoute'
 import { Button } from '@/components/ui/Button'
@@ -24,7 +25,8 @@ export function JoinTeamPage() {
     setBusy(true)
     setError(null)
     try {
-      await teamService.accept(token)
+      const weddingId = await teamService.accept(token)
+      setWorkspace(weddingId)
       try { localStorage.removeItem(PENDING_JOIN_KEY) } catch { /* ignore */ }
       navigate('/dashboard/events', { replace: true })
     } catch (err) {

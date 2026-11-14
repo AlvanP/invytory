@@ -4,11 +4,10 @@ import { storageService } from '@/services/storageService'
 import type { CeremonyDraft } from '@/types'
 import { ceremonyDisplayName, emptyGallery, setGallerySlot, FEATURE_SLOT_ID } from '@/types'
 import { CeremonyTabs } from '@/components/wizard/CeremonyTabs'
+import { SliderPhotoGrid } from '@/components/wizard/SliderPhotoGrid'
 import { MusicPicker } from '@/components/wizard/MusicPicker'
 import { UploadSlot, uploadErrorMessage } from '@/components/wizard/UploadSlot'
 import { WizardStepShell } from './WizardStepShell'
-
-const gallerySlotIds = ['g1', 'g2', 'g3', 'g4']
 
 function hasPhotos(c: CeremonyDraft): boolean {
   return !!c.heroImage || (c.galleryImages ?? []).some((s) => !!s.url)
@@ -157,25 +156,15 @@ export function StepPhotos() {
         </div>
 
         <div>
-          <p className="text-sm font-medium text-ink-soft">Slider photos (up to 4)</p>
-          <p className="mb-2 text-xs text-ink-soft/70">Guests swipe through these to the left. With the hero and floating photo, that makes 6 photos in all.</p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {gallerySlotIds.map((slotId, i) => {
-              const slot = gallery.find((s) => s.id === slotId)
-              return (
-                <UploadSlot
-                  key={slotId}
-                  label={`Slider photo ${i + 1}`}
-                  url={slot?.url ?? null}
-                  isUploading={uploadingKey === `${active.id}:${slotId}`}
-                  disabled={busy}
-                  onSelect={(file) => handleGalleryUpload(slotId, file)}
-                  onRemove={() => removeGallery(slotId)}
-                  className="aspect-square"
-                />
-              )
-            })}
-          </div>
+          <p className="text-sm font-medium text-ink-soft">Slider photos (4, or up to 8)</p>
+          <p className="mb-2 text-xs text-ink-soft/70">Guests swipe through these to the left. Add four, then tap &ldquo;Add more photos&rdquo; for four more.</p>
+          <SliderPhotoGrid
+            gallery={gallery}
+            uploadingSlot={uploadingKey?.startsWith(`${active.id}:`) ? uploadingKey.slice(active.id.length + 1) : null}
+            busy={busy}
+            onUpload={handleGalleryUpload}
+            onRemove={removeGallery}
+          />
         </div>
 
         </>

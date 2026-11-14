@@ -7,6 +7,8 @@ import { getTemplateArt, pickEntranceStyle } from '@/utils/templateArt'
 import { SplitPanelsVariant, BookVariant, EnvelopeVariant } from './EntranceVariants'
 import { GatefoldVariant, WaxEnvelopeVariant } from './LayeredEntrance'
 import { SceneEntrance } from './scenes/SceneEntrance'
+import { VideoEntrance } from './VideoEntrance'
+import { videoEntranceSrc } from './videoEntrances'
 import { entranceDesigns } from './scenes/entranceDesigns'
 
 const doorPalette = {
@@ -187,7 +189,22 @@ function LegacyEntrance({
  * The entrance for a design. Designs with their own opening (see scenes/entranceDesigns.ts) get it,
  * unless the designer has supplied real artwork files, which always win.
  */
-export function DoorEntrance(props: Parameters<typeof LegacyEntrance>[0]) {
+export function DoorEntrance(props: Parameters<typeof LegacyEntrance>[0] & { onFadeStart?: () => void }) {
+  const [videoFailed, setVideoFailed] = useState(false)
+  const videoSrc = videoEntranceSrc(props.templateId)
+  if (videoSrc && !videoFailed && !props.forceStyle) {
+    return (
+      <VideoEntrance
+        src={videoSrc}
+        inviteeName={props.inviteeName}
+        onTap={props.onTap}
+        onFadeStart={props.onFadeStart}
+        onOpen={props.onOpen}
+        onFail={() => setVideoFailed(true)}
+        autoOpenMs={props.autoOpenMs}
+      />
+    )
+  }
   const design = props.templateId ? entranceDesigns[props.templateId] : undefined
   const hasArt = Object.values(getTemplateArt(props.templateId).entrance).some(Boolean)
   if (design && !hasArt && !props.forceStyle) {

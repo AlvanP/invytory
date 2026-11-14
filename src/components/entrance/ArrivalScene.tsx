@@ -38,6 +38,7 @@ export function ArrivalScene({
 }) {
   const [exiting, setExiting] = useState(false)
   const [revealed, setRevealed] = useState(false)
+  const [overlayGone, setOverlayGone] = useState(false)
 
   useEffect(() => {
     if (revealed) onRevealed?.()
@@ -53,7 +54,15 @@ export function ArrivalScene({
   function handleOpen() {
     setExiting(true)
     // Matches the overlay's own fade-out duration below.
-    setTimeout(() => setRevealed(true), 500)
+    setTimeout(() => {
+      setRevealed(true)
+      setOverlayGone(true)
+    }, 500)
+  }
+
+  /** A video entrance fades itself out, so the invitation is revealed under it while it fades. */
+  function handleFadeStart() {
+    setRevealed(true)
   }
 
   return (
@@ -62,14 +71,15 @@ export function ArrivalScene({
         <RevealedContext.Provider value={revealed}>{children}</RevealedContext.Provider>
       </div>
 
-      {!revealed && (
+      {!overlayGone && (
         <div
           className={cn(
             'fixed inset-0 z-50 animate-[entranceIn_0.6s_ease-out] transition-opacity duration-500',
-            exiting && 'pointer-events-none opacity-0'
+            (exiting || revealed) && 'pointer-events-none',
+            exiting && 'opacity-0'
           )}
         >
-          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onTap={onTap} autoOpenMs={autoOpenMs} inviteeName={inviteeName} />
+          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onFadeStart={handleFadeStart} onTap={onTap} autoOpenMs={autoOpenMs} inviteeName={inviteeName} />
         </div>
       )}
 

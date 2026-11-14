@@ -73,6 +73,10 @@ export function emptyGallery(): GalleryImageSlot[] {
   ]
 }
 
+/** The slider takes four photos, then a second batch of four if the host adds more. */
+export const SLIDER_SLOT_IDS = ['g1', 'g2', 'g3', 'g4']
+export const MORE_SLIDER_SLOT_IDS = ['g5', 'g6', 'g7', 'g8']
+
 export function ceremonyDisplayName(c: { ceremonyType?: CeremonyType; ceremonyLabel?: string }): string {
   const type = c.ceremonyType ?? 'white'
   if (type === 'custom' && c.ceremonyLabel) return c.ceremonyLabel

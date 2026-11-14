@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { Eye, CheckCircle2, XCircle, Users, Clock, MessageSquare } from 'lucide-react'
 import type { DashboardStats, WeddingInvitation } from '@/types'
 import { invitationService } from '@/services/invitationService'
+import { weddingService } from '@/services/weddingService'
+import { useWorkspace } from '@/hooks/useWorkspace'
 import { guestService } from '@/services/guestService'
 import { useAuth } from '@/hooks/useAuth'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -10,6 +12,7 @@ import { DashboardCardSkeleton } from '@/components/ui/Skeleton'
 
 export function DashboardOverviewPage() {
   const { user } = useAuth()
+  const [workspace] = useWorkspace()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [primaryInvitation, setPrimaryInvitation] = useState<WeddingInvitation | null>(null)
   const [hasInvitations, setHasInvitations] = useState(true)
@@ -18,7 +21,11 @@ export function DashboardOverviewPage() {
     if (!user) return
 
     async function loadStats() {
-      const invitations = await invitationService.list(user!.id)
+      // Every ceremony of the events this person owns or manages, narrowed to the chosen event.
+      const weddings = (await weddingService.listByOwner(user!.id)).filter((w) => !workspace || w.id === workspace)
+      const perWedding = await Promise.all(weddings.map((w) => weddingService.getCeremoniesById(w.id).catch(() => [])))
+      const legacy = workspace ? [] : await invitationService.listLegacyByOwner(user!.id)
+      const invitations = [...perWedding.flat(), ...legacy]
       setPrimaryInvitation(invitations[0] ?? null)
       setHasInvitations(invitations.length > 0)
 
@@ -38,7 +45,7 @@ export function DashboardOverviewPage() {
     }
 
     loadStats()
-  }, [user])
+  }, [user, workspace])
 
   const greetingName = primaryInvitation
     ? namesTitle(primaryInvitation.brideName, primaryInvitation.groomName)

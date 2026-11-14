@@ -8,10 +8,10 @@ import { galleryStyleFor } from '@/templates/galleryStyles'
 export const sliderPhotos = (i: WeddingInvitation) =>
   i.galleryImages
     .filter((g) => g.id !== FEATURE_SLOT_ID && g.url)
-    .slice(0, 4)
+    .slice(0, 8)
     .map((g) => ({ id: g.id, url: g.url as string, caption: g.caption }))
 
-/** SECTION 8: Photo gallery. Up to four photos, shown in the style the template uses. */
+/** SECTION 8: Photo gallery. Up to eight photos, shown in the style the template uses. */
 export function GallerySection({ invitation }: { invitation: WeddingInvitation }) {
   const { event, templateId } = useDesign()
   return (

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import type { CeremonyDraft, GalleryImageSlot, WeddingInvitation } from '@/types'
-import { ceremonyDisplayName, emptyGallery, setGallerySlot, FEATURE_SLOT_ID } from '@/types'
+import { ceremonyDisplayName, emptyGallery, setGallerySlot, FEATURE_SLOT_ID, MORE_SLIDER_SLOT_IDS } from '@/types'
+import { SliderPhotoGrid } from '@/components/wizard/SliderPhotoGrid'
 import { invitationService } from '@/services/invitationService'
 import { storageService } from '@/services/storageService'
 import { Button } from '@/components/ui/Button'
@@ -18,7 +19,6 @@ import { DressCodeField } from '@/components/wizard/DressCodeField'
 import { parseColours, joinColours } from '@/utils/colorTheme'
 import { UploadSlot, uploadErrorMessage } from '@/components/wizard/UploadSlot'
 
-const gallerySlotIds = ['g1', 'g2', 'g3', 'g4']
 
 /** The part of a ceremony an owner can change after publishing. */
 interface Editable {
@@ -34,7 +34,7 @@ interface Editable {
 }
 
 function toEditable(inv: WeddingInvitation): Editable {
-  const base = emptyGallery()
+  const base = [...emptyGallery(), ...MORE_SLIDER_SLOT_IDS.map((id) => ({ id, url: null }))]
   const gallery = base.map((slot) => inv.galleryImages?.find((g) => g.id === slot.id) ?? slot)
   return {
     themeColor: inv.themeColor ?? null,
@@ -376,28 +376,19 @@ export function DashboardEditCeremonyPage() {
         </div>
 
         <div>
-          <p className="text-sm font-medium text-ink-soft">Slider photos (up to 4)</p>
-          <p className="mb-2 text-xs text-ink-soft/70">Guests swipe through these to the left. With the hero and floating photo, that makes 6 photos in all.</p>
-          <div className="grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
-            {gallerySlotIds.map((slotId, i) => {
-              const slot = edit.gallery.find((s) => s.id === slotId)
-              return (
-                <UploadSlot
-                  key={slotId}
-                  label={`Slider photo ${i + 1}`}
-                  url={slot?.url ?? null}
-                  isUploading={uploadingKey === slotId}
-                  disabled={busy}
-                  onSelect={(file) => uploadGallery(slotId, file)}
-                  onRemove={() => {
-                    setEdit((cur) => (cur ? { ...cur, gallery: setGallerySlot(cur.gallery, slotId, null) } : cur))
-                    setJustSaved(false)
-                  }}
-                  className="aspect-square"
-                />
-              )
-            })}
-          </div>
+          <p className="text-sm font-medium text-ink-soft">Slider photos (4, or up to 8)</p>
+          <p className="mb-2 text-xs text-ink-soft/70">Guests swipe through these to the left. Add four, then tap &ldquo;Add more photos&rdquo; for four more.</p>
+          <SliderPhotoGrid
+            gridClassName="grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4"
+            gallery={edit.gallery}
+            uploadingSlot={uploadingKey}
+            busy={busy}
+            onUpload={uploadGallery}
+            onRemove={(slotId) => {
+              setEdit((cur) => (cur ? { ...cur, gallery: setGallerySlot(cur.gallery, slotId, null) } : cur))
+              setJustSaved(false)
+            }}
+          />
         </div>
 
         <div className="max-w-2xl border-t border-ink/10 pt-8">

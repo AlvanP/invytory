@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/State'
 import { DashboardCardSkeleton } from '@/components/ui/Skeleton'
+import { useWorkspace } from '@/hooks/useWorkspace'
 import { TeamModal } from '@/components/dashboard/TeamModal'
 import { ShareModal } from '@/components/dashboard/ShareModal'
 
@@ -26,6 +27,7 @@ export function DashboardEventsPage() {
   const [legacyInvitations, setLegacyInvitations] = useState<WeddingInvitation[] | null>(null)
   const [templates, setTemplates] = useState<Record<string, InvitationTemplate>>({})
   const [shareSlug, setShareSlug] = useState<string | null>(null)
+  const [workspace, setWorkspace] = useWorkspace()
   const [teamFor, setTeamFor] = useState<{ id: string; names: string } | null>(null)
 
   useEffect(() => {
@@ -48,8 +50,10 @@ export function DashboardEventsPage() {
     })
   }, [user])
 
+  const shownWeddings = workspace ? (weddings ?? []).filter((w) => w.wedding.id === workspace) : (weddings ?? [])
+  const shownLegacy = workspace ? [] : (legacyInvitations ?? [])
   const loading = weddings === null || legacyInvitations === null
-  const isEmpty = !loading && weddings!.length === 0 && legacyInvitations!.length === 0
+  const isEmpty = !loading && shownWeddings.length === 0 && shownLegacy.length === 0
 
   return (
     <div>
@@ -63,6 +67,13 @@ export function DashboardEventsPage() {
         </Link>
       </div>
 
+      {workspace && (
+        <p className="mt-4 rounded-sm bg-gold/10 px-4 py-2 text-sm text-ink-soft">
+          Showing only the invitation you were invited to.{' '}
+          <button type="button" onClick={() => setWorkspace('')} className="text-ink underline underline-offset-2">Show all my events</button>
+        </p>
+      )}
+
       <div className="mt-8 flex flex-col gap-4">
         {loading ? (
           Array.from({ length: 2 }).map((_, i) => <DashboardCardSkeleton key={i} />)
@@ -74,7 +85,7 @@ export function DashboardEventsPage() {
           />
         ) : (
           <>
-            {weddings!.map(({ wedding, ceremonies }) => {
+            {shownWeddings.map(({ wedding, ceremonies }) => {
               const first = ceremonies[0]
               return (
                 <div key={wedding.id} className="flex flex-col gap-4 rounded-md border border-ink/10 bg-white p-6">
@@ -155,7 +166,7 @@ export function DashboardEventsPage() {
               )
             })}
 
-            {legacyInvitations!.map((inv) => {
+            {shownLegacy.map((inv) => {
               const template = templates[inv.templateId]
               return (
                 <div key={inv.id} className="flex flex-col gap-4 rounded-md border border-ink/10 bg-white p-6 sm:flex-row sm:items-center sm:justify-between">

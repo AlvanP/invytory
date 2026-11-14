@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ShieldCheck, LayoutGrid, ScrollText, Users, Settings, PlusCircle, LogOut } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuth } from '@/hooks/useAuth'
+import { WorkspaceSwitcher } from '@/components/dashboard/WorkspaceSwitcher'
 import { adminService } from '@/services/adminService'
 import { authService } from '@/services/authService'
 
@@ -40,6 +41,8 @@ export function DashboardSidebar() {
           <Logo className="h-6" />
           <p className="text-xs text-ink-soft">Organizer dashboard</p>
         </div>
+
+        <WorkspaceSwitcher />
 
         <nav className="flex gap-1 overflow-x-auto px-3 pb-4 md:flex-col md:overflow-visible md:pb-0" aria-label="Dashboard">
           {links.map(({ to, label, icon: Icon, end }) => (
