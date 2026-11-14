@@ -36,7 +36,8 @@ export function DraftPreviewPage() {
         templateId={entranceTemplate?.id}
         brideName={invitation.brideName}
         groomName={invitation.groomName}
-        onTap={music.start}
+        onTap={music.prime}
+      onStartMusic={music.start}
       >
         <InvitationRenderer invitation={invitation} template={template} />
       </ArrivalScene>

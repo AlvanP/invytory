@@ -8,7 +8,8 @@ import { SplitPanelsVariant, BookVariant, EnvelopeVariant } from './EntranceVari
 import { GatefoldVariant, WaxEnvelopeVariant } from './LayeredEntrance'
 import { SceneEntrance } from './scenes/SceneEntrance'
 import { VideoEntrance } from './VideoEntrance'
-import { videoEntranceSrc } from './videoEntrances'
+import { designs } from '@/templates/designs'
+import type { EntranceSetting } from '@/services/entranceService'
 import { entranceDesigns } from './scenes/entranceDesigns'
 
 const doorPalette = {
@@ -189,14 +190,20 @@ function LegacyEntrance({
  * The entrance for a design. Designs with their own opening (see scenes/entranceDesigns.ts) get it,
  * unless the designer has supplied real artwork files, which always win.
  */
-export function DoorEntrance(props: Parameters<typeof LegacyEntrance>[0] & { onFadeStart?: () => void }) {
+export function DoorEntrance(props: Parameters<typeof LegacyEntrance>[0] & { onFadeStart?: () => void; setting?: EntranceSetting }) {
   const [videoFailed, setVideoFailed] = useState(false)
-  const videoSrc = videoEntranceSrc(props.templateId)
-  if (videoSrc && !videoFailed && !props.forceStyle) {
+  const setting = props.setting
+  if (setting?.videoUrl && !videoFailed && !props.forceStyle) {
+    const names = props.groomName.trim() ? [props.brideName.trim(), '&', props.groomName.trim()] : [props.brideName.trim()]
     return (
       <VideoEntrance
-        src={videoSrc}
+        src={setting.videoUrl}
         inviteeName={props.inviteeName}
+        muted={setting.muted}
+        names={names}
+        namesAt={setting.namesAt}
+        namesColor={setting.namesColor ?? undefined}
+        kit={props.templateId ? designs[props.templateId]?.kit : undefined}
         onTap={props.onTap}
         onFadeStart={props.onFadeStart}
         onOpen={props.onOpen}

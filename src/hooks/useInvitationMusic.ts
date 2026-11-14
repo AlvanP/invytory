@@ -58,6 +58,7 @@ class MusicController {
   private token = 0
   private ending = false
   private started = false
+  private primed = false
   private resumeOnVisible = false
 
   private readonly notify: (view: MusicView) => void
@@ -77,6 +78,27 @@ class MusicController {
       this.targetUrl = this.wantedUrl
       this.playTrack(this.wantedUrl)
     }
+  }
+
+  /**
+   * Call from inside the guest's tap when the music will start LATER. Browsers (iPhones especially)
+   * only allow sound on an element that was played during a tap, so this plays it silently now.
+   */
+  prime = () => {
+    if (this.started || this.primed || !this.wantedUrl) return
+    this.primed = true
+    const audio = this.getAudio()
+    audio.src = this.wantedUrl
+    audio.muted = true
+    audio
+      .play()
+      .then(() => {
+        if (this.started) return
+        audio.pause()
+        audio.currentTime = 0
+        audio.muted = this.view.muted
+      })
+      .catch(ignore)
   }
 
   setUrl(url: string | null) {
@@ -141,6 +163,7 @@ class MusicController {
       this.audio = null
     }
     this.started = false
+    this.primed = false
     this.targetUrl = null
     this.ending = false
     this.resumeOnVisible = false
@@ -272,6 +295,8 @@ class MusicController {
 export interface InvitationMusic {
   /** Pass to the entrance so it runs inside the guest's tap. */
   start: () => void
+  /** Unlocks sound during the tap when the music will start a little later. */
+  prime: () => void
   /** Whether to show the mute button. */
   visible: boolean
   muted: boolean
@@ -303,9 +328,11 @@ export function useInvitationMusic(url: string | null): InvitationMusic {
 
   const start = useCallback(() => controller.start(), [controller])
   const toggle = useCallback(() => controller.toggle(), [controller])
+  const prime = useCallback(() => controller.prime(), [controller])
 
   return {
     start,
+    prime,
     toggle,
     visible: view.started && !!url && !view.failed,
     muted: view.muted,

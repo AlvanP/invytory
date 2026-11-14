@@ -38,7 +38,7 @@ export function SceneEntrance({
   const [open, setOpen] = useState(false)
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const Scene = SCENES[design.scene]
-  const category = getTemplateById(templateId)?.category ?? 'wedding'
+  const category: string = getTemplateById(templateId)?.category ?? 'wedding'
   const names = groomName.trim() ? `${brideName.trim()} & ${groomName.trim()}` : brideName.trim()
   const initials = (groomName.trim() ? `${brideName.trim().charAt(0)}&${groomName.trim().charAt(0)}` : brideName.trim().charAt(0)).toUpperCase()
   const light = design.ink === 'light'
@@ -75,7 +75,7 @@ export function SceneEntrance({
     >
       <Scene open={open} go={go} d={design} initials={initials || 'I'} names={names} />
 
-      {design.layout === 'split' && !['medallion', 'gate', 'gift', 'balloons', 'candle', 'meadow', 'dawn'].includes(design.scene) && (
+      {design.layout === 'split' && category !== 'child-dedication' && !['medallion', 'gate', 'gift', 'balloons', 'candle', 'meadow', 'dawn'].includes(design.scene) && (
         <div style={{ ...vars(design), ...(design.emblem ? { '--a': design.emblem, '--b1': '#fff' } : {}) } as React.CSSProperties}><Emblem kind={(category === 'child-dedication' ? 'dedication' : ['birthday', 'corporate', 'funeral'].includes(category) ? category : 'wedding') as EmblemKind} initials={initials || 'I'} open={open} /></div>
       )}
       <div

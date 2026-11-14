@@ -211,7 +211,8 @@ export function InvitationPreviewPage() {
       templateId={entranceTemplate?.id}
       brideName={brideName ?? ''}
       groomName={groomName ?? ''}
-      onTap={music.start}
+      onTap={music.prime}
+      onStartMusic={music.start}
       inviteeName={invitee?.name}
     >
       {hasCeremonyList && !selectedCeremony ? (

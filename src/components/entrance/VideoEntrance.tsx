@@ -1,20 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
-import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { getKit, kitStyle, loadKit, type KitId } from '@/templates/fontKits'
 
 const FADE_MS = 1000
-/** Give up on a video that has not become playable by now, and use the built-in entrance. */
-const LOAD_TIMEOUT_MS = 9000
+/** Give up on a video that has not arrived by now, and use the built-in entrance. */
+const LOAD_TIMEOUT_MS = 30000
 
 /**
- * A designer-made entrance video. It waits on its first frame with a "tap to open" prompt. A tap plays
- * it from the start; when it ends the whole layer fades from fully visible to fully transparent,
- * revealing the invitation underneath.
+ * A designer-made entrance video. The whole file is downloaded before it can be tapped, so the
+ * playback never stalls halfway on a slow connection. It waits on its first frame with a "tap to
+ * open" prompt. A tap plays it from the start; when it ends the whole layer fades from fully
+ * visible to fully transparent, revealing the invitation underneath.
  */
 export function VideoEntrance({
   src,
   hint = 'Tap to open',
   inviteeName,
+  muted = false,
+  names,
+  namesAt,
+  namesColor = '#E6CF9A',
+  kit,
   onTap,
   onFadeStart,
   onOpen,
@@ -24,9 +30,16 @@ export function VideoEntrance({
   src: string
   hint?: string
   inviteeName?: string
-  /** Runs inside the guest's tap (starts the music). */
+  /** Play without the video's own sound. */
+  muted?: boolean
+  /** The couple's names, shown in lines once the video reaches `namesAt` seconds. */
+  names?: string[]
+  namesAt?: number | null
+  namesColor?: string
+  kit?: KitId
+  /** Runs inside the guest's tap. */
   onTap?: () => void
-  /** The fade has begun: show the invitation underneath now. */
+  /** The fade has begun: the video is over and the invitation shows underneath now. */
   onFadeStart?: () => void
   /** The fade is finished: remove this layer. */
   onOpen: () => void
@@ -36,48 +49,95 @@ export function VideoEntrance({
   autoOpenMs?: number
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)
   const [phase, setPhase] = useState<'idle' | 'playing' | 'fading'>('idle')
   const [canSkip, setCanSkip] = useState(false)
+  const [namesIn, setNamesIn] = useState(false)
   const phaseRef = useRef(phase)
   phaseRef.current = phase
+  const kitDef = getKit(kit)
 
-  // The video may already be loaded by the time this runs (cached), in which case its event has come and gone.
+  useEffect(() => {
+    if (kit) loadKit(kitDef)
+  }, [kit, kitDef])
+
+  // Download the entire video first, then play it from memory: no stalls, ever.
+  useEffect(() => {
+    let cancelled = false
+    let objectUrl: string | null = null
+    const timeout = window.setTimeout(() => {
+      if (!cancelled) onFail()
+    }, LOAD_TIMEOUT_MS)
+    ;(async () => {
+      try {
+        const res = await fetch(src)
+        const type = res.headers.get('content-type') ?? ''
+        // A missing file is answered with the site's home page, not an error.
+        if (!res.ok || type.includes('text/html')) throw new Error('missing')
+        const total = Number(res.headers.get('content-length')) || 0
+        const reader = res.body?.getReader()
+        if (!reader) {
+          const blob = await res.blob()
+          if (cancelled) return
+          objectUrl = URL.createObjectURL(blob)
+          setBlobUrl(objectUrl)
+          return
+        }
+        const chunks: Uint8Array[] = []
+        let got = 0
+        for (;;) {
+          const { done, value } = await reader.read()
+          if (done) break
+          chunks.push(value)
+          got += value.length
+          if (total && !cancelled) setProgress(Math.min(0.99, got / total))
+        }
+        if (cancelled) return
+        objectUrl = URL.createObjectURL(new Blob(chunks as BlobPart[], { type: type.startsWith('video/') ? type : 'video/mp4' }))
+        setBlobUrl(objectUrl)
+      } catch {
+        if (!cancelled) onFail()
+      }
+    })()
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeout)
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src])
+
+  // Ready when the downloaded video can show its first frame (it may already have by the time this runs).
   useEffect(() => {
     const v = videoRef.current
-    if (!v) return
-    if (v.readyState >= 2) setReady(true)
+    if (!v || !blobUrl) return
     const mark = () => setReady(true)
+    if (v.readyState >= 2) mark()
     v.addEventListener('loadeddata', mark)
     v.addEventListener('canplay', mark)
     return () => {
       v.removeEventListener('loadeddata', mark)
       v.removeEventListener('canplay', mark)
     }
-  }, [])
+  }, [blobUrl])
 
-  // A missing file is answered with the site's home page, not an error. Spot that straight away
-  // so the guest gets the built-in entrance instead of waiting on a spinner.
+  // Show the names when the video reaches the chosen second.
   useEffect(() => {
-    let cancelled = false
-    fetch(src, { method: 'HEAD' })
-      .then((res) => {
-        const type = res.headers.get('content-type') ?? ''
-        if (!cancelled && (!res.ok || type.includes('text/html'))) onFail()
-      })
-      .catch(() => undefined)
-    return () => {
-      cancelled = true
+    if (phase !== 'playing' || namesAt == null) return
+    let raf = 0
+    const tick = () => {
+      const v = videoRef.current
+      if (v && v.currentTime >= namesAt) {
+        setNamesIn(true)
+        return
+      }
+      raf = requestAnimationFrame(tick)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src])
-
-  // A video that never loads must not trap the guest on a blank screen.
-  useEffect(() => {
-    if (ready) return
-    const t = window.setTimeout(onFail, LOAD_TIMEOUT_MS)
-    return () => window.clearTimeout(t)
-  }, [ready, onFail])
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [phase, namesAt])
 
   function fade() {
     if (phaseRef.current === 'fading') return
@@ -97,7 +157,12 @@ export function VideoEntrance({
     }
     setPhase('playing')
     v.currentTime = 0
-    v.play().catch(fade)
+    v.muted = muted
+    v.play().catch(() => {
+      // Some phones refuse sound; try again silently rather than leave the guest stuck.
+      v.muted = true
+      v.play().catch(fade)
+    })
     window.setTimeout(() => setCanSkip(true), 1500)
   }
 
@@ -120,21 +185,29 @@ export function VideoEntrance({
         if (e.key === 'Enter' || e.key === ' ') start()
       }}
     >
-      <video
-        ref={videoRef}
-        // #t=0.001 makes phones paint the first frame while waiting for the tap.
-        src={`${src}#t=0.001`}
-        playsInline
-        preload="auto"
-        onError={onFail}
-        onEnded={fade}
-        // object-cover fills a phone screen; on a wide screen the whole video stays visible instead of being cropped.
-        className="absolute inset-0 h-full w-full object-cover landscape:object-contain"
-      />
+      {blobUrl && (
+        <video
+          ref={videoRef}
+          src={blobUrl}
+          playsInline
+          muted={muted}
+          preload="auto"
+          disableRemotePlayback
+          onError={onFail}
+          onEnded={fade}
+          // object-cover fills a phone screen; on a wide screen the whole video stays visible instead of being cropped.
+          className="absolute inset-0 h-full w-full object-cover landscape:object-contain"
+        />
+      )}
 
       {!ready && (
         <div className="absolute inset-0 grid place-items-center">
-          <Loader2 className="size-7 animate-spin text-white/70" />
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-1 w-32 overflow-hidden rounded-full bg-white/15">
+              <div className="h-full bg-white/70 transition-[width] duration-200" style={{ width: `${Math.max(6, Math.round(progress * 100))}%` }} />
+            </div>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">Preparing</p>
+          </div>
         </div>
       )}
 
@@ -142,6 +215,23 @@ export function VideoEntrance({
         <p className="pointer-events-none absolute inset-x-0 top-[8%] px-8 text-center font-display text-lg text-white [text-shadow:0_2px_14px_rgba(0,0,0,.7)]">
           {inviteeName} is specially invited
         </p>
+      )}
+
+      {names && names.length > 0 && namesAt != null && (
+        <div
+          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 px-8 text-center"
+          style={{ ...kitStyle(kitDef), color: namesColor, opacity: namesIn ? 1 : 0, transform: namesIn ? 'none' : 'translateY(14px)', transition: 'opacity 2600ms ease-out, transform 2600ms ease-out', textShadow: '0 2px 18px rgba(0,0,0,.45)' }}
+        >
+          {names.map((n, i) => (
+            <p
+              key={i}
+              className={i === 1 ? 'text-3xl opacity-80' : 'text-5xl leading-[1.15]'}
+              style={{ fontFamily: 'var(--iv-name-font)' }}
+            >
+              {n}
+            </p>
+          ))}
+        </div>
       )}
 
       {ready && phase === 'idle' && (

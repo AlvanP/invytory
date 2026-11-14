@@ -5,6 +5,7 @@ import { adminService, type AdminEvent, type AdminOverview, type AdminUser } fro
 import { authService } from '@/services/authService'
 import { pricingPlans } from '@/data/pricingPlans'
 import { paymentService } from '@/services/paymentService'
+import { AdminEntrancesTab } from './AdminEntrancesTab'
 import { AdminMusicTab } from './AdminMusicTab'
 import { AdminPricingTab } from './AdminPricingTab'
 import { AdminMessagesTab } from './AdminMessagesTab'
@@ -14,7 +15,7 @@ import { StatCard } from '@/components/dashboard/StatCard'
 import { formatDate, formatNumber } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
-type Tab = 'overview' | 'events' | 'users' | 'music' | 'pricing' | 'messages'
+type Tab = 'overview' | 'events' | 'users' | 'music' | 'entrances' | 'pricing' | 'messages'
 
 const TYPE_LABELS: Record<string, string> = {
   wedding: 'Wedding',
@@ -324,6 +325,7 @@ export function AdminPage() {
     { id: 'events', label: 'Events' },
     { id: 'users', label: 'People' },
     { id: 'music', label: 'Music' },
+    { id: 'entrances', label: 'Entrances' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'messages', label: 'Messages' },
   ]
@@ -359,6 +361,7 @@ export function AdminPage() {
         {tab === 'events' && <Events events={events} reload={loadEvents} />}
         {tab === 'users' && <UsersTab />}
         {tab === 'music' && <AdminMusicTab />}
+        {tab === 'entrances' && <AdminEntrancesTab />}
         {tab === 'pricing' && <AdminPricingTab />}
         {tab === 'messages' && <AdminMessagesTab />}
       </main>

@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/utils/cn'
 import type { CoverTone } from '@/templates/TemplateCover'
 import { DoorEntrance } from './DoorEntrance'
+import { useEntranceSetting } from '@/hooks/useEntranceSetting'
+import { musicDelaySeconds } from '@/services/entranceService'
 import { RevealedContext } from '@/hooks/useRevealed'
 
 /**
@@ -17,6 +19,7 @@ export function ArrivalScene({
   brideName,
   groomName,
   onTap,
+  onStartMusic,
   autoOpenMs,
   onRevealed,
   inviteeName,
@@ -28,6 +31,8 @@ export function ArrivalScene({
   groomName: string
   /** Passed to the entrance; runs inside the guest's tap (used to start music). */
   onTap?: () => void
+  /** Starts the music. When it runs depends on the entrance's setting (admin > Entrances). */
+  onStartMusic?: () => void
   /** Opens the entrance by itself after this many ms (used by the moving samples). */
   autoOpenMs?: number
   /** Called once the invitation is showing. */
@@ -39,10 +44,38 @@ export function ArrivalScene({
   const [exiting, setExiting] = useState(false)
   const [revealed, setRevealed] = useState(false)
   const [overlayGone, setOverlayGone] = useState(false)
+  const { loading, setting } = useEntranceSetting(templateId)
+  const musicStarted = useRef(false)
+  const timers = useRef<number[]>([])
+
+  /** Starts the music once, however many triggers fire. */
+  const startMusic = useCallback(() => {
+    if (musicStarted.current) return
+    musicStarted.current = true
+    onStartMusic?.()
+  }, [onStartMusic])
+
+  useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), [])
+
+  /** The guest tapped: start the music now, or arrange for it to start at the chosen moment. */
+  function handleTap() {
+    const mode = setting.musicStart
+    if (mode === 'tap') {
+      startMusic()
+      return
+    }
+    onTap?.() // unlocks sound for the later start
+    const delay = musicDelaySeconds(mode)
+    if (delay !== null) timers.current.push(window.setTimeout(startMusic, delay * 1000))
+  }
 
   useEffect(() => {
     if (revealed) onRevealed?.()
   }, [revealed, onRevealed])
+
+  useEffect(() => {
+    if (revealed && setting.musicStart === 'content') startMusic()
+  }, [revealed, setting.musicStart, startMusic])
 
   useEffect(() => {
     document.body.style.overflow = revealed ? '' : 'hidden'
@@ -52,6 +85,7 @@ export function ArrivalScene({
   }, [revealed])
 
   function handleOpen() {
+    if (setting.musicStart === 'end') startMusic()
     setExiting(true)
     // Matches the overlay's own fade-out duration below.
     setTimeout(() => {
@@ -62,6 +96,7 @@ export function ArrivalScene({
 
   /** A video entrance fades itself out, so the invitation is revealed under it while it fades. */
   function handleFadeStart() {
+    if (setting.musicStart === 'end') startMusic()
     setRevealed(true)
   }
 
@@ -79,7 +114,7 @@ export function ArrivalScene({
             exiting && 'opacity-0'
           )}
         >
-          <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} onOpen={handleOpen} onFadeStart={handleFadeStart} onTap={onTap} autoOpenMs={autoOpenMs} inviteeName={inviteeName} />
+          {loading ? <div className="h-full w-full bg-black" /> : <DoorEntrance tone={tone} templateId={templateId} brideName={brideName} groomName={groomName} setting={setting} onOpen={handleOpen} onFadeStart={handleFadeStart} onTap={handleTap} autoOpenMs={autoOpenMs} inviteeName={inviteeName} />}
         </div>
       )}
 
