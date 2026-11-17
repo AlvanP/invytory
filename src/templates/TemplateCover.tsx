@@ -12,6 +12,7 @@ import type { NameStyle } from '@/templates/designs'
 import { getKit } from '@/templates/fontKits'
 import { toneVars } from '@/templates/tones'
 import { MotifDivider } from '@/components/invitation/Motifs'
+import { BloomCorner, PetalDrift } from '@/components/invitation/BloomArt'
 
 export type CoverTone = 'royal' | 'garden' | 'storybook' | 'modern' | 'heritage' | 'classic'
 
@@ -100,6 +101,7 @@ export function TemplateCover({ invitation }: { invitation: WeddingInvitation })
 function CoverLayout({ invitation }: { invitation: WeddingInvitation }) {
   const revealed = useRevealed()
   const { design, art, event, kind } = useDesign()
+  const bloom = design.body === 'bloom'
   const invitee = useInvitee()
   const hasSecondName = !!invitation.groomName.trim()
   const gate = useDateGate()
@@ -502,6 +504,15 @@ function CoverLayout({ invitation }: { invitation: WeddingInvitation }) {
       {!coverBackground && <CoverPattern />}
       <div aria-hidden className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,0.18), transparent 60%)' }} />
       <div aria-hidden className="absolute inset-3 border" style={{ borderColor: line }} />
+      {bloom && (
+        <>
+          <PetalDrift />
+          <BloomCorner className="absolute left-0 top-0 w-40 sm:w-60" />
+          <BloomCorner className="absolute right-0 top-0 w-40 -scale-x-100 sm:w-60" delay={1} />
+          <BloomCorner className="absolute bottom-0 left-0 hidden w-24 -scale-y-100 sm:block sm:w-44" delay={2} />
+          <BloomCorner className="absolute bottom-0 right-0 hidden w-24 rotate-180 sm:block sm:w-44" delay={3} />
+        </>
+      )}
       <div className="relative z-10 flex flex-col items-center gap-6">
         {eyebrowEl}
         {hasPhoto ? (

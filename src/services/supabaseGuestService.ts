@@ -66,10 +66,13 @@ export const supabaseGuestService = {
       response_date: new Date().toISOString(),
     }
 
-    const row: Record<string, unknown> = submission.inviteCode ? { ...payload, invite_code: submission.inviteCode } : payload
-    let { error } = await supabase.from('guests').insert(row)
-    // If the invite_code column has not been added yet (docs/sql/invitees.sql), still save the RSVP.
-    if (error && submission.inviteCode && /invite_code/i.test(error.message ?? '')) {
+    // Optional columns (invite_code, email) come from later SQL files. If one has not been added yet,
+    // the RSVP is still saved without it.
+    const extras: Record<string, unknown> = {}
+    if (submission.inviteCode) extras.invite_code = submission.inviteCode
+    if (submission.email && submission.attending) extras.email = submission.email
+    let { error } = await supabase.from('guests').insert({ ...payload, ...extras })
+    if (error && Object.keys(extras).length && /invite_code|email/i.test(error.message ?? '')) {
       ;({ error } = await supabase.from('guests').insert(payload))
     }
     if (error) {

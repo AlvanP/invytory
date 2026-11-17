@@ -6,7 +6,7 @@ import type { EntranceDesign } from './types'
  */
 export const entranceDesigns: Record<string, EntranceDesign> = {
   // ── White wedding ───────────────────────────────────────────────
-  'classic-elegance': { scene: 'envelope', ink: 'light', layout: 'hintonly', hint: 'Tap the seal to open', ms: 2500, c: { a: '#B8975A', b1: '#2B2118', b2: '#5A4531', p: '#F6EBDD', s: '#9C2F3A' } },
+  'classic-elegance': { scene: 'envelope', ink: 'light', layout: 'hintonly', hint: 'Tap the seal to open', ms: 2500, c: { a: '#D9B77A', b1: '#3A1226', b2: '#7A2D4F', p: '#FFF3EC', s: '#B0587A' } },
   'garden-romance': { scene: 'gate', ink: 'dark', layout: 'split', hint: 'Tap to open the gate', ms: 2300, c: { a: '#3F5A39', b1: '#BFD3B0', b2: '#F1F5E4' } },
   'modern-luxury': { scene: 'medallion', ink: 'dark', layout: 'hintonly', hint: 'Tap the seal to open', ms: 2300, c: { a: '#B8975A', b1: '#2A2623', b2: '#F4F1EC', p: '#FBF9F5' } },
 

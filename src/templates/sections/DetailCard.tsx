@@ -15,7 +15,9 @@ export function DetailCard({ icon, label, children }: { icon: ReactNode; label: 
         'flex items-start gap-4 text-left',
         flat
           ? 'border-b border-[color:var(--iv-ink)]/15 py-4 first:border-t'
-          : body === 'framed'
+          : body === 'bloom'
+            ? 'rounded-2xl border border-[color:var(--iv-accent)]/30 bg-gradient-to-br from-white/90 to-[color:var(--iv-soft)] p-5 shadow-[0_10px_30px_-20px_rgba(120,40,70,0.5)]'
+            : body === 'framed'
             ? 'rounded-sm border border-[color:var(--iv-main)]/30 bg-[color:var(--iv-paper)] p-5'
             : 'rounded-md bg-[color:var(--iv-paper)] p-5 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.35)]'
       )}

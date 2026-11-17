@@ -1,6 +1,6 @@
 import { CalendarPlus, Share2 } from 'lucide-react'
 import type { WeddingInvitation } from '@/types'
-import { googleCalendarUrl, icsFileContent, whatsappShareUrl, eventTitle } from '@/utils/calendar'
+import { googleCalendarUrl, icsFileContent, outlookCalendarUrl, whatsappShareUrl, eventTitle } from '@/utils/calendar'
 
 const button =
   'inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition-transform active:scale-95'
@@ -21,7 +21,7 @@ export function SaveAndShare({ invitation, onBand = false }: { invitation: Weddi
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'wedding-invitation.ics'
+    a.download = 'invitation.ics'
     document.body.appendChild(a)
     a.click()
     a.remove()
@@ -57,6 +57,14 @@ export function SaveAndShare({ invitation, onBand = false }: { invitation: Weddi
       >
         <CalendarPlus className="size-4" /> Apple / other calendar
       </button>
+      <a
+        href={outlookCalendarUrl(invitation, link)}
+        target="_blank"
+        rel="noreferrer"
+        className={`${button} ${outline}`}
+      >
+        <CalendarPlus className="size-4" /> Outlook calendar
+      </a>
       <a
         href={whatsappShareUrl(invitation, link)}
         target="_blank"

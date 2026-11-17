@@ -58,6 +58,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
   const [fullName, setFullName] = useState(invitee?.name ?? '')
   const [numberOfGuests, setNumberOfGuests] = useState(1)
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [shareOnWall, setShareOnWall] = useState(false)
   const [onWall, setOnWall] = useState(false)
@@ -86,6 +87,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
         attending,
         numberOfGuests,
         phone: phone.trim() || undefined,
+        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? email.trim() : undefined,
         message: message.trim() || undefined,
         inviteCode: invitee?.code,
       })
@@ -129,6 +131,7 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
     setFullName(invitee?.name ?? '')
     setNumberOfGuests(1)
     setPhone('')
+    setEmail('')
     setMessage('')
     setShareOnWall(false)
     setFormError(null)
@@ -227,6 +230,16 @@ export function RsvpForm({ invitationId, customMessage }: { invitationId: string
             onChange={(e) => setPhone(e.target.value)}
             placeholder="e.g. +234 800 000 0000"
           />
+          {attending && (
+            <Input
+              label="Email"
+              type="email"
+              optional
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="So we can remind you before the day"
+            />
+          )}
           <Textarea
             label="Message"
             optional

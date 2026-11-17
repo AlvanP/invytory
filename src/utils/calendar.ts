@@ -60,7 +60,24 @@ export function googleCalendarUrl(i: WeddingInvitation, link: string): string {
   return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
 
-const esc = (t: string) => t.replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
+/** Outlook (outlook.live.com and Microsoft 365 on the web). */
+export function outlookCalendarUrl(i: WeddingInvitation, link: string): string {
+  const r = range(i)
+  const iso = (v: string) => (v.length === 8 ? `${v.slice(0, 4)}-${v.slice(4, 6)}-${v.slice(6, 8)}` : `${v.slice(0, 4)}-${v.slice(4, 6)}-${v.slice(6, 8)}T${v.slice(9, 11)}:${v.slice(11, 13)}:00`)
+  const params = new URLSearchParams({
+    path: '/calendar/action/compose',
+    rru: 'addevent',
+    subject: eventTitle(i),
+    startdt: iso(r.start),
+    enddt: iso(r.end),
+    location: eventPlace(i),
+    body: `You are invited! ${link}`,
+    ...(r.allDay ? { allday: 'true' } : {}),
+  })
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`
+}
+
+const esc = (t: string) => t.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
 
 /** A .ics file, which opens in Apple Calendar, Outlook and most phone calendars. */
 export function icsFileContent(i: WeddingInvitation, link: string): string {
@@ -71,13 +88,24 @@ export function icsFileContent(i: WeddingInvitation, link: string): string {
     'VERSION:2.0',
     'PRODID:-//Invytory//Invitation//EN',
     'BEGIN:VEVENT',
-    `UID:${i.id}@evermore`,
+    `UID:${i.id}@invytory.com`,
     `DTSTAMP:${stamp}`,
     r.allDay ? `DTSTART;VALUE=DATE:${r.start}` : `DTSTART:${r.start}`,
     r.allDay ? `DTEND;VALUE=DATE:${r.end}` : `DTEND:${r.end}`,
     `SUMMARY:${esc(eventTitle(i))}`,
     `LOCATION:${esc(eventPlace(i))}`,
     `DESCRIPTION:${esc(`You are invited! ${link}`)}`,
+    // Phone calendars ring a day before and an hour before, so guests do not have to remember.
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${esc(`Tomorrow: ${eventTitle(i)}`)}`,
+    'TRIGGER:-P1D',
+    'END:VALARM',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${esc(`Today: ${eventTitle(i)}`)}`,
+    'TRIGGER:-PT2H',
+    'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n')

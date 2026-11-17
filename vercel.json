@@ -1,9 +1,23 @@
 {
   "functions": {
-    "api/invite-share.ts": { "includeFiles": "api/_assets/**" }
+    "api/invite-share.ts": {
+      "includeFiles": "api/_assets/**"
+    }
   },
   "rewrites": [
-    { "source": "/invitation/:slug", "destination": "/api/invite-share?slug=:slug" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/invitation/:slug",
+      "destination": "/api/invite-share?slug=:slug"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/send-reminders",
+      "schedule": "0 8 * * *"
+    }
   ]
 }

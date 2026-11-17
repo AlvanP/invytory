@@ -6,6 +6,7 @@ import type { SectionId } from '@/templates/sections'
 import { MotifDivider, MotifCorner } from '@/components/invitation/Motifs'
 import { getKit } from '@/templates/fontKits'
 import { toneVars } from '@/templates/tones'
+import { BloomCorner, BloomDivider, PetalDrift } from '@/components/invitation/BloomArt'
 import { RevealOnScroll } from '@/components/animation/RevealOnScroll'
 
 const colours: Record<SectionVariant, { bg: string; eyebrow: string; title: string; motif: string }> = {
@@ -93,7 +94,31 @@ export function InvitationSection({
           </>
         )
       )}
-      {body === 'ledger' ? (
+      {body === 'bloom' && variant !== 'band' && (
+        <>
+          <PetalDrift />
+          <BloomCorner className="absolute left-0 top-0 w-36 sm:w-52" />
+          <BloomCorner className="absolute bottom-0 right-0 w-36 rotate-180 sm:w-52" delay={1.4} />
+        </>
+      )}
+      {body === 'bloom' ? (
+        <div className="relative mx-auto max-w-xl px-5 py-20 text-center">
+          <RevealOnScroll>
+            <div
+              className="relative rounded-[2rem] border px-6 py-12 shadow-[0_24px_60px_-30px_rgba(120,40,70,0.45)] backdrop-blur-[2px] sm:px-10"
+              style={{
+                borderColor: 'color-mix(in srgb, var(--iv-accent) 45%, transparent)',
+                background: variant === 'band' ? 'transparent' : 'color-mix(in srgb, var(--iv-paper) 82%, transparent)',
+              }}
+            >
+              {eyebrowEl}
+              <BloomDivider className="my-3" />
+              {titleEl}
+              <div className={cn(title || eyebrow ? 'mt-8' : undefined)}>{children}</div>
+            </div>
+          </RevealOnScroll>
+        </div>
+      ) : body === 'ledger' ? (
         <div className="relative mx-auto grid max-w-4xl gap-8 px-6 py-20 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] sm:gap-14 sm:py-24">
           <RevealOnScroll>
             <header className="text-left">

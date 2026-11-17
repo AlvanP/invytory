@@ -18,6 +18,8 @@ export interface RsvpSubmission {
   attending: boolean
   numberOfGuests: number
   phone?: string
+  /** Optional: where to send a reminder before the day. */
+  email?: string
   message?: string
   /** Set when the guest came through a personal link. */
   inviteCode?: string

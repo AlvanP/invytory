@@ -141,3 +141,32 @@ body {
   max-width: 100%;
   overflow-x: clip;
 }
+
+/* ── Classic Elegance florals: slow, soft motion ── */
+@keyframes iv-sway {
+  0% { transform: rotate(-1.6deg); }
+  100% { transform: rotate(1.8deg); }
+}
+@keyframes iv-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+@keyframes iv-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes iv-petal-fall {
+  0% { transform: translate3d(0, -8%, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.4; }
+  50% { transform: translate3d(22px, 55vh, 0) rotate(160deg); }
+  90% { opacity: 0.3; }
+  100% { transform: translate3d(-12px, 110vh, 0) rotate(330deg); opacity: 0; }
+}
+.iv-sway { transform-origin: 0 0; animation: iv-sway 7s ease-in-out infinite alternate; }
+.iv-breathe { transform-box: fill-box; transform-origin: center; animation: iv-breathe 5s ease-in-out infinite; }
+.iv-draw { stroke-dasharray: 1; stroke-dashoffset: 0; animation: iv-draw 2.4s ease-out both; }
+.iv-petal { animation: iv-petal-fall linear infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .iv-sway, .iv-breathe, .iv-draw, .iv-petal { animation: none !important; }
+  .iv-petal { display: none; }
+}

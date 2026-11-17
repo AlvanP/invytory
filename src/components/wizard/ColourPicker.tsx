@@ -1,13 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { COLOUR_SWATCHES, MAX_COLOURS, buildTheme } from '@/utils/colorTheme'
 import { cn } from '@/utils/cn'
 
 /**
- * Picks the colours of the day for one ceremony: up to three. Tap a swatch to add it and
- * tap again to remove it, or add any colour with the + button. The first colour chosen is
+ * Picks the colours of the day for one ceremony: up to three. Tap a swatch to add it, tap a
+ * chosen colour (or its chip) to edit it with the colour wheel or a hex code, or add any colour with +. The first colour chosen is
  * the main one: the invitation's colour blocks and buttons use it.
  */
+/** "b08d57", "#B08" or "#b08d57" becomes "#B08D57"; anything else is not a colour (null). */
+function normaliseHex(value: string): string | null {
+  let v = value.trim().replace(/^#/, '')
+  if (/^[0-9a-f]{3}$/i.test(v)) v = v.split('').map((c) => c + c).join('')
+  return /^[0-9a-f]{6}$/i.test(v) ? `#${v.toUpperCase()}` : null
+}
+
 export function ColourPicker({
   values,
   onChange,
@@ -26,28 +33,47 @@ export function ColourPicker({
   const full = current.length >= MAX_COLOURS
   const theme = current[0] ? buildTheme(current[0]) : null
 
-  // The browser's colour picker reports every movement while you drag. Only the final choice
-  // (when you let go and close the picker) is added, so sliding around never adds colours.
-  const custom = useRef<HTMLInputElement | null>(null)
-  const [pickerKey, setPickerKey] = useState(0)
-  const latest = useRef(toggle)
-  useEffect(() => {
-    latest.current = toggle
-  })
-  useEffect(() => {
-    const node = custom.current
-    if (!node) return
-    const done = () => {
-      latest.current(node.value)
-      setPickerKey((k) => k + 1)
-    }
-    node.addEventListener('change', done)
-    return () => node.removeEventListener('change', done)
-  }, [pickerKey])
+  // Which colour is being edited: its position, 'new' for a colour being added, or none.
+  const [editing, setEditing] = useState<number | 'new' | null>(null)
+  const [draft, setDraft] = useState('#B08D57')
+  const [text, setText] = useState('#B08D57')
+  const validDraft = normaliseHex(text)
 
-  function toggle(hex: string) {
+  function open(target: number | 'new', hex: string) {
+    setEditing(target)
+    setDraft(hex)
+    setText(hex)
+  }
+
+  function pick(hex: string) {
+    setDraft(hex.toUpperCase())
+    setText(hex.toUpperCase())
+  }
+
+  function save() {
+    const hex = normaliseHex(text)
+    if (!hex || editing === null) return
+    const without = editing === 'new' ? current : current.filter((_, i) => i !== editing)
+    if (without.includes(hex)) {
+      // already one of the colours: just close
+      setEditing(null)
+      return
+    }
+    if (editing === 'new') onChange([...current, hex].slice(0, MAX_COLOURS))
+    else onChange(current.map((c, i) => (i === editing ? hex : c)))
+    setEditing(null)
+  }
+
+  function remove() {
+    if (typeof editing === 'number') onChange(current.filter((_, i) => i !== editing))
+    setEditing(null)
+  }
+
+  /** A swatch: tap an unused one to add it, tap a chosen one to edit it. */
+  function tapSwatch(hex: string) {
     const upper = hex.toUpperCase()
-    if (current.includes(upper)) onChange(current.filter((c) => c !== upper))
+    const at = current.indexOf(upper)
+    if (at >= 0) open(at, upper)
     else if (!full) onChange([...current, upper])
   }
 
@@ -67,7 +93,7 @@ export function ColourPicker({
             <button
               key={s.hex}
               type="button"
-              onClick={() => toggle(s.hex)}
+              onClick={() => tapSwatch(s.hex)}
               disabled={!selected && full}
               aria-label={s.name}
               aria-pressed={selected}
@@ -83,37 +109,79 @@ export function ColourPicker({
           )
         })}
 
-        <label
-          className={cn(
-            'relative flex size-9 items-center justify-center rounded-full border-2 border-dashed border-ink/30 text-sm text-ink-soft',
-            full ? 'opacity-35' : 'cursor-pointer'
-          )}
+        <button
+          type="button"
+          disabled={full}
+          onClick={() => open('new', '#B08D57')}
+          aria-label="Add any colour"
           title="Add any colour"
+          className={cn('flex size-9 items-center justify-center rounded-full border-2 border-dashed border-ink/30 text-sm text-ink-soft', full && 'opacity-35')}
         >
-          <span aria-hidden>+</span>
-          <input
-            key={pickerKey}
-            ref={custom}
-            type="color"
-            aria-label="Add any colour"
-            disabled={full}
-            defaultValue="#B08D57"
-            className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-default"
-          />
-        </label>
+          +
+        </button>
       </div>
 
       {current.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           {current.map((hex, i) => (
-            <span key={hex} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-2.5 py-1 text-xs text-ink-soft">
-              <span className="size-3.5 rounded-full border border-ink/20" style={{ backgroundColor: hex }} />
-              {i === 0 ? 'Main' : `Colour ${i + 1}`}
+            <span key={hex} className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-ink-soft', editing === i ? 'border-ink' : 'border-ink/15')}>
+              <button type="button" onClick={() => open(i, hex)} className="inline-flex items-center gap-1.5 hover:text-ink" aria-label={`Edit ${i === 0 ? 'main colour' : `colour ${i + 1}`}`}>
+                <span className="size-3.5 rounded-full border border-ink/20" style={{ backgroundColor: hex }} />
+                {i === 0 ? 'Main' : `Colour ${i + 1}`} <span className="font-mono text-[10px] opacity-70">{hex}</span>
+              </button>
               <button type="button" onClick={() => onChange(current.filter((c) => c !== hex))} className="text-ink-soft/60 hover:text-ink" aria-label={`Remove colour ${i + 1}`}>
                 &times;
               </button>
             </span>
           ))}
+        </div>
+      )}
+
+      {editing !== null && (
+        <div className="flex flex-col gap-3 rounded-sm border border-ink/15 bg-white p-3">
+          <p className="text-xs font-medium text-ink-soft">{editing === 'new' ? 'Add a colour' : editing === 0 ? 'Edit your main colour' : `Edit colour ${Number(editing) + 1}`}</p>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              aria-label="Pick a colour"
+              value={validDraft ?? draft}
+              onChange={(e) => pick(e.target.value)}
+              className="size-11 shrink-0 cursor-pointer rounded-xs border border-ink/15 bg-transparent p-0.5"
+            />
+            <label className="flex flex-1 flex-col gap-1 text-xs text-ink-soft">
+              Hex code
+              <input
+                value={text}
+                onChange={(e) => {
+                  const v = e.target.value
+                  setText(v)
+                  const n = normaliseHex(v)
+                  if (n) setDraft(n)
+                }}
+                maxLength={7}
+                spellCheck={false}
+                autoCapitalize="characters"
+                placeholder="#B08D57"
+                aria-invalid={!validDraft}
+                className={cn('w-full rounded-xs border bg-white px-3 py-2 font-mono text-sm uppercase text-ink focus:outline-none', validDraft ? 'border-ink/15 focus:border-gold' : 'border-red-400')}
+              />
+            </label>
+            <span className="size-11 shrink-0 rounded-xs border border-ink/15" style={{ backgroundColor: validDraft ?? draft }} aria-hidden />
+          </div>
+          {!validDraft && <p className="text-xs text-red-600">Enter a colour like #B08D57 (3 or 6 characters, 0-9 and A-F).</p>}
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={save} disabled={!validDraft} className="rounded-full bg-ink px-4 py-1.5 text-xs font-medium text-white disabled:opacity-40">
+              {editing === 'new' ? 'Add colour' : 'Save colour'}
+            </button>
+            <button type="button" onClick={() => setEditing(null)} className="rounded-full border border-ink/20 px-4 py-1.5 text-xs text-ink-soft">
+              Cancel
+            </button>
+            {typeof editing === 'number' && (
+              <button type="button" onClick={remove} className="ml-auto text-xs text-red-600 underline underline-offset-2">
+                Remove
+              </button>
+            )}
+          </div>
         </div>
       )}
 
