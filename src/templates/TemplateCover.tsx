@@ -443,19 +443,26 @@ function CoverLayout({ invitation }: { invitation: WeddingInvitation }) {
     const overPhoto = hasPhoto ? ({ '--iv-on-main': '#FFFFFF' } as CSSProperties) : undefined
     return (
       <div
-        className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[color:var(--iv-main)] bg-cover bg-center px-6 py-24 text-center text-[color:var(--iv-on-main)]"
+        className={cn('relative flex min-h-[100svh] flex-col items-center overflow-hidden bg-[color:var(--iv-main)] bg-cover bg-center px-6 text-center text-[color:var(--iv-on-main)]', bloom && hasPhoto ? 'justify-end pb-24 pt-24' : 'justify-center py-24')}
         style={{ ...overPhoto, ...(coverBackground && !hasPhoto ? { backgroundImage: `url(${coverBackground})` } : {}) }}
       >
         {hasPhoto ? (
           <>
             <img src={invitation.heroImage ?? ''} alt="" className={cn('absolute inset-0 size-full object-cover', photoIntro)} />
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/70" />
+            <div aria-hidden className={cn('absolute inset-0 bg-gradient-to-b', bloom ? 'from-black/25 via-black/5 to-black/85' : 'from-black/60 via-black/45 to-black/70')} />
           </>
         ) : (
           !coverBackground && <CoverPattern />
         )}
         <div aria-hidden className="absolute inset-4 border" style={{ borderColor: line }} />
-        <div className="relative z-10 flex flex-col items-center gap-8">
+        {bloom && (
+          <>
+            <PetalDrift />
+            <BloomCorner className="absolute left-0 top-0 w-32 sm:w-56" />
+            <BloomCorner className="absolute right-0 top-0 w-32 -scale-x-100 sm:w-56" delay={1} />
+          </>
+        )}
+        <div className={cn('relative z-10 flex flex-col items-center gap-8', bloom && 'drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]')}>
           {eyebrowEl}
           {ornament}
           <div {...rise(1)} className={rise(1).className}>

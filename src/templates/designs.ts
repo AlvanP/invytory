@@ -84,7 +84,7 @@ export const DEFAULT_RHYTHM: Record<SectionId, SectionVariant> = {
 
 export const designs: Record<string, TemplateDesign> = {
   // ── White wedding ───────────────────────────────────────────────
-  'classic-elegance': { colour: '#B0587A', paper: '#FFF8F6', kit: 'pinyon-cormorant', coverTone: 'colour', bandTone: 'deep', head: 'motif', body: 'bloom', cover: 'arch', names: 'script', motif: 'floral', scratchDate: true, rhythm: { countdown: 'soft', details: 'plain', venue: 'soft', dresscode: 'plain', story: 'soft', moment: 'plain', gallery: 'soft' } },
+  'classic-elegance': { colour: '#B0587A', paper: '#FFF8F6', kit: 'allura-cormorant', coverTone: 'colour', bandTone: 'deep', head: 'motif', body: 'bloom', cover: 'full', names: 'script', motif: 'floral', scratchDate: true, rhythm: { countdown: 'soft', details: 'plain', venue: 'soft', dresscode: 'plain', story: 'soft', moment: 'plain', gallery: 'soft' } },
   'garden-romance': { colour: '#6F8A5F', paper: '#F6F8F1', kit: 'allura-newsreader', coverTone: 'paper', bandTone: 'tint', head: 'plain', body: 'centered', cover: 'veil', names: 'script', motif: 'leaf', rhythm: { countdown: 'plain', details: 'soft', venue: 'plain', dresscode: 'soft' } },
   'modern-luxury': { colour: '#2A2623', paper: '#F4F1EC', kit: 'bodoni-manrope', coverTone: 'paper', bandTone: 'ink', head: 'hairline', body: 'editorial', cover: 'magazine', names: 'caps', motif: 'minimal', rhythm: { countdown: 'plain', details: 'soft', venue: 'plain', dresscode: 'soft', story: 'plain', moment: 'soft', gallery: 'plain' } },
 

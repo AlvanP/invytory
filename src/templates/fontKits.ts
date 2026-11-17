@@ -85,6 +85,7 @@ export interface FontKit {
 
 export const KITS = {
   'pinyon-cormorant': { display: 'cormorant', name: 'pinyon', body: 'jost', title: 'serif' },
+  'allura-cormorant': { display: 'cormorant', name: 'allura', body: 'jost', title: 'serif' },
   'allura-newsreader': { display: 'newsreader', name: 'allura', body: 'hanken', title: 'italic' },
   'bodoni-manrope': { display: 'bodoni', name: 'bodoni', body: 'manrope', title: 'caps' },
   'greatvibes-playfair': { display: 'playfair', name: 'greatVibes', body: 'figtree', title: 'serif' },
