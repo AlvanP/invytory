@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Users, Share2, Settings, ScrollText, Pencil, UserCheck, Camera, UserPlus } from 'lucide-react'
+import { Eye, Users, Share2, Settings, ScrollText, Pencil, UserCheck, Camera, Heart, UserPlus } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate, Wedding } from '@/types'
 import { ceremonyDisplayName } from '@/types'
 import { invitationService } from '@/services/invitationService'
@@ -137,6 +137,11 @@ export function DashboardEventsPage() {
                       {first && wedding.plan === 'gold' && (
                         <Link to={`/dashboard/events/${first.id}/album`} state={{ slug: wedding.slug }}>
                           <Button variant="outline" size="sm" icon={<Camera className="size-4" />}>Photo album</Button>
+                        </Link>
+                      )}
+                      {first && (
+                        <Link to={`/dashboard/events/${first.id}/thank-you`} state={{ slug: wedding.slug }}>
+                          <Button variant="outline" size="sm" icon={<Heart className="size-4" />}>Thank-you cards</Button>
                         </Link>
                       )}
                     </div>

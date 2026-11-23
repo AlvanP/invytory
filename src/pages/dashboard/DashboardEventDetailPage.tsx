@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Eye, Users, Share2, Settings, ExternalLink, Camera, UserCheck } from 'lucide-react'
+import { Eye, Users, Share2, Settings, ExternalLink, Camera, Heart, UserCheck } from 'lucide-react'
 import type { WeddingInvitation, InvitationTemplate } from '@/types'
 import { invitationService } from '@/services/invitationService'
 import { templateService } from '@/services/templateService'
@@ -58,6 +58,9 @@ export function DashboardEventDetailPage() {
           </Link>
           <Link to={`/dashboard/events/${invitation.id}/album`}>
             <Button variant="outline" size="sm" icon={<Camera className="size-4" />}>Photo album</Button>
+          </Link>
+          <Link to={`/dashboard/events/${invitation.id}/thank-you`}>
+            <Button variant="outline" size="sm" icon={<Heart className="size-4" />}>Thank-you cards</Button>
           </Link>
           <Link to={`/dashboard/events/${invitation.id}/settings`}>
             <Button variant="outline" size="sm" icon={<Settings className="size-4" />}>Settings</Button>

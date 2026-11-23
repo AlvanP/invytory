@@ -66,7 +66,7 @@ const FONTS = {
   montserrat: { family: "'Montserrat'", load: all(() => import('@fontsource/montserrat/400.css'), () => import('@fontsource/montserrat/500.css'), () => import('@fontsource/montserrat/600.css')) },
 } satisfies Record<string, FontFile>
 
-type FontId = keyof typeof FONTS
+export type FontId = keyof typeof FONTS
 
 export interface FontKit {
   /** Section titles and numbers. */
@@ -159,4 +159,16 @@ export function loadKit(kit: FontKit): void {
     loaded.add(id)
     FONTS[id].load().catch(() => loaded.delete(id))
   }
+}
+
+/** The CSS family name of a font, for places that draw text themselves (the thank-you cards). */
+export const fontFamily = (id: FontId): string => FONTS[id].family
+
+/** Downloads fonts and waits until they can be drawn, so a canvas never paints in a fallback font. */
+export async function ensureFonts(ids: FontId[]): Promise<void> {
+  await Promise.all(ids.map((id) => FONTS[id].load().catch(() => undefined)))
+  if (typeof document === 'undefined' || !document.fonts) return
+  await Promise.all(
+    ids.flatMap((id) => [document.fonts.load(`40px ${FONTS[id].family}`).catch(() => []), document.fonts.load(`italic 40px ${FONTS[id].family}`).catch(() => [])])
+  )
 }
