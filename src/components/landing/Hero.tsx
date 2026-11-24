@@ -27,8 +27,8 @@ export function Hero() {
             Tell a story, with your invites.
           </h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-soft">
-            Animated invitations for weddings, dedications, birthdays, corporate events and memorials. Guests reply in a tap, and
-            share their photos in one album.
+            Animated invitations for weddings, dedications, birthdays, corporate events and memorials. Guests reply in a tap, get
+            gentle reminders, and share their photos in one album.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <Link to="/create">

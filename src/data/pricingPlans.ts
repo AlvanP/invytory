@@ -30,7 +30,7 @@ export const pricingPlans: PricingPlan[] = [
     price: 45000,
     maxGuests: 1000,
     hostingDays: 365,
-    description: 'Everything in Essential, plus one shared album for every photo your guests take.',
+    description: 'Everything in Essential, plus a shared guest photo album and ready-made thank-you cards.',
     guestAlbum: true,
   },
 ]
@@ -38,16 +38,20 @@ export const pricingPlans: PricingPlan[] = [
 /** What every plan includes. */
 export const sharedPlanFeatures = [
   'Animated invitation with your own entrance',
-  'Every template, in every event category',
-  'RSVP and live guest list',
-  'Guest messages wall',
-  'Countdown, Add to Calendar and WhatsApp sharing',
+  '44 templates, every one in every event category',
+  'Colours of the day, with your own hex colours',
+  'RSVP, live guest list and a guest messages wall',
+  'Personalised links for your special guests',
+  'Automatic reminders to guests the week and the day before',
+  'Add to Calendar for Google, Apple and Outlook',
   'Photo gallery and background music',
-  'QR code and shareable link',
+  'WhatsApp sharing, QR code and shareable link',
+  'Invite a co-host or manager to help',
 ]
 
 /** Extra on the Signature plan only. */
 export const albumFeature = 'Guests\u2019 photo album: one tap, no app, download in full quality'
+export const thankYouFeature = 'Thank-you cards: 8 designs, shared as a photo on WhatsApp or email'
 
 export interface WholesaleTier {
   range: string

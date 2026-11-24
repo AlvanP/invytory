@@ -4,6 +4,7 @@ import { Hero } from '@/components/landing/Hero'
 import { Marquee } from '@/components/landing/Marquee'
 import { CategoryExplorer } from '@/components/landing/CategoryExplorer'
 import { HowItWorks } from '@/components/landing/HowItWorks'
+import { Features } from '@/components/landing/Features'
 import { GuestAlbum } from '@/components/landing/GuestAlbum'
 import { RsvpFeature } from '@/components/landing/RsvpFeature'
 import { PricingSection } from '@/components/landing/PricingSection'
@@ -25,6 +26,7 @@ export function LandingPage() {
       <Marquee />
       <CategoryExplorer />
       <HowItWorks />
+      <Features />
       <GuestAlbum />
       <RsvpFeature />
       <PricingSection />

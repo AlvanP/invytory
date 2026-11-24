@@ -8,8 +8,8 @@ const steps = [
   { title: 'Choose your style', text: 'Pick a design made for your kind of event, from a wedding to a memorial.' },
   { title: 'Customise', text: 'Add your names, date, venue, photos and music. Choose your colours of the day.' },
   { title: 'Share', text: 'Send one link on WhatsApp, or print the QR code on your cards.' },
-  { title: 'RSVP', text: 'Guests reply in a tap. You see who is coming as the answers arrive.' },
-  { title: 'Your guests’ photos, in one album', text: 'After the event, guests add the photos they took. You download them all.', note: 'Signature plan' },
+  { title: 'RSVP', text: 'Guests reply in a tap and we remind them before the day. You see who is coming as the answers arrive.' },
+  { title: 'Your guests’ photos, in one album', text: 'After the event, guests add the photos they took, and you send each guest a thank-you card.', note: 'Signature plan' },
 ]
 
 /** The five steps, in order. This is a real sequence, so the steps are numbered. */

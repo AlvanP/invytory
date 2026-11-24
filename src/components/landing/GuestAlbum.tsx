@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Download, Camera } from 'lucide-react'
+import { Download, Camera, Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { sampleArt } from '@/data/sampleInvitations'
 import { albumPhoto } from '@/utils/samplePhotos'
@@ -66,6 +66,10 @@ export function GuestAlbum() {
             <li className="flex gap-3">
               <Download className="mt-1 size-5 shrink-0 text-amber" strokeWidth={1.5} />
               <span>You find them all in one album, and download a single photo or the whole album in full quality.</span>
+            </li>
+            <li className="flex gap-3">
+              <Heart className="mt-1 size-5 shrink-0 text-amber" strokeWidth={1.5} />
+              <span>On the day, send thank-you cards in one of 8 designs, made from your own photos and shared as a picture on WhatsApp or email.</span>
             </li>
           </ul>
           <p className="mt-8 text-sm text-ivory/70">

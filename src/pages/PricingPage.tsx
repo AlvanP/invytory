@@ -11,7 +11,7 @@ export function PricingPage() {
         <h1 className="font-brand text-5xl text-wine sm:text-6xl">Pay once, per invitation</h1>
         <p className="mx-auto mt-4 max-w-md text-base text-ink-soft">
           Every plan includes every template, in every event category. The difference is how many guests you invite, how long
-          your invitation stays online, and whether your guests share their photos in one album.
+          your invitation stays online, and whether you also get the guest photo album and thank-you cards.
         </p>
       </div>
 

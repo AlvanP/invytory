@@ -1,7 +1,7 @@
 import { eventCopy, EVENT_KINDS } from '@/templates/events'
 import { ACCENTS } from '@/utils/accents'
 
-const EXTRA = ['Animated entrances', 'RSVP in a tap', 'Guest photo album', 'Special guest links', 'Share on WhatsApp']
+const EXTRA = ['Animated entrances', 'RSVP in a tap', 'Automatic reminders', 'Add to Calendar', 'Guest photo album', 'Thank-you cards', 'Special guest links', 'Share on WhatsApp']
 
 /** A slow strip of what Invytory is for and what it does. Purely decoration, so it is hidden from screen readers. */
 export function Marquee() {
